@@ -11,6 +11,7 @@
 #include "Transform.h"
 #include "Camera.h"
 #include "Model.h"
+#include "stb_image.h"
 
 class Game {
 public:
@@ -29,6 +30,7 @@ private:
     glm::vec3 camera_vel;
     glm::vec3 camera_rot_vel;
     Model model;
+    unsigned int texture;
 
     const int MINECRAFT_TICKRATE = 20;
     const int MS_PER_UPDATE = 1000 / MINECRAFT_TICKRATE;

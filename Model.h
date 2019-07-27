@@ -19,9 +19,9 @@ public:
 
     void render(Camera& camera) {
         shader.use();
-        glm::mat4 model = camera.GetViewProjection() * transform.GetModel();
-        glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, &model[0][0]);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glm::mat4 clip_transform = camera.get_view_projection() * transform.get_model();
+        glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, &clip_transform[0][0]);
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         mesh.draw();
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }

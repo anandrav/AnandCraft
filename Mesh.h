@@ -11,7 +11,7 @@ struct Vertex {
     glm::vec2 tex_coords;
 };
 
-// Wireframe with no textures, shaders, etc.
+// Thin wrapper class around OpenGL vertex array object
 class Mesh {
 public:
     // default constructor
