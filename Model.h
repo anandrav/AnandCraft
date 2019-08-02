@@ -21,6 +21,11 @@ public:
         shader.use();
         glm::mat4 clip_transform = camera.get_view_projection() * transform.get_model();
         glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, &clip_transform[0][0]);
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_CULL_FACE);
+
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         mesh.draw();
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

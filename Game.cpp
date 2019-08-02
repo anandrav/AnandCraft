@@ -36,8 +36,6 @@ Game::Game() : is_running(true), camera(Camera((float)WIDTH/(float)HEIGHT)) {
     glewExperimental = GL_TRUE;
     glewInit();
 
-    glEnable(GL_DEPTH_TEST);
-
     init();
 }
 
@@ -62,6 +60,7 @@ Game::~Game() {
 
 void Game::run_loop() {
     // fixed update time, variable rendering
+    // TODO: incorporate interpolation for animation/shaders
     double previous = SDL_GetTicks();
     double lag = 0.0;
     while (is_running) {
@@ -84,10 +83,9 @@ void Game::run_loop() {
 void Game::process_input() {
     SDL_Event e;
 
-    #define VEL 0.1f
+    #define VEL 1.1f/5.f
+    // 50 updates per second times 1.1/5 is 11 units/second
 
-    camera_rot_vel.y = 0;
-    camera_rot_vel.x = 0;
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) {
             is_running = false;
@@ -201,22 +199,113 @@ void Game::process_input() {
             }
         }
         if (e.type == SDL_MOUSEMOTION) {
-            camera_rot_vel.y = (float)e.motion.xrel;
-            camera_rot_vel.x = -(float)e.motion.yrel;
+            camera_rot.y = (float)e.motion.xrel;
+            camera_rot.x = -(float)e.motion.yrel;
         }
     }
 }
 
+void make_a_mesh() {
+    // cube w/ 24 vertices to make textures and normals (lighting) work
+    float vertices[] = {
+        // x+ face
+        0.5f,  0.5f, 0.5f,      // top right front
+        0.5f, -0.5f, 0.5f,      // bottom right front
+        0.5f,  0.5f, -0.5f,     // top right back
+        0.5f, -0.5f, -0.5f,     // bottom right back
+        // x- face
+        -0.5f, -0.5f, 0.5f,     // bottom left front
+        -0.5f,  0.5f, 0.5f,     // top left front
+        -0.5f, -0.5f, -0.5f,    // bottom left back
+        -0.5f,  0.5f, -0.5f,    // top left back
+        // y+ face
+        0.5f,  0.5f, 0.5f,      // top right front
+        -0.5f,  0.5f, 0.5f,     // top left front
+        0.5f,  0.5f, -0.5f,     // top right back
+        -0.5f,  0.5f, -0.5f,    // top left back
+        // y- face
+        0.5f, -0.5f, 0.5f,      // bottom right front
+        -0.5f, -0.5f, 0.5f,     // bottom left front
+        0.5f, -0.5f, -0.5f,     // bottom right back
+        -0.5f, -0.5f, -0.5f,    // bottom left back
+        // z+ face
+        0.5f,  0.5f, 0.5f,      // top right front
+        0.5f, -0.5f, 0.5f,      // bottom right front
+        -0.5f, -0.5f, 0.5f,     // bottom left front
+        -0.5f,  0.5f, 0.5f,     // top left front
+        // z- face
+         0.5f,  0.5f, -0.5f,    // top right back
+         0.5f, -0.5f, -0.5f,    // bottom right back
+        -0.5f, -0.5f, -0.5f,    // bottom left back
+        -0.5f,  0.5f, -0.5f     // top left back
+    };
+
+    unsigned int indices[] = {  // note that we start from 0!
+        // x+ face
+        0, 1, 2,
+        1, 2, 3,
+        // x- face
+        4, 5, 6,
+        5, 6, 7,
+        // y+ face
+        8, 9, 10,
+        9, 10, 11,
+        // y- face
+        12, 13, 14,
+        13, 14, 15,
+        // z+ face
+        16, 17, 18,
+        18, 19, 16,
+        // z- face
+        20, 21, 22,
+        22, 23, 20
+    };
+
+    std::vector<Vertex> vertices_vec;
+    for (int i = 0; i < 24; i += 1) {
+        float x = vertices[3*i];
+        float y = vertices[3*i + 1];
+        float z = vertices[3*i + 2];
+        auto position = glm::vec3(x, y, z);
+        float u = 0.f;
+        float v = 0.f;
+        auto tex_coords = glm::vec2(u, v);
+        Vertex vertex{ position, glm::vec3(), tex_coords };
+        vertices_vec.push_back(vertex);
+    }
+
+    std::vector<unsigned int> indices_vec;
+    for (int i = 0; i < 36; ++i) {
+        indices_vec.push_back(indices[i]);
+    }
+
+    Mesh mesh(vertices_vec, indices_vec);
+}
+
 void Game::update() {
-    //model.get_transform().rotate(0.03f, glm::vec3(1.f, 0.f, 0.f));
     camera.move_forward(-camera_vel.z);
     camera.move_left(-camera_vel.x);
     camera.move_up(camera_vel.y);
-    //camera.transform.rotate(camera_rot_vel.x, glm::vec3(1.f,0.f,0.f));
-    //camera.transform.rotate(camera_rot_vel.y,glm::vec3(0.f,1.f,0.f));
-    // FIX ROLLING ISSUE! MAYBE MAKE TRANSFORM PRIVATE AND IMPLEMENT SET_YAW, SET_PITCH FUNCTIONS
-    camera.pitch(camera_rot_vel.x/100.f);
-    camera.yaw(camera_rot_vel.y/100.f);
+    camera.pitch(glm::radians(camera_rot.x/2.f));
+    camera.yaw(glm::radians(camera_rot.y)/2.f);
+    camera_rot.y = 0;
+    camera_rot.x = 0;
+
+    if (SDL_GetTicks() % 7000 <= 1000) {
+        set_model(Block::Data{Block::ID::DIRT});
+    } else if (SDL_GetTicks() % 7000 <= 2000) {
+        set_model(Block::Data{ Block::ID::GRASS });
+    } else if (SDL_GetTicks() % 7000 <= 3000) {
+        set_model(Block::Data{ Block::ID::STONE });
+    } else if (SDL_GetTicks() % 7000 <= 4000) {
+        set_model(Block::Data{ Block::ID::COBBLESTONE });
+    } else if (SDL_GetTicks() % 7000 <= 5000) {
+        set_model(Block::Data{ Block::ID::SAND });
+    } else if (SDL_GetTicks() % 7000 <= 6000) {
+        set_model(Block::Data{ Block::ID::PLANK });
+    } else if (SDL_GetTicks() % 7000 <= 7000) {
+        set_model(Block::Data{ Block::ID::LOG });
+    }
 }
 void print_vertices(std::vector<Vertex> vertices) {
     for (int i = 0; i < vertices.size(); ++i) {
@@ -225,79 +314,32 @@ void print_vertices(std::vector<Vertex> vertices) {
     std::cout << "\n";
 }
 
+void increment_vector(vector<unsigned int>& vec, int num) {
+    for (int i = 0; i < vec.size(); ++i) {
+        vec[i] += num;
+    }
+}
+
 void Game::init() {
     camera.move_forward(-2.f);
-    //// cube
-    //float vertices[] = {
-    // 0.5f,  0.5f, 0.5f,  // top right
-    // 0.5f, -0.5f, 0.5f,  // bottom right
-    //-0.5f, -0.5f, 0.5f,  // bottom left
-    //-0.5f,  0.5f, 0.5f,   // top left
-    // 0.5f,  0.5f, -0.5f,
-    // 0.5f, -0.5f, -0.5f,
-    //-0.5f, -0.5f, -0.5f,
-    //-0.5f,  0.5f, -0.5f
-    //};
-    //float tex_coords[] = {
-    // 0.5f,  0.5f, 0.5f,  // top right
-    // 0.5f, -0.5f, 0.5f,  // bottom right
-    //-0.5f, -0.5f, 0.5f,  // bottom left
-    //-0.5f,  0.5f, 0.5f,   // top left
-    // 0.5f,  0.5f, -0.5f,
-    // 0.5f, -0.5f, -0.5f,
-    //-0.5f, -0.5f, -0.5f,
-    //-0.5f,  0.5f, -0.5f
-    //};
-    //unsigned int indices[] = {  // note that we start from 0!
-    //    0, 1, 3,   // first triangle
-    //    1, 2, 3,    // second triangle
-    //    7, 4, 5,
-    //    7, 6, 5,
-    //    7, 3, 0,
-    //    7, 4, 0,
-    //    2, 6, 5,
-    //    2, 1, 5,
-    //    1, 5, 4,
-    //    1, 0, 4,
-    //    2, 3, 7,
-    //    2, 6, 7
-    //};
-
-    //std::vector<Vertex> vertices_vec;
-    //for (int i = 0; i < 24; i+=3) {
-    //    float x = vertices[i];
-    //    float y = vertices[i+1];
-    //    float z = vertices[i+2];
-    //    auto position = glm::vec3(x,y,z);
-    //    Vertex vertex{ position, glm::vec3(), glm::vec2() };
-    //    vertices_vec.push_back(vertex);
-    //}
-
-    //std::vector<unsigned int> indices_vec;
-    //for (int i = 0; i < 36; ++i) {
-    //    indices_vec.push_back(indices[i]);
-    //}
 
     // Create texture from image
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
     // set the texture wrapping/filtering options (on the currently bound texture object)
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     // load and generate the texture
     int width, height, nrChannels;
-    unsigned char* data = stbi_load("texture-atlas.jpg", &width, &height, &nrChannels, 0);
+    unsigned char* data = stbi_load("texture-atlas.png", &width, &height, &nrChannels, 0);
     if (data) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else {
         std::cout << "Failed to load texture" << std::endl;
     }
     stbi_image_free(data);
-
 
     // cube w/ 24 vertices to make textures and normals (lighting) work
     float vertices[] = {
@@ -437,28 +479,29 @@ void Game::init() {
         22, 23, 20
     };
 
-    std::vector<Vertex> vertices_vec;
-    for (int i = 0; i < 24; i += 1) {
-        float x = vertices[3*i];
-        float y = vertices[3*i + 1];
-        float z = vertices[3*i + 2];
-        auto position = glm::vec3(x, y, z);
-        float u = tex_coords[2*i];
-        float v = 1.f-tex_coords[2*i + 1];
-        auto tex_coords = glm::vec2(u, v);
-        Vertex vertex{ position, glm::vec3(), tex_coords };
-        vertices_vec.push_back(vertex);
-    }
+    //std::vector<Vertex> vertices_vec;
+    //for (int i = 0; i < 24; i += 1) {
+    //    float x = vertices[3*i];
+    //    float y = vertices[3*i + 1];
+    //    float z = vertices[3*i + 2];
+    //    auto position = glm::vec3(x, y, z);
+    //    float u = tex_coords[2*i];
+    //    float v = 1.f-tex_coords[2*i + 1];
+    //    auto tex_coords = glm::vec2(u, v);
+    //    Vertex vertex{ position, glm::vec3(), tex_coords };
+    //    vertices_vec.push_back(vertex);
+    //}
 
-    std::vector<unsigned int> indices_vec;
-    for (int i = 0; i < 36; ++i) {
-        indices_vec.push_back(indices[i]);
-    }
+    //std::vector<unsigned int> indices_vec;
+    //for (int i = 0; i < 36; ++i) {
+    //    indices_vec.push_back(indices[i]);
+    //}
 
-    Shader shader = Shader("basic_vert.glsl", "basic_frag.glsl");
-    Mesh mesh(vertices_vec, indices_vec);
-    model = Model(mesh, shader);
-    model.get_transform().rotate(glm::radians(45.f), glm::vec3(0.f, 1.f, 0.f));
+    set_model(Block::Data{ Block::ID::GRASS });
+    set_model(Block::Data{ Block::ID::COBBLESTONE });
+
+
+    //model.get_transform().rotate(glm::radians(45.f), glm::vec3(0.f, 1.f, 0.f));
 }
 
 void Game::render() {
@@ -478,3 +521,44 @@ void Game::render() {
     SDL_GL_SwapWindow(main_window);
 }
 
+
+void Game::set_model(Block::Data block_data) {
+    std::vector<Vertex> vertices_vec;
+    std::vector<unsigned int> indices_vec;
+
+    std::vector<Vertex> face1 = Block::get_block_face_vertices(block_data, Block::Face::XNEG);
+    vertices_vec.insert(vertices_vec.end(), face1.begin(), face1.end());
+    face1 = Block::get_block_face_vertices(block_data, Block::Face::XPOS);
+    vertices_vec.insert(vertices_vec.end(), face1.begin(), face1.end());
+    face1 = Block::get_block_face_vertices(block_data, Block::Face::YNEG);
+    vertices_vec.insert(vertices_vec.end(), face1.begin(), face1.end());
+    face1 = Block::get_block_face_vertices(block_data, Block::Face::YPOS);
+    vertices_vec.insert(vertices_vec.end(), face1.begin(), face1.end());
+    face1 = Block::get_block_face_vertices(block_data, Block::Face::ZNEG);
+    vertices_vec.insert(vertices_vec.end(), face1.begin(), face1.end());
+    face1 = Block::get_block_face_vertices(block_data, Block::Face::ZPOS);
+    vertices_vec.insert(vertices_vec.end(), face1.begin(), face1.end());
+
+    std::vector<unsigned int> indices1 = Block::get_block_face_indices(block_data, Block::Face::XNEG);
+    increment_vector(indices1, 0);
+    indices_vec.insert(indices_vec.end(), indices1.begin(), indices1.end());
+    indices1 = Block::get_block_face_indices(block_data, Block::Face::XPOS);
+    increment_vector(indices1, 4);
+    indices_vec.insert(indices_vec.end(), indices1.begin(), indices1.end());
+    indices1 = Block::get_block_face_indices(block_data, Block::Face::YNEG);
+    increment_vector(indices1, 8);
+    indices_vec.insert(indices_vec.end(), indices1.begin(), indices1.end());
+    indices1 = Block::get_block_face_indices(block_data, Block::Face::YPOS);
+    increment_vector(indices1, 12);
+    indices_vec.insert(indices_vec.end(), indices1.begin(), indices1.end());
+    indices1 = Block::get_block_face_indices(block_data, Block::Face::ZNEG);
+    increment_vector(indices1, 16);
+    indices_vec.insert(indices_vec.end(), indices1.begin(), indices1.end());
+    indices1 = Block::get_block_face_indices(block_data, Block::Face::ZPOS);
+    increment_vector(indices1, 20);
+    indices_vec.insert(indices_vec.end(), indices1.begin(), indices1.end());
+
+    Shader shader = Shader("basic_vert.glsl", "basic_frag.glsl");
+    Mesh mesh(vertices_vec, indices_vec);
+    model = Model(mesh, shader);
+}

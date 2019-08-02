@@ -65,13 +65,12 @@ public:
         glLinkProgram(ID);
         check_compile_errors(ID, "PROGRAM");
         // delete the shaders as they're linked into our program now and no longer necessary
+        //glDetachShader(ID, vertex);
+        //glDetachShader(ID, fragment);
         glDeleteShader(vertex);
         glDeleteShader(fragment);
     }
-    // use/activate the shader
-    void use() {
-        glUseProgram(ID);
-    }
+
     // set uniform values
     //void setBool(const std::string& name, bool value) const {
     //    glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
@@ -82,6 +81,23 @@ public:
     //void setFloat(const std::string& name, float value) const {
     //    glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
     //}
+
+    //Shader(Shader& other);
+
+    //Shader& operator=(Shader& other);
+
+    //Shader(Shader&& other) noexcept;
+
+    //Shader& operator=(Shader&& other) noexcept;
+
+    //~Shader() {
+    //    glDeleteProgram(ID);
+    //}
+
+    // use/activate the shader
+    void use() {
+        glUseProgram(ID);
+    }
 
 private:
     void check_compile_errors(unsigned int shader, const std::string& type) {

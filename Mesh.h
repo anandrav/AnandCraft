@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <iostream>
 #include "GL/glew.h"
 #include "glm/glm.hpp"
 
@@ -19,16 +18,12 @@ public:
 
     Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices);
 
-    // copy constructor
     Mesh(Mesh& other);
 
-    // copy assignment operator
     Mesh& operator=(Mesh& other);
 
-    // move constructor
     Mesh(Mesh&& other) noexcept;
 
-    // move assignment operator
     Mesh& operator=(Mesh&& other) noexcept;
 
     ~Mesh();

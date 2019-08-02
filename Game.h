@@ -1,4 +1,5 @@
 #pragma once
+
 #include <iostream>
 
 #include <SDL2/SDL.h>
@@ -11,6 +12,7 @@
 #include "Transform.h"
 #include "Camera.h"
 #include "Model.h"
+#include "Block.h"
 #include "stb_image.h"
 
 class Game {
@@ -21,15 +23,16 @@ public:
 
     void run_loop();
 
-    static const unsigned int WIDTH = 800;
-    static const unsigned int HEIGHT = 600;
+    static const unsigned int WIDTH = 1280;
+    static const unsigned int HEIGHT = 720;
 
 private:
     void init();
     Camera camera;
     glm::vec3 camera_vel;
-    glm::vec3 camera_rot_vel;
+    glm::vec3 camera_rot;
     Model model;
+    void set_model(Block::Data data);
     unsigned int texture;
 
     const int MINECRAFT_TICKRATE = 20;

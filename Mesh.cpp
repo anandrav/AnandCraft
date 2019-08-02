@@ -46,7 +46,9 @@ Mesh& Mesh::operator=(Mesh&& other) noexcept {
 }
 
 Mesh::~Mesh() {
-    //glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
+    glDeleteVertexArrays(1, &VAO);
 }
 
 void Mesh::draw() {

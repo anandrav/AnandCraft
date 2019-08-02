@@ -1,12 +1,15 @@
 #pragma once
 
+#include "Transform.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
+#include <glm/gtx/vector_angle.hpp>
 
-// First-person camera
+// First-person-shooter style camera
 class Camera {
 public:
-    Camera(float aspect, float fov = glm::radians(70.f), float zNear = 0.01f,
+    Camera(float aspect, float fov = glm::radians(55.f), float zNear = 0.01f,
         float zFar = 1000.0f) :
         aspect(aspect), fov(fov), zNear(zNear), zFar(zFar) {
     }
@@ -16,11 +19,24 @@ public:
     }
 
     void yaw(float angle) {
-        transform.rotate(angle, transform.get_orientation() * default_up());
+        // use quat to transform local space to world space
+        glm::vec3 world_y_axis = transform.get_orientation() * default_up();
+        transform.rotate(angle, world_y_axis);
     }
 
     void pitch(float angle) {
-        transform.rotate(angle, transform.get_orientation() * get_left());
+        // clamp pitch to +-90 degrees up and down
+        const float PADDING = 0.01f;
+        float remaining_up = glm::angle(get_forward(), default_up());
+        float remaining_down = remaining_up - glm::radians(180.f);
+        if (angle >= remaining_up) {
+            transform.rotate(remaining_up - PADDING, default_left());
+        }
+        else if (angle <= remaining_down) {
+            transform.rotate(remaining_down + PADDING, default_left());
+        } else {
+            transform.rotate(angle, default_left());
+        }
     }
 
     void move_forward(float dist) {
@@ -55,23 +71,24 @@ private:
         return glm::vec3(-1, 0, 0);
     }
 
+    /* use inverse quat to transform default vector into local space vector */
     glm::vec3 get_forward() {
         return glm::conjugate(transform.get_orientation()) * default_forward();
     }
-
     glm::vec3 get_up() {
         return glm::conjugate(transform.get_orientation()) * default_up();
     }
-
     glm::vec3 get_left() {
         return glm::conjugate(transform.get_orientation()) * default_left();
     }
 
-    glm::mat4 get_view() {
-        return glm::lookAt(transform.get_pos(), transform.get_pos() + get_forward(), get_up());
+    /* view projection functions */
+    inline glm::mat4 get_view() {
+        return glm::lookAt(transform.get_pos(), transform.get_pos() + get_forward(),
+                           get_up());
     }
 
-    glm::mat4 get_perspective() {
+    inline glm::mat4 get_perspective() {
         return glm::perspective(fov, aspect, zNear, zFar);
     }
 };
