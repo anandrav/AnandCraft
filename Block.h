@@ -14,8 +14,10 @@ namespace Block {
     const unsigned int TEXTURE_ATLAS_HEIGHT_IN_BLOCKS = 16;
 
     enum ID {
-        // basic
+        // none
         AIR,
+
+        // cube
         DIRT,
         GRASS,
         STONE,
@@ -27,10 +29,20 @@ namespace Block {
         BRICK,
         GLASS,
         BOOKSHELF,
-        // flora
+
+        // slab
+        COBBLESTONE_SLAB,
+        PLANK_SLAB,
+        BRICK_SLAB,
+
+        // stair
+        COBBLESTONE_STAIR,
+        PLANK_STAIR,
+        BRICK_STAIR,
+
+        // X
         ROSE,
         DAISY,
-        TULIP,
     };
 
     enum class MeshType {
@@ -57,16 +69,28 @@ namespace Block {
         ZNEG
     };
 
-    struct Data {
-        ID id = ID::AIR;
-        MeshType mesh_type = MeshType::CUBE;
-        Spin spin = Spin::NORTH;
-        Face top_face = Face::YPOS;
+    /* struct to store state of a block in world */
+
+    struct State {
+    public:
+        State(ID id, Spin spin = Spin::NORTH, Face top_face = Face::YPOS) :
+            id(id), spin(spin), top_face(top_face) { }
+        ID id;
+        Spin spin;
+        Face top_face;
     };
 
-    vector<Vertex> get_block_face_vertices(const Data& data, Face face);
+    /* functions for constructing meshes with block faces */
 
-    vector<unsigned int> get_block_face_indices(const Data& data, Face face);
+    vector<Vertex> get_block_face_vertices(ID id, Face face);
+
+    vector<unsigned int> get_block_face_indices(ID id, Face face);
 
     std::pair<int, int> get_texture_atlas_location(ID id, Face face);
+
+    /* functions for getting block specs */
+
+    MeshType get_mesh_type(ID id);
+
+    bool get_is_opaque(ID id);
 };

@@ -15,7 +15,9 @@ class Model {
 public:
     Model() = default;
 
-    Model(Mesh mesh, Shader shader) : mesh(mesh), shader(shader) {}
+    Model(Mesh mesh, Shader shader, Transform transform = Transform()) :
+        mesh(mesh), shader(shader), transform(transform) {
+    }
 
     void render(Camera& camera) {
         shader.use();

@@ -29,6 +29,12 @@ public:
     glm::vec3 get_scale() {
         return m_scale;
     }
+    void set_pos(glm::vec3 pos) {
+        position = pos;
+    }
+    void set_scale(glm::vec3 scale) {
+        m_scale = scale;
+    }
     void translate(glm::vec3 translation) {
         position += translation;
     }

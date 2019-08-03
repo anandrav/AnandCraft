@@ -14,6 +14,8 @@
 #include "Model.h"
 #include "Block.h"
 #include "stb_image.h"
+#include "BlockDemo.h"
+#include "Chunk.h"
 
 class Game {
 public:
@@ -31,8 +33,10 @@ private:
     Camera camera;
     glm::vec3 camera_vel;
     glm::vec3 camera_rot;
-    Model model;
-    void set_model(Block::Data data);
+    //Model model;
+    SingleBlockDemo* single_block;
+    Chunk* chunk;
+    //void set_model(Block::Data data);
     unsigned int texture;
 
     const int MINECRAFT_TICKRATE = 20;

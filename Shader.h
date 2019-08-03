@@ -18,7 +18,67 @@ public:
     }
 
     // constructor reads and builds the shader
-    Shader(const std::string& vertex_path, const std::string& fragment_path) {
+    Shader(const std::string vertex_path, const std::string fragment_path) {
+        this->vertex_path = vertex_path;
+        this->fragment_path = fragment_path;
+
+        setup_program();
+    }
+
+    Shader(Shader& other) {
+        vertex_path = other.vertex_path;
+        fragment_path = other.fragment_path;
+
+        setup_program();
+    }
+
+    Shader& operator=(Shader& other) {
+        Shader temp(other);
+        std::swap(vertex_path, temp.vertex_path);
+        std::swap(fragment_path, temp.fragment_path);
+        std::swap(ID, temp.ID);
+        return *this;
+    }
+
+    Shader(Shader&& other) noexcept {
+        vertex_path = std::move(other.vertex_path);
+        fragment_path = std::move(other.fragment_path);
+        setup_program();
+    }
+
+    Shader& operator=(Shader&& other) noexcept {
+        Shader temp(std::move(other));
+        std::swap(vertex_path, temp.vertex_path);
+        std::swap(fragment_path, temp.fragment_path);
+        std::swap(ID, temp.ID);
+        return *this;
+    }
+
+    ~Shader() {
+        glDeleteProgram(ID);
+    }
+
+    // use/activate the shader
+    void use() {
+        glUseProgram(ID);
+    }
+
+    // set uniform values
+    //void setBool(const std::string& name, bool value) const {
+    //    glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
+    //}
+    //void setInt(const std::string& name, int value) const {
+    //    glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
+    //}
+    //void setFloat(const std::string& name, float value) const {
+    //    glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
+    //}
+
+private:
+    std::string vertex_path;
+    std::string fragment_path;
+
+    void setup_program() {
         std::string vertex_code;
         std::string fragment_code;
         std::ifstream v_shader_file;
@@ -65,41 +125,10 @@ public:
         glLinkProgram(ID);
         check_compile_errors(ID, "PROGRAM");
         // delete the shaders as they're linked into our program now and no longer necessary
-        //glDetachShader(ID, vertex);
-        //glDetachShader(ID, fragment);
         glDeleteShader(vertex);
         glDeleteShader(fragment);
     }
 
-    // set uniform values
-    //void setBool(const std::string& name, bool value) const {
-    //    glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
-    //}
-    //void setInt(const std::string& name, int value) const {
-    //    glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
-    //}
-    //void setFloat(const std::string& name, float value) const {
-    //    glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
-    //}
-
-    //Shader(Shader& other);
-
-    //Shader& operator=(Shader& other);
-
-    //Shader(Shader&& other) noexcept;
-
-    //Shader& operator=(Shader&& other) noexcept;
-
-    //~Shader() {
-    //    glDeleteProgram(ID);
-    //}
-
-    // use/activate the shader
-    void use() {
-        glUseProgram(ID);
-    }
-
-private:
     void check_compile_errors(unsigned int shader, const std::string& type) {
         int success;
         char info_log[1024];

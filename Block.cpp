@@ -7,10 +7,10 @@ namespace Block {
         // (0,0,0) is the 0th coordinate (000 in binary)
         // (0,0,1) is the 1st coordinate (001 in binary)
         // (0,1,0) is the 2th coordinate (010 in binary)
-    vector<Vertex> get_block_face_vertices(const Data& data, Face face) {
+    vector<Vertex> get_block_face_vertices(ID id, Face face) {
         vector<Vertex> vertices;
         std::pair<float, float> location = 
-            get_texture_atlas_location(data.id, face);
+            get_texture_atlas_location(id, face);
         float origin_x = location.first / TEXTURE_ATLAS_WIDTH_IN_BLOCKS;
         float origin_y = location.second / TEXTURE_ATLAS_HEIGHT_IN_BLOCKS;
         float unit_x = 1.f / TEXTURE_ATLAS_WIDTH_IN_BLOCKS;
@@ -21,7 +21,7 @@ namespace Block {
         origin_y = origin_y * -1;
         unit_y = unit_y * -1;
 
-        switch (data.mesh_type) {
+        switch (get_mesh_type(id)) {
         case MeshType::CUBE:
             switch (face) {
             case Face::XNEG: {
@@ -189,14 +189,16 @@ namespace Block {
             }
         default:
             // prevent compiler error
+            std::cout << "oopsss oh" << std::endl;
+
             return vertices;
         }
 
     }
 
-    vector<unsigned int> get_block_face_indices(const Data& data, Face face) {
+    vector<unsigned int> get_block_face_indices(ID id, Face face) {
         vector<unsigned int> indices;
-        switch (data.mesh_type) {
+        switch (get_mesh_type(id)) {
         case MeshType::CUBE: {
             switch (face) {
             case Face::XNEG:
@@ -224,6 +226,7 @@ namespace Block {
         }
         default:
             // prevent compiler error
+            std::cout << "uh oh" << std::endl;
             return indices;
         }
     }
@@ -286,10 +289,56 @@ namespace Block {
             x = 4;
             y = 12;
             return std::make_pair(x, y);
+        case ID::BRICK:
+            x = 7;
+            y = 15;
+            return std::make_pair(x, y);
+        case ID::GLASS:
+            x = 1;
+            y = 12;
+            return std::make_pair(x, y);
+        case ID::BOOKSHELF:
+            x = 3;
+            y = 13;
+            return std::make_pair(x, y);
         default:
-            // prevent compiler error
-            return std::make_pair(0,0);
+            // purple texture for debug purposes
+            x = 10;
+            y = 0;
+            return std::make_pair(x, y);
         }
     }
 
+    MeshType get_mesh_type(ID id) {
+        switch (id) {
+        case ID::AIR:
+            return MeshType::NONE;
+        case ID::COBBLESTONE_SLAB:
+        case ID::PLANK_SLAB:
+        case ID::BRICK_SLAB:
+            return MeshType::SLAB;
+        case ID::COBBLESTONE_STAIR:
+        case ID::PLANK_STAIR:
+        case ID::BRICK_STAIR:
+            return MeshType::STAIR;
+        case ID::ROSE:
+        case ID::DAISY:
+            return MeshType::X;
+        default:
+            return MeshType::CUBE;
+        }
+    }
+
+    bool get_is_opaque(ID id) {
+        switch (id) {
+        case ID::AIR:
+        case ID::LEAF:
+        case ID::GLASS:
+        case ID::ROSE:
+        case ID::DAISY:
+            return false;
+        default:
+            return true;
+        }
+    }
 }
