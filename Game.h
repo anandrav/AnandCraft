@@ -15,7 +15,7 @@
 #include "Block.h"
 #include "stb_image.h"
 #include "BlockDemo.h"
-#include "Chunk.h"
+#include "GridChunk.h"
 
 class Game {
 public:
@@ -35,7 +35,7 @@ private:
     glm::vec3 camera_rot;
     //Model model;
     SingleBlockDemo* single_block;
-    Chunk* chunk;
+    vector<GridChunk> chunks;
     //void set_model(Block::Data data);
     unsigned int texture;
 

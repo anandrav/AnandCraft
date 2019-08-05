@@ -8,9 +8,7 @@
 #include "Camera.h"
 #include "Transform.h"
 
-/*TODO*/
-
-// high level abstraction for any physical object in the scene
+// composition of mesh, shader, and transform
 class Model {
 public:
     Model() = default;
@@ -19,8 +17,8 @@ public:
         mesh(mesh), shader(shader), transform(transform) {
     }
 
-    void render(Camera& camera) {
-        shader.use();
+    virtual void render(Camera& camera) {
+        shader.bind();
         glm::mat4 clip_transform = camera.get_view_projection() * transform.get_model();
         glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, &clip_transform[0][0]);
         glEnable(GL_DEPTH_TEST);

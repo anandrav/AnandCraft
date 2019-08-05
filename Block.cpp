@@ -190,7 +190,6 @@ namespace Block {
         default:
             // prevent compiler error
             std::cout << "oopsss oh" << std::endl;
-
             return vertices;
         }
 
@@ -251,7 +250,7 @@ namespace Block {
                 x = 2;
                 y = 15;
                 return std::make_pair(x, y);
-            default: // sides
+            default:
                 x = 3;
                 y = 15;
                 return std::make_pair(x, y);
@@ -294,8 +293,8 @@ namespace Block {
             y = 15;
             return std::make_pair(x, y);
         case ID::GLASS:
-            x = 1;
-            y = 12;
+            x = 7;
+            y = 7;
             return std::make_pair(x, y);
         case ID::BOOKSHELF:
             x = 3;

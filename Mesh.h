@@ -16,7 +16,7 @@ public:
     // default constructor
     Mesh() : VAO(0), VBO(0), EBO(0) {}
 
-    Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices);
+    Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices);
 
     Mesh(Mesh& other);
 
@@ -29,6 +29,8 @@ public:
     ~Mesh();
 
     void draw();
+
+    void draw_elements(int count, int start);
 
 private:
     std::vector<Vertex> vertices;

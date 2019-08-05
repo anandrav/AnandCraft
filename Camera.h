@@ -9,7 +9,7 @@
 // First-person-shooter style camera
 class Camera {
 public:
-    Camera(float aspect, float fov = glm::radians(55.f), float zNear = 0.01f,
+    Camera(float aspect, float fov = glm::radians(55.f), float zNear = 0.4f,
         float zFar = 1000.0f) :
         aspect(aspect), fov(fov), zNear(zNear), zFar(zFar) {
     }
@@ -49,6 +49,10 @@ public:
 
     void move_left(float dist) {
         transform.translate(get_left() * dist);
+    }
+
+    glm::vec3 get_position() {
+        return transform.get_pos();
     }
 
 private:

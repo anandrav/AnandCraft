@@ -1,6 +1,6 @@
 #include "Mesh.h"
 
-Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices) {
+Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices) {
     this->vertices = vertices;
     this->indices = indices;
 
@@ -57,7 +57,17 @@ void Mesh::draw() {
     glBindVertexArray(0);
 }
 
+void Mesh::draw_elements(int count, int start) {
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int)*start));
+    glBindVertexArray(0);
+}
+
 void Mesh::setup() {
+    if (vertices.size() == 0 || indices.size() == 0) {
+        return;
+    }
+
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
