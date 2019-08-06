@@ -5,7 +5,7 @@ NOTE: I plan to add dependency management for all major platforms in the near fu
 
 ## Feature Todo List
 - [x] blocks w/ textures
-- [ ] chunks
+- [x] chunks
 - [ ] breaking and placing of blocks
 - [ ] terrain generation
 - [ ] lighting
