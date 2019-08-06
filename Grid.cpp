@@ -9,6 +9,11 @@ Grid::Grid() {
             }
         }
     }
+
+    for (int i = 0; i < chunks.size(); ++i) {
+        chunks[i]->create_opaque_mesh();
+        chunks[i]->create_transparent_mesh();
+    }
 }
 
 void Grid::render_opaque(Camera& camera) {
@@ -40,8 +45,11 @@ void Grid::render_transparent(Camera& camera) {
 
 bool Grid::has_block_at(int x, int y, int z) {
     int chunk_index_x = x / CHUNK_WIDTH;
+    if (x < 0) { chunk_index_x -= CHUNK_WIDTH; }
     int chunk_index_y = y / CHUNK_HEIGHT;
+    if (y < 0) { chunk_index_y -= CHUNK_HEIGHT; }
     int chunk_index_z = z / CHUNK_DEPTH;
+    if (z < 0) { chunk_index_z -= CHUNK_DEPTH; }
 
     GridChunk* chunk = nullptr;
     for (int i = 0; i < chunks.size(); ++i) {
@@ -57,8 +65,11 @@ bool Grid::has_block_at(int x, int y, int z) {
 
 Block::State Grid::get_block_at(int x, int y, int z) {
     int chunk_index_x = x / CHUNK_WIDTH;
+    if (x < 0) { chunk_index_x -= CHUNK_WIDTH; }
     int chunk_index_y = y / CHUNK_HEIGHT;
+    if (y < 0) { chunk_index_y -= CHUNK_HEIGHT; }
     int chunk_index_z = z / CHUNK_DEPTH;
+    if (z < 0) { chunk_index_z -= CHUNK_DEPTH; }
 
     GridChunk* chunk = nullptr;
     for (int i = 0; i < chunks.size(); ++i) {
@@ -120,8 +131,8 @@ GridChunk::GridChunk(int x_index, int y_index, int z_index,
         z_index * DEPTH);
     transform.set_pos(location);
     shader = Shader("basic_vert.glsl", "basic_frag.glsl");
-    create_opaque_mesh();
-    create_transparent_mesh();
+    //create_opaque_mesh();
+    //create_transparent_mesh();
 }
 
 void GridChunk::render_opaque(Camera& camera) {
@@ -132,7 +143,7 @@ void GridChunk::render_opaque(Camera& camera) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_LINE_SMOOTH);
+
     opaque_mesh.draw();
 }
 
@@ -144,7 +155,6 @@ void GridChunk::render_transparent(Camera& camera) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_LINE_SMOOTH);
 
     glm::vec3 camera_pos = camera.get_position();
     std::sort(transparent_faces.begin(), transparent_faces.end(),
@@ -307,7 +317,6 @@ void GridChunk::translate_vertices_in_vector(vector<Vertex>& vec, int x, int y, 
 }
 
 bool GridChunk::check_if_opaque_at(int x, int y, int z) {
-    ///* in the future, check adjacent chunks for blocks out of range */
     if (x < 0 || x >= WIDTH ||
         y < 0 || y >= HEIGHT ||
         z < 0 || z >= DEPTH) {
@@ -325,10 +334,17 @@ bool GridChunk::check_if_opaque_at(int x, int y, int z) {
 }
 
 bool GridChunk::check_if_same_material_at(int x, int y, int z, Block::State current) {
-    /* in the future, check adjacent chunks for blocks out of range */
     if (x < 0 || x >= WIDTH ||
         y < 0 || y >= HEIGHT ||
-        z < 0 || z >= WIDTH) {
+        z < 0 || z >= DEPTH) {
+
+        int block_x = x_index * WIDTH + x;
+        int block_y = y_index * HEIGHT + y;
+        int block_z = z_index * DEPTH + z;
+
+        if (grid.has_block_at(block_x, block_y, block_z)) {
+            return current.id == grid.get_block_at(block_x, block_y, block_z).id;
+        }
         return false;
     }
     return data[x][y][z].id == current.id;
