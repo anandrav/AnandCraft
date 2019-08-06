@@ -1,10 +1,10 @@
 #include "Grid.h"
 
 Grid::Grid() {
-    const int chunk_radius = 8;
-    for (int x = -1*chunk_radius; x < chunk_radius; ++x) {
-        for (int z = -1*chunk_radius; z < chunk_radius; ++z) {
-            for (int y = 0; y < 1; ++y) {
+    const int chunk_radius = 2;
+    for (int x = 0; x < chunk_radius; ++x) {
+        for (int z = 0; z < chunk_radius; ++z) {
+            for (int y = 0; y < chunk_radius; ++y) {
                 chunks.push_back(generate_chunk(x, y, z));
             }
         }
@@ -112,13 +112,13 @@ GridChunk* Grid::generate_chunk(int x_index, int y_index, int z_index) {
         for (int z = 0; z < CHUNK_WIDTH; ++z) {
             // top 5 layers air
             for (int y = CHUNK_HEIGHT - 1; y >= CHUNK_HEIGHT - 6 && y >= 0; --y) {
-                data[x][y][z] = Block::State(Block::ID::AIR);
+                data[x][y][z] = Block::State(Block::ID::COBBLESTONE);
             }
             // one layer of grass
-            data[x][CHUNK_HEIGHT - 7][z] = Block::State(Block::ID::GRASS);
+            data[x][CHUNK_HEIGHT - 7][z] = Block::State(Block::ID::GLASS);
             // 2 layers of dirt under grass
             for (int y = CHUNK_HEIGHT - 8; y >= CHUNK_HEIGHT - 9 && y >= 0; --y) {
-                data[x][y][z] = Block::State(Block::ID::DIRT);
+                data[x][y][z] = Block::State(Block::ID::AIR);
             }
             // the rest is stone
         }
