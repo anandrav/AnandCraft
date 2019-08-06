@@ -1,10 +1,10 @@
 #include "Grid.h"
 
 Grid::Grid() {
-    const int chunk_radius = 2;
-    for (int x = 0; x < chunk_radius; ++x) {
-        for (int z = 0; z < chunk_radius; ++z) {
-            for (int y = 0; y < chunk_radius; ++y) {
+    const int chunk_radius = 8;
+    for (int x = -1*chunk_radius; x < chunk_radius; ++x) {
+        for (int z = -1*chunk_radius; z < chunk_radius; ++z) {
+            for (int y = 0; y < 1; ++y) {
                 chunks.push_back(generate_chunk(x, y, z));
             }
         }
@@ -26,15 +26,22 @@ void Grid::render_transparent(Camera& camera) {
     glm::vec3 camera_pos = camera.get_position();
     std::sort(chunks.begin(), chunks.end(),
         [camera_pos](const GridChunk* a, const GridChunk* b) {
-            // use center of chunk as location, hence CHUNK_WIDTH/2
-            glm::vec3 a_pos = glm::vec3(a->x_index*CHUNK_WIDTH/2,
-                a->y_index*CHUNK_HEIGHT/2, a->z_index*CHUNK_DEPTH/2);
-            float a_distance = glm::length(a_pos - camera_pos);
-            glm::vec3 b_pos = glm::vec3(b->x_index * CHUNK_WIDTH/2,
-                b->y_index * CHUNK_HEIGHT/2, b->z_index * CHUNK_DEPTH/2);
-            float b_distance = glm::length(b_pos - camera_pos);
-
+            float a_distance = abs(camera_pos.x - a->x_index*CHUNK_WIDTH/2) +
+                abs(camera_pos.y - a->y_index*CHUNK_HEIGHT/2) +
+                abs(camera_pos.z - a->z_index*CHUNK_DEPTH/2);
+            float b_distance = abs(camera_pos.x - b->x_index * CHUNK_WIDTH / 2) +
+                abs(camera_pos.y - b->y_index * CHUNK_HEIGHT / 2) +
+                abs(camera_pos.z - b->z_index * CHUNK_DEPTH / 2);
             return a_distance > b_distance;
+            //// use center of chunk as location, hence CHUNK_WIDTH/2
+            //glm::vec3 a_pos = glm::vec3(a->x_index*CHUNK_WIDTH/2,
+            //    a->y_index*CHUNK_HEIGHT/2, a->z_index*CHUNK_DEPTH/2);
+            //float a_distance = glm::length(a_pos - camera_pos);
+            //glm::vec3 b_pos = glm::vec3(b->x_index * CHUNK_WIDTH/2,
+            //    b->y_index * CHUNK_HEIGHT/2, b->z_index * CHUNK_DEPTH/2);
+            //float b_distance = glm::length(b_pos - camera_pos);
+
+            //return a_distance > b_distance;
         }
     );
 
@@ -97,21 +104,21 @@ Grid::~Grid() {
 
 GridChunk* Grid::generate_chunk(int x_index, int y_index, int z_index) {
     auto data = vector<vector<vector<Block::State>>>(CHUNK_WIDTH,
-        vector<vector<Block::State>>(CHUNK_HEIGHT,
-            vector<Block::State>(CHUNK_WIDTH,
-                Block::State(Block::ID::STONE))));
+                       vector<vector<Block::State>>(CHUNK_HEIGHT,
+                              vector<Block::State>(CHUNK_WIDTH,
+                                     Block::State(Block::ID::STONE))));
 
     for (int x = 0; x < CHUNK_WIDTH; ++x) {
         for (int z = 0; z < CHUNK_WIDTH; ++z) {
             // top 5 layers air
             for (int y = CHUNK_HEIGHT - 1; y >= CHUNK_HEIGHT - 6 && y >= 0; --y) {
-                data[x][y][z] = Block::State(Block::ID::COBBLESTONE);
+                data[x][y][z] = Block::State(Block::ID::AIR);
             }
             // one layer of grass
-            data[x][CHUNK_HEIGHT - 7][z] = Block::State(Block::ID::GLASS);
+            data[x][CHUNK_HEIGHT - 7][z] = Block::State(Block::ID::GRASS);
             // 2 layers of dirt under grass
             for (int y = CHUNK_HEIGHT - 8; y >= CHUNK_HEIGHT - 9 && y >= 0; --y) {
-                data[x][y][z] = Block::State(Block::ID::AIR);
+                data[x][y][z] = Block::State(Block::ID::DIRT);
             }
             // the rest is stone
         }
@@ -127,12 +134,10 @@ GridChunk::GridChunk(int x_index, int y_index, int z_index,
     , z_index(z_index)
     , data(data), grid(grid) {
     glm::vec3 location = glm::vec3(x_index * WIDTH,
-        y_index * HEIGHT,
-        z_index * DEPTH);
+                                   y_index * HEIGHT,
+                                   z_index * DEPTH);
     transform.set_pos(location);
     shader = Shader("basic_vert.glsl", "basic_frag.glsl");
-    //create_opaque_mesh();
-    //create_transparent_mesh();
 }
 
 void GridChunk::render_opaque(Camera& camera) {
@@ -159,11 +164,18 @@ void GridChunk::render_transparent(Camera& camera) {
     glm::vec3 camera_pos = camera.get_position();
     std::sort(transparent_faces.begin(), transparent_faces.end(),
         [camera_pos](const TransparentFace& a, const TransparentFace& b) {
-            glm::vec3 a_pos = glm::vec3(a.x, a.y, a.z);
-            float a_distance = glm::length(a_pos - camera_pos);
-            glm::vec3 b_pos = glm::vec3(b.x, b.y, b.z);
-            float b_distance = glm::length(b_pos - camera_pos);
+            //glm::vec3 a_pos = glm::vec3(a.x, a.y, a.z);
+            //float a_distance = glm::length(a_pos - camera_pos);
+            //glm::vec3 b_pos = glm::vec3(b.x, b.y, b.z);
+            //float b_distance = glm::length(b_pos - camera_pos);
 
+            //return a_distance > b_distance;
+            float a_distance = abs(camera_pos.x - a.x) +
+                               abs(camera_pos.y - a.y) +
+                               abs(camera_pos.z - a.z);
+            float b_distance = abs(camera_pos.x - b.x) +
+                               abs(camera_pos.y - b.y) +
+                               abs(camera_pos.z - b.z);
             return a_distance > b_distance;
         }
     );

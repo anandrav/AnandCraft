@@ -353,23 +353,9 @@ void Game::init() {
 
     grid = new Grid();
 
-    for (int x = 0; x < 16 * 2; ++x) {
-        for (int y = 0; y < 16 * 2; ++y) {
-            for (int z = 0; z < 16 * 2; ++z) {
-                if (!grid->has_block_at(x, y, z)) {
-                    std::cout << "NO BLOCK AT " << x << " " << y << " " << z << std::endl;
-                }
-            }
-        }
+    if (!grid->has_block_at(-1, -1, -1)) {
+        std::cout << "NO BLOCK" << std::endl;
     }
-
-    if (!grid->has_block_at(0, 0, 16)) {
-        std::cout << "NO BLOCK HERE" << std::endl;
-    }
-
-    std::cout << Block::get_is_opaque(grid->get_block_at(0,0,16).id) << std::endl;
-
-    std::cout << "-1 / 16 = " << -1 / 16 << std::endl;
 }
 
 void Game::render() {
