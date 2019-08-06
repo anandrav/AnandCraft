@@ -2,15 +2,21 @@
 //
 //#include <vector>
 //
-//#include "Chunk.h"
+//#include "GridChunk.h"
 //
 //using std::vector;
 //
-///* a collection of chunks makes a grid, a 3d coordinate system for placing blocks */
-///* chunks should not exist without a parent grid to reference while building their meshes */
+///* 3-dimensional coordinate system in which blocks can be placed */
 //class Grid {
 //public:
+//
+//    void render_opaque(Camera& camera) {
+//        for (int i = 0; i < chunks.size(); ++i) {
+//            chunks[i]->render_opaque;
+//        }
+//    }
+//
 //private:
-//    vector<vector<vector<Chunk>>> chunks;
+//    Transform transform;
+//    vector<GridChunk> chunks;
 //};
-

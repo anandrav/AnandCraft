@@ -14,10 +14,10 @@ namespace Block {
     const unsigned int TEXTURE_ATLAS_HEIGHT_IN_BLOCKS = 16;
 
     enum ID {
-        // none
+        // NONE mesh
         AIR,
 
-        // cube
+        // CUBE mesh
         DIRT,
         GRASS,
         STONE,
@@ -30,17 +30,17 @@ namespace Block {
         GLASS,
         BOOKSHELF,
 
-        // slab
+        // SLAB mesh
         COBBLESTONE_SLAB,
         PLANK_SLAB,
         BRICK_SLAB,
 
-        // stair
+        // STAIR mesh
         COBBLESTONE_STAIR,
         PLANK_STAIR,
         BRICK_STAIR,
 
-        // X
+        // X mesh
         ROSE,
         DAISY,
     };
