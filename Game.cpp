@@ -353,9 +353,21 @@ void Game::init() {
 
     grid = new Grid();
 
-    if (!grid->has_block_at(-1, -1, -1)) {
-        std::cout << "NO BLOCK" << std::endl;
-    }
+    //if (!grid->has_block_at(grid->CHUNK_WIDTH * -3 + 1, 3, grid->CHUNK_DEPTH * -3 + 1)) {
+    //    std::cout << "NO BLOCK" << std::endl;
+    //}
+
+    //int count = 0;
+    //for (int x = -32; x < 32; ++x) {
+    //    for (int z = -32; z < 32; ++z) {
+    //        if (!grid->has_block_at(x, 3, z)) {
+    //            std::cout << "NO BLOCK at " << x << ' ' << 3 << ' ' << z << std::endl;
+    //        }
+    //        count++;
+    //    }
+    //}
+
+    //std::cout << "COUNT: " << count << std::endl;
 }
 
 void Game::render() {

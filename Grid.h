@@ -7,6 +7,7 @@
 #include "Camera.h"
 #include "Transform.h"
 #include "Shader.h"
+#include "util.h"
 
 using std::vector;
 
