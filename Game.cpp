@@ -351,14 +351,7 @@ void Game::init() {
     single_block = new SingleBlockDemo(Block::State(Block::ID::GRASS));
     single_block->set_location(glm::vec3(-2.f, 0, -2.f));
 
-    const int chunk_radius = 2;
-    for (int x = 0; x < chunk_radius; ++x) {
-        for (int z = 0; z < chunk_radius; ++z) {
-            for (int y = 0; y < chunk_radius; ++y) {
-                chunks.push_back(GridChunk(glm::vec3(x * 16, y * 16, z * 16)));
-            }
-        }
-    }
+    grid = new Grid();
 }
 
 void Game::render() {
@@ -369,12 +362,8 @@ void Game::render() {
     glBindTexture(GL_TEXTURE_2D, texture);
     // render world
     single_block->render(camera);
-    for (int i = 0; i < chunks.size(); ++i) {
-        chunks[i].render_opaque(camera);
-    }
-    for (int i = 0; i < chunks.size(); ++i) {
-        chunks[i].render_transparent(camera);
-    }
+    grid->render_opaque(camera);
+    grid->render_transparent(camera);
 
     // render UI/HUD
 
