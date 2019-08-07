@@ -16,6 +16,7 @@
 #include "stb_image.h"
 #include "BlockDemo.h"
 #include "Grid.h"
+#include "Ray.h"
 
 class Game {
 public:
@@ -33,7 +34,6 @@ private:
     Camera camera;
     glm::vec3 camera_vel;
     glm::vec3 camera_rot;
-    SingleBlockDemo* single_block;
     Grid* grid;
     unsigned int texture;
 
@@ -51,5 +51,7 @@ private:
     void render();
 
     void set_OpenGL_attributes();
+
+    void handle_click(SDL_Event& event);
 };
 

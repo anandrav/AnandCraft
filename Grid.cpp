@@ -51,47 +51,63 @@ void Grid::render_transparent(Camera& camera) {
 }
 
 bool Grid::has_block_at(int x, int y, int z) {
-    int chunk_index_x = (x >= 0) ? x / CHUNK_WIDTH
-        : ((x + 1) / CHUNK_WIDTH) - 1;
-    int chunk_index_y = (y >= 0) ? y / CHUNK_HEIGHT
-        : ((y + 1) / CHUNK_HEIGHT) - 1;
-    int chunk_index_z = (z >= 0) ? z / CHUNK_DEPTH
-        : ((z + 1) / CHUNK_DEPTH) - 1;
+    //int chunk_index_x = (x >= 0) ? x / CHUNK_WIDTH
+    //    : ((x + 1) / CHUNK_WIDTH) - 1;
+    //int chunk_index_y = (y >= 0) ? y / CHUNK_HEIGHT
+    //    : ((y + 1) / CHUNK_HEIGHT) - 1;
+    //int chunk_index_z = (z >= 0) ? z / CHUNK_DEPTH
+    //    : ((z + 1) / CHUNK_DEPTH) - 1;
 
-    GridChunk* chunk = nullptr;
-    for (int i = 0; i < chunks.size(); ++i) {
-        if (chunks[i]->x_index == chunk_index_x
-            && chunks[i]->y_index == chunk_index_y
-            && chunks[i]->z_index == chunk_index_z) {
-            chunk = chunks[i];
-        }
-    }
+    //GridChunk* chunk = nullptr;
+    //for (int i = 0; i < chunks.size(); ++i) {
+    //    if (chunks[i]->x_index == chunk_index_x
+    //        && chunks[i]->y_index == chunk_index_y
+    //        && chunks[i]->z_index == chunk_index_z) {
+    //        chunk = chunks[i];
+    //    }
+    //}
 
-    return (chunk != nullptr);
+    //return (chunk != nullptr);
+    return (get_chunk_at(x, y, z) != nullptr);
 }
 
 Block::State Grid::get_block_at(int x, int y, int z) {
-    int chunk_index_x = (x >= 0) ? x / CHUNK_WIDTH
-        : ((x + 1) / CHUNK_WIDTH) - 1;
-    int chunk_index_y = (y >= 0) ? y / CHUNK_HEIGHT
-        : ((y + 1) / CHUNK_HEIGHT) - 1;
-    int chunk_index_z = (z >= 0) ? z / CHUNK_DEPTH
-        : ((z + 1) / CHUNK_DEPTH) - 1;
+    //int chunk_index_x = (x >= 0) ? x / CHUNK_WIDTH
+    //    : ((x + 1) / CHUNK_WIDTH) - 1;
+    //int chunk_index_y = (y >= 0) ? y / CHUNK_HEIGHT
+    //    : ((y + 1) / CHUNK_HEIGHT) - 1;
+    //int chunk_index_z = (z >= 0) ? z / CHUNK_DEPTH
+    //    : ((z + 1) / CHUNK_DEPTH) - 1;
 
-    GridChunk* chunk = nullptr;
-    for (int i = 0; i < chunks.size(); ++i) {
-        if (chunks[i]->x_index == chunk_index_x
-            && chunks[i]->y_index == chunk_index_y
-            && chunks[i]->z_index == chunk_index_z) {
-            chunk = chunks[i];
-        }
-    }
+    //GridChunk* chunk = nullptr;
+    //for (int i = 0; i < chunks.size(); ++i) {
+    //    if (chunks[i]->x_index == chunk_index_x
+    //        && chunks[i]->y_index == chunk_index_y
+    //        && chunks[i]->z_index == chunk_index_z) {
+    //        chunk = chunks[i];
+    //    }
+    //}
 
+    GridChunk* chunk = get_chunk_at(x,y,z);
     if (chunk) {
         int block_coord_x = util::positive_modulo((int)x, CHUNK_WIDTH);
         int block_coord_y = util::positive_modulo((int)y, CHUNK_HEIGHT);
         int block_coord_z = util::positive_modulo((int)z, CHUNK_DEPTH);
         return chunk->data[block_coord_x][block_coord_y][block_coord_z];
+    }
+    throw std::invalid_argument("block does not exist");
+}
+
+void Grid::modify_block_at(int x, int y, int z, Block::State new_state) {
+    GridChunk* chunk = get_chunk_at(x, y, z);
+    if (chunk) {
+        int block_coord_x = util::positive_modulo((int)x, CHUNK_WIDTH);
+        int block_coord_y = util::positive_modulo((int)y, CHUNK_HEIGHT);
+        int block_coord_z = util::positive_modulo((int)z, CHUNK_DEPTH);
+        chunk->data[block_coord_x][block_coord_y][block_coord_z] = new_state;
+        chunk->create_opaque_mesh();
+        chunk->create_transparent_mesh();
+        return;
     }
     throw std::invalid_argument("block does not exist");
 }
@@ -106,25 +122,57 @@ GridChunk* Grid::generate_chunk(int x_index, int y_index, int z_index) {
     auto data = vector<vector<vector<Block::State>>>(CHUNK_WIDTH,
                        vector<vector<Block::State>>(CHUNK_HEIGHT,
                               vector<Block::State>(CHUNK_WIDTH,
-                                     Block::State(Block::ID::STONE))));
+                                     Block::State(Block::ID::AIR))));
 
     for (int x = 0; x < CHUNK_WIDTH; ++x) {
         for (int z = 0; z < CHUNK_WIDTH; ++z) {
-            // top 5 layers air
-            for (int y = CHUNK_HEIGHT - 1; y >= CHUNK_HEIGHT - 6 && y >= 0; --y) {
-                data[x][y][z] = Block::State(Block::ID::AIR);
+            // bottom 5 layers stone
+            for (int y = 0; y < 5 && y < CHUNK_HEIGHT; ++y) {
+                data[x][y][z] = Block::State(Block::ID::STONE);
             }
-            // one layer of grass
-            data[x][CHUNK_HEIGHT - 7][z] = Block::State(Block::ID::GRASS);
             // 2 layers of dirt under grass
-            for (int y = CHUNK_HEIGHT - 8; y >= CHUNK_HEIGHT - 9 && y >= 0; --y) {
+            for (int y = 5; y < 7 && y < CHUNK_HEIGHT; ++y) {
                 data[x][y][z] = Block::State(Block::ID::DIRT);
             }
+            // one layer of grass on top
+            data[x][7][z] = Block::State(Block::ID::GRASS);
+
             // the rest is stone
+            //// top 5 layers air
+            //for (int y = CHUNK_HEIGHT - 1; y >= CHUNK_HEIGHT - 6 && y >= 0; --y) {
+            //    data[x][y][z] = Block::State(Block::ID::AIR);
+            //}
+            //// one layer of grass
+            //data[x][CHUNK_HEIGHT - 7][z] = Block::State(Block::ID::GRASS);
+            //// 2 layers of dirt under grass
+            //for (int y = CHUNK_HEIGHT - 8; y >= CHUNK_HEIGHT - 9 && y >= 0; --y) {
+            //    data[x][y][z] = Block::State(Block::ID::DIRT);
+            //}
+            //// the rest is stone
         }
     }
 
     GridChunk* chunk = new GridChunk(x_index, y_index, z_index, data, *this);
+    return chunk;
+}
+
+GridChunk* Grid::get_chunk_at(int x, int y, int z) {
+    int chunk_index_x = (x >= 0) ? x / CHUNK_WIDTH
+        : ((x + 1) / CHUNK_WIDTH) - 1;
+    int chunk_index_y = (y >= 0) ? y / CHUNK_HEIGHT
+        : ((y + 1) / CHUNK_HEIGHT) - 1;
+    int chunk_index_z = (z >= 0) ? z / CHUNK_DEPTH
+        : ((z + 1) / CHUNK_DEPTH) - 1;
+
+    GridChunk* chunk = nullptr;
+    for (int i = 0; i < chunks.size(); ++i) {
+        if (chunks[i]->x_index == chunk_index_x
+            && chunks[i]->y_index == chunk_index_y
+            && chunks[i]->z_index == chunk_index_z) {
+            chunk = chunks[i];
+        }
+    }
+
     return chunk;
 }
 
@@ -149,7 +197,6 @@ void GridChunk::render_opaque(Camera& camera) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     opaque_mesh.draw();
 }
 
@@ -200,7 +247,7 @@ void GridChunk::create_opaque_mesh() {
                     continue;
                 }
 
-                switch (Block::get_mesh_type(current.id)) {
+                switch (Block::get_block_mesh_type(current.id)) {
                 case Block::MeshType::NONE:
                     continue;
                 case Block::MeshType::CUBE:
@@ -255,7 +302,7 @@ void GridChunk::create_transparent_mesh() {
                     continue;
                 }
 
-                switch (Block::get_mesh_type(current.id)) {
+                switch (Block::get_block_mesh_type(current.id)) {
                 case Block::MeshType::NONE:
                     continue;
                 case Block::MeshType::CUBE:
@@ -339,11 +386,11 @@ bool GridChunk::check_if_opaque_at(int x, int y, int z) {
         int block_z = z_index * DEPTH + z;
 
         if (grid.has_block_at(block_x, block_y, block_z)) {
-            return Block::get_is_opaque(grid.get_block_at(block_x, block_y, block_z).id);
+            return Block::get_block_opacity(grid.get_block_at(block_x, block_y, block_z).id);
         }
         return false;
     }
-    return Block::get_is_opaque(data[x][y][z].id);
+    return Block::get_block_opacity(data[x][y][z].id);
 }
 
 bool GridChunk::check_if_same_material_at(int x, int y, int z, Block::State current) {

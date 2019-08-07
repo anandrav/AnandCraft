@@ -6,7 +6,7 @@ NOTE: I plan to add dependency management for all major platforms in the near fu
 ## Feature Todo List
 - [x] blocks w/ textures
 - [x] chunks
-- [ ] breaking and placing of blocks
+- [x] breaking and placing of blocks
 - [ ] terrain generation
 - [ ] lighting
 - [ ] collision detection
@@ -15,4 +15,5 @@ NOTE: I plan to add dependency management for all major platforms in the near fu
 ## Some pictures:
 ![Grass Block](/readme-images/grass-block.jpg)
 ![Glass and Cobblestone](/readme-images/glass-and-cobble-chunk.jpg)
+![Castle](/readme-images/castle.jpg)
 

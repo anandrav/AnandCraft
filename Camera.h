@@ -51,8 +51,19 @@ public:
         transform.translate(get_left() * dist);
     }
 
-    glm::vec3 get_position() {
+    const glm::vec3& get_position() const {
         return transform.get_pos();
+    }
+
+    /* use inverse quat to transform default vector into local space vector */
+    glm::vec3 get_forward() const {
+        return glm::conjugate(transform.get_orientation()) * default_forward();
+    }
+    glm::vec3 get_up() const {
+        return glm::conjugate(transform.get_orientation()) * default_up();
+    }
+    glm::vec3 get_left() const {
+        return glm::conjugate(transform.get_orientation()) * default_left();
     }
 
 private:
@@ -73,17 +84,6 @@ private:
 
     static glm::vec3 default_left() {
         return glm::vec3(-1, 0, 0);
-    }
-
-    /* use inverse quat to transform default vector into local space vector */
-    glm::vec3 get_forward() {
-        return glm::conjugate(transform.get_orientation()) * default_forward();
-    }
-    glm::vec3 get_up() {
-        return glm::conjugate(transform.get_orientation()) * default_up();
-    }
-    glm::vec3 get_left() {
-        return glm::conjugate(transform.get_orientation()) * default_left();
     }
 
     /* view projection functions */

@@ -5,6 +5,7 @@
 #include <iostream>
 
 using std::vector;
+using std::string;
 using std::cerr;
 using std::endl;
 
@@ -90,7 +91,9 @@ namespace Block {
 
     /* functions for getting block specs */
 
-    MeshType get_mesh_type(ID id);
+    MeshType get_block_mesh_type(ID id);
 
-    bool get_is_opaque(ID id);
+    bool get_block_opacity(ID id);
+
+    string get_block_name(ID id);
 };

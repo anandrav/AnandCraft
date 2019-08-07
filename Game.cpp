@@ -1,14 +1,14 @@
 #include "Game.h"
 
-Game::Game() : is_running(true), camera(Camera((float)WIDTH/(float)HEIGHT)) {
+Game::Game() : is_running(true), camera(Camera((float)WIDTH / (float)HEIGHT)) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::cout << "Failed to init SDL\n";
         //return false;
     }
     SDL_SetRelativeMouseMode(SDL_TRUE);
-    
+
     set_OpenGL_attributes();
-    
+
     // Create our window centered at 800x600 resolution
     main_window = SDL_CreateWindow(
         "AnandCraft",
@@ -78,6 +78,54 @@ void Game::run_loop() {
 
         render();
     }
+}
+
+void Game::handle_click(SDL_Event& e) {
+    const float MAX_DISTANCE = 12.0f;
+    const float STEP_DISTANCE = 0.1f;
+
+    int prev_x_coord = (int)camera.get_position()[0];
+    int prev_y_coord = (int)camera.get_position()[1];
+    int prev_z_coord = (int)camera.get_position()[2];
+    std::cout << "RAYCAST\n";
+    // find the first block that isn't air and do something
+    for (Ray ray(camera.get_position(), camera.get_forward());
+        ray.get_length() < MAX_DISTANCE; ray.step(STEP_DISTANCE)) {
+
+        // round positive and negative coordinates "toward zero"
+        int x_coord = (int)ray.get_end()[0] - (ray.get_end()[0] < 0);
+        int y_coord = (int)ray.get_end()[1] - (ray.get_end()[1] < 0);
+        int z_coord = (int)ray.get_end()[2] - (ray.get_end()[2] < 0);
+
+        // don't check the same block twice
+        if (x_coord == prev_x_coord && y_coord == prev_y_coord && z_coord == prev_z_coord) {
+            continue;
+        }
+
+        if (grid->has_block_at(x_coord, y_coord, z_coord)) {
+            Block::State block = grid->get_block_at(x_coord, y_coord, z_coord);
+            std::cout << "Block: " << Block::get_block_name(block.id) << '\n';
+            if (block.id != Block::ID::AIR) {
+                if (e.button.button == SDL_BUTTON_LEFT) {
+                    // break block
+                    Block::State new_state = Block::State(Block::ID::AIR);
+                    grid->modify_block_at(x_coord, y_coord, z_coord, new_state);
+                }
+                if (e.button.button == SDL_BUTTON_RIGHT) {
+                    // place block
+                    Block::State new_state = Block::State(Block::ID::COBBLESTONE);
+                    if (grid->has_block_at(prev_x_coord, prev_y_coord, prev_z_coord)) {
+                        grid->modify_block_at(prev_x_coord, prev_y_coord, prev_z_coord, new_state);
+                    }
+                }
+                break;
+            }
+        }
+        prev_x_coord = x_coord;
+        prev_y_coord = y_coord;
+        prev_z_coord = z_coord;
+    }
+    std::cout << std::endl;
 }
 
 void Game::process_input() {
@@ -202,87 +250,14 @@ void Game::process_input() {
             camera_rot.y = (float)e.motion.xrel;
             camera_rot.x = -(float)e.motion.yrel;
         }
+        if (e.type == SDL_MOUSEBUTTONUP) {
+            handle_click(e);
+        }
     }
 }
 
-//void make_a_mesh() {
-//    // cube w/ 24 vertices to make textures and normals (lighting) work
-//    float vertices[] = {
-//        // x+ face
-//        0.5f,  0.5f, 0.5f,      // top right front
-//        0.5f, -0.5f, 0.5f,      // bottom right front
-//        0.5f,  0.5f, -0.5f,     // top right back
-//        0.5f, -0.5f, -0.5f,     // bottom right back
-//        // x- face
-//        -0.5f, -0.5f, 0.5f,     // bottom left front
-//        -0.5f,  0.5f, 0.5f,     // top left front
-//        -0.5f, -0.5f, -0.5f,    // bottom left back
-//        -0.5f,  0.5f, -0.5f,    // top left back
-//        // y+ face
-//        0.5f,  0.5f, 0.5f,      // top right front
-//        -0.5f,  0.5f, 0.5f,     // top left front
-//        0.5f,  0.5f, -0.5f,     // top right back
-//        -0.5f,  0.5f, -0.5f,    // top left back
-//        // y- face
-//        0.5f, -0.5f, 0.5f,      // bottom right front
-//        -0.5f, -0.5f, 0.5f,     // bottom left front
-//        0.5f, -0.5f, -0.5f,     // bottom right back
-//        -0.5f, -0.5f, -0.5f,    // bottom left back
-//        // z+ face
-//        0.5f,  0.5f, 0.5f,      // top right front
-//        0.5f, -0.5f, 0.5f,      // bottom right front
-//        -0.5f, -0.5f, 0.5f,     // bottom left front
-//        -0.5f,  0.5f, 0.5f,     // top left front
-//        // z- face
-//         0.5f,  0.5f, -0.5f,    // top right back
-//         0.5f, -0.5f, -0.5f,    // bottom right back
-//        -0.5f, -0.5f, -0.5f,    // bottom left back
-//        -0.5f,  0.5f, -0.5f     // top left back
-//    };
-//
-//    unsigned int indices[] = {  // note that we start from 0!
-//        // x+ face
-//        0, 1, 2,
-//        1, 2, 3,
-//        // x- face
-//        4, 5, 6,
-//        5, 6, 7,
-//        // y+ face
-//        8, 9, 10,
-//        9, 10, 11,
-//        // y- face
-//        12, 13, 14,
-//        13, 14, 15,
-//        // z+ face
-//        16, 17, 18,
-//        18, 19, 16,
-//        // z- face
-//        20, 21, 22,
-//        22, 23, 20
-//    };
-//
-//    std::vector<Vertex> vertices_vec;
-//    for (int i = 0; i < 24; i += 1) {
-//        float x = vertices[3*i];
-//        float y = vertices[3*i + 1];
-//        float z = vertices[3*i + 2];
-//        auto position = glm::vec3(x, y, z);
-//        float u = 0.f;
-//        float v = 0.f;
-//        auto tex_coords = glm::vec2(u, v);
-//        Vertex vertex{ position, glm::vec3(), tex_coords };
-//        vertices_vec.push_back(vertex);
-//    }
-//
-//    std::vector<unsigned int> indices_vec;
-//    for (int i = 0; i < 36; ++i) {
-//        indices_vec.push_back(indices[i]);
-//    }
-//
-//    Mesh mesh(vertices_vec, indices_vec);
-//}
-
 void Game::update() {
+    // camera/player movement
     camera.move_forward(-camera_vel.z);
     camera.move_left(-camera_vel.x);
     camera.move_up(camera_vel.y);
@@ -291,40 +266,42 @@ void Game::update() {
     camera_rot.y = 0;
     camera_rot.x = 0;
 
+    // placing and breaking blocks
 
-    if (SDL_GetTicks() % 11000 <= 1000) {
-        single_block->set_block(Block::State(Block::ID::DIRT));
-    }
-    else if (SDL_GetTicks() % 11000 <= 2000) {
-        single_block->set_block(Block::State(Block::ID::GRASS));
-    }
-    else if (SDL_GetTicks() % 11000 <= 3000) {
-        single_block->set_block(Block::State(Block::ID::STONE));
-    }
-    else if (SDL_GetTicks() % 11000 <= 4000) {
-        single_block->set_block(Block::State(Block::ID::COBBLESTONE));
-    }
-    else if (SDL_GetTicks() % 11000 <= 5000) {
-        single_block->set_block(Block::State(Block::ID::SAND));
-    }
-    else if (SDL_GetTicks() % 11000 <= 6000) {
-        single_block->set_block(Block::State(Block::ID::PLANK));
-    }
-    else if (SDL_GetTicks() % 11000 <= 7000) {
-        single_block->set_block(Block::State(Block::ID::LOG));
-    }
-    else if (SDL_GetTicks() % 11000 <= 8000) {
-        single_block->set_block(Block::State(Block::ID::LEAF));
-    }
-    else if (SDL_GetTicks() % 11000 <= 9000) {
-        single_block->set_block(Block::State(Block::ID::BRICK));
-    }
-    else if (SDL_GetTicks() % 11000 <= 10000) {
-        single_block->set_block(Block::State(Block::ID::GLASS));
-    }
-    else if (SDL_GetTicks() % 11000 <= 11000) {
-        single_block->set_block(Block::State(Block::ID::BOOKSHELF));
-    }
+
+    //if (SDL_GetTicks() % 11000 <= 1000) {
+    //    single_block->set_block(Block::State(Block::ID::DIRT));
+    //}
+    //else if (SDL_GetTicks() % 11000 <= 2000) {
+    //    single_block->set_block(Block::State(Block::ID::GRASS));
+    //}
+    //else if (SDL_GetTicks() % 11000 <= 3000) {
+    //    single_block->set_block(Block::State(Block::ID::STONE));
+    //}
+    //else if (SDL_GetTicks() % 11000 <= 4000) {
+    //    single_block->set_block(Block::State(Block::ID::COBBLESTONE));
+    //}
+    //else if (SDL_GetTicks() % 11000 <= 5000) {
+    //    single_block->set_block(Block::State(Block::ID::SAND));
+    //}
+    //else if (SDL_GetTicks() % 11000 <= 6000) {
+    //    single_block->set_block(Block::State(Block::ID::PLANK));
+    //}
+    //else if (SDL_GetTicks() % 11000 <= 7000) {
+    //    single_block->set_block(Block::State(Block::ID::LOG));
+    //}
+    //else if (SDL_GetTicks() % 11000 <= 8000) {
+    //    single_block->set_block(Block::State(Block::ID::LEAF));
+    //}
+    //else if (SDL_GetTicks() % 11000 <= 9000) {
+    //    single_block->set_block(Block::State(Block::ID::BRICK));
+    //}
+    //else if (SDL_GetTicks() % 11000 <= 10000) {
+    //    single_block->set_block(Block::State(Block::ID::GLASS));
+    //}
+    //else if (SDL_GetTicks() % 11000 <= 11000) {
+    //    single_block->set_block(Block::State(Block::ID::BOOKSHELF));
+    //}
 }
 
 void Game::init() {
@@ -348,8 +325,8 @@ void Game::init() {
     }
     stbi_image_free(data);
 
-    single_block = new SingleBlockDemo(Block::State(Block::ID::GRASS));
-    single_block->set_location(glm::vec3(-2.f, 0, -2.f));
+    //single_block = new SingleBlockDemo(Block::State(Block::ID::GRASS));
+    //single_block->set_location(glm::vec3(-2.f, 0, -2.f));
 
     grid = new Grid();
 
@@ -377,7 +354,7 @@ void Game::render() {
 
     glBindTexture(GL_TEXTURE_2D, texture);
     // render world
-    single_block->render(camera);
+    //single_block->render(camera);
     grid->render_opaque(camera);
     grid->render_transparent(camera);
 

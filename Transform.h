@@ -20,13 +20,13 @@ public:
         return position_matrix * rotation_matrix * scale_matrix;
     }
 
-    glm::vec3 get_pos() {
+    const glm::vec3& get_pos() const {
         return position;
     }
-    glm::quat get_orientation() {
+    const glm::quat& get_orientation() const {
         return orientation;
     }
-    glm::vec3 get_scale() {
+    const glm::vec3& get_scale() const {
         return m_scale;
     }
     void set_pos(glm::vec3 pos) {

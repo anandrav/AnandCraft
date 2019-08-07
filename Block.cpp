@@ -9,10 +9,10 @@ namespace Block {
         // (0,1,0) is the 2th coordinate (010 in binary)
     vector<Vertex> get_block_face_vertices(ID id, Face face) {
         vector<Vertex> vertices;
-        std::pair<float, float> location = 
+        std::pair<int, int> location = 
             get_texture_atlas_location(id, face);
-        float origin_x = location.first / TEXTURE_ATLAS_WIDTH_IN_BLOCKS;
-        float origin_y = location.second / TEXTURE_ATLAS_HEIGHT_IN_BLOCKS;
+        float origin_x = (float)location.first / TEXTURE_ATLAS_WIDTH_IN_BLOCKS;
+        float origin_y = (float)location.second / TEXTURE_ATLAS_HEIGHT_IN_BLOCKS;
         float unit_x = 1.f / TEXTURE_ATLAS_WIDTH_IN_BLOCKS;
         float unit_y = 1.f / TEXTURE_ATLAS_HEIGHT_IN_BLOCKS;
 
@@ -21,7 +21,7 @@ namespace Block {
         origin_y = origin_y * -1;
         unit_y = unit_y * -1;
 
-        switch (get_mesh_type(id)) {
+        switch (get_block_mesh_type(id)) {
         case MeshType::CUBE:
             switch (face) {
             case Face::XNEG: {
@@ -197,7 +197,7 @@ namespace Block {
 
     vector<unsigned int> get_block_face_indices(ID id, Face face) {
         vector<unsigned int> indices;
-        switch (get_mesh_type(id)) {
+        switch (get_block_mesh_type(id)) {
         case MeshType::CUBE: {
             switch (face) {
             case Face::XNEG:
@@ -308,7 +308,7 @@ namespace Block {
         }
     }
 
-    MeshType get_mesh_type(ID id) {
+    MeshType get_block_mesh_type(ID id) {
         switch (id) {
         case ID::AIR:
             return MeshType::NONE;
@@ -328,7 +328,7 @@ namespace Block {
         }
     }
 
-    bool get_is_opaque(ID id) {
+    bool get_block_opacity(ID id) {
         switch (id) {
         case ID::AIR:
         case ID::LEAF:
@@ -338,6 +338,57 @@ namespace Block {
             return false;
         default:
             return true;
+        }
+    }
+
+    string get_block_name(ID id) {
+        switch (id) {
+        case ID::AIR:
+            return string("Air");
+        case ID::DIRT:
+            return string("Dirt");
+        case ID::GRASS:
+            return string("Grass");
+        case ID::STONE:
+            return "Stone";
+        case ID::COBBLESTONE:
+            return "Cobblestone";
+        case ID::SAND:
+            return "Sand";
+        case ID::PLANK:
+            return "Plank";
+        case ID::LOG:
+            return "Log";
+        case ID::LEAF:
+            return "Leaf";
+        case ID::BRICK:
+            return "Brick";
+        case ID::GLASS:
+            return "Glass";
+        case ID::BOOKSHELF:
+            return "Bookshelf";
+
+        case ID::COBBLESTONE_SLAB:
+            return "Cobblestone Slab";
+        case ID::PLANK_SLAB:
+            return "Plank Slab";
+        case ID::BRICK_SLAB:
+            return "Brick Slab";
+
+        case ID::COBBLESTONE_STAIR:
+            return "Cobblestone Stair";
+        case ID::PLANK_STAIR:
+            return "Plank Stair";
+        case ID::BRICK_STAIR:
+            return "Brick Stair";
+
+        case ID::ROSE:
+            return "Rose";
+        case ID::DAISY:
+            return "Daisy";
+
+        default:
+            return string("no name found");
         }
     }
 }

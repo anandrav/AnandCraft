@@ -30,6 +30,8 @@ public:
 
     Block::State get_block_at(int x, int y, int z);
 
+    void modify_block_at(int x, int y, int z, Block::State new_state);
+
     ~Grid();
 
 private:
@@ -42,6 +44,8 @@ private:
     //void operator=(const Grid&& lhs) noexcept {}
 
     GridChunk* generate_chunk(int x_index, int y_index, int z_index);
+
+    GridChunk* get_chunk_at(int x, int y, int z);
 };
 
 
@@ -57,7 +61,7 @@ private:
     Grid& grid;
 
     // position relative to other chunks in parent Grid
-    // (CHUNK_WIDTH * x_index is x-position in world space, etc.)
+    // (CHUNK_WIDTH * x_index is x-position in grid space, etc.)
     int x_index;
     int y_index;
     int z_index;
@@ -100,6 +104,5 @@ private:
     bool check_if_opaque_at(int x, int y, int z);
 
     bool check_if_same_material_at(int x, int y, int z, Block::State current);
-
 };
 
