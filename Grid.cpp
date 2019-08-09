@@ -1,10 +1,10 @@
 #include "Grid.h"
 
 Grid::Grid() {
-    const int chunk_radius = 2;
+    const int chunk_radius = 16;
     for (int x = -1*chunk_radius; x < chunk_radius; ++x) {
         for (int z = -1*chunk_radius; z < chunk_radius; ++z) {
-            for (int y = -2; y < 0; ++y) {
+            for (int y = -2*chunk_radius; y < 0; ++y) {
                 chunks.push_back(generate_chunk(x, y, z));
             }
         }
@@ -196,6 +196,7 @@ void GridChunk::render_opaque(Camera& camera) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_CULL_FACE);
 
     opaque_mesh.draw();
 }
@@ -208,6 +209,7 @@ void GridChunk::render_transparent(Camera& camera) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_CULL_FACE);
 
     glm::vec3 camera_pos = camera.get_position();
     std::sort(transparent_faces.begin(), transparent_faces.end(),

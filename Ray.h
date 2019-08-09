@@ -5,8 +5,8 @@
 class Ray {
 public:
     // direction does not have to be a unit vector
-    Ray(glm::vec3 start, glm::vec3 direction) :
-        start(start), end(start) {
+    Ray(glm::vec3 origin, glm::vec3 direction) :
+        origin(origin), end(origin) {
         this->direction = glm::normalize(direction);
     }
 
@@ -19,11 +19,11 @@ public:
     }
 
     float get_length() const {
-        return glm::length(end - start);
+        return glm::length(end - origin);
     }
 
 private:
     glm::vec3 direction;
-    glm::vec3 start;
+    glm::vec3 origin;
     glm::vec3 end;
 };

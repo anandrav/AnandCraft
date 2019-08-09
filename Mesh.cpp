@@ -1,25 +1,52 @@
 #include "Mesh.h"
 
 Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices) {
-    this->vertices = vertices;
-    this->indices = indices;
-
-    setup();
+    setup(vertices, indices);
 }
 
 // copy constructor
 Mesh::Mesh(Mesh& other) {
-    vertices = other.vertices;
-    indices = other.indices;
-    setup();
+    num_vertices = other.num_vertices;
+    num_indices = other.num_indices;
+
+    if (num_vertices == 0 || num_indices == 0) {
+        VAO = 0;
+        VBO = 0;
+        EBO = 0;
+        return;
+    }
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+    glCopyBufferSubData(other.VBO, VBO, 0, 0, num_vertices * sizeof(Vertex));
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glCopyBufferSubData(other.EBO, EBO, 0, 0, num_indices * sizeof(unsigned int));
+
+    // vertex positions
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+    // vertex normals
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+    // vertex texture coords
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tex_coords));
+
+    glBindVertexArray(0);
 }
 
 // copy assignment operator
 Mesh& Mesh::operator=(Mesh& other) {
     // copy-swap
     Mesh temp(other);
-    std::swap(vertices, temp.vertices);
-    std::swap(indices, temp.indices);
+    std::swap(num_vertices, temp.num_vertices);
+    std::swap(num_indices, temp.num_indices);
     std::swap(VAO, temp.VAO);
     std::swap(VBO, temp.VBO);
     std::swap(EBO, temp.VBO);
@@ -28,17 +55,25 @@ Mesh& Mesh::operator=(Mesh& other) {
 
 // move constructor
 Mesh::Mesh(Mesh&& other) noexcept {
-    vertices = std::move(other.vertices);
-    indices = std::move(other.indices);
-    setup();
+    // transfer access to buffer data
+    num_vertices = other.num_vertices;
+    num_indices = other.num_indices;
+    VAO = other.VAO;
+    VBO = other.VBO;
+    EBO = other.EBO;
+
+    // prevent destructor of removing buffer data
+    other.VAO = 0;
+    other.VBO = 0;
+    other.EBO = 0;
 }
 
 // move assignment operator
 Mesh& Mesh::operator=(Mesh&& other) noexcept {
     // move-swap
     Mesh temp(std::move(other));
-    std::swap(vertices, temp.vertices);
-    std::swap(indices, temp.indices);
+    std::swap(num_vertices, temp.num_vertices);
+    std::swap(num_indices, temp.num_indices);
     std::swap(VAO, temp.VAO);
     std::swap(VBO, temp.VBO);
     std::swap(EBO, temp.VBO);
@@ -53,7 +88,7 @@ Mesh::~Mesh() {
 
 void Mesh::draw() {
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
 
@@ -63,10 +98,16 @@ void Mesh::draw_elements(int count, int start) {
     glBindVertexArray(0);
 }
 
-void Mesh::setup() {
+void Mesh::setup(const vector<Vertex>& vertices, const vector<unsigned int>& indices) {
     if (vertices.size() == 0 || indices.size() == 0) {
+        VAO = 0;
+        VBO = 0;
+        EBO = 0;
         return;
     }
+
+    num_vertices = (int)vertices.size();
+    num_indices = (int)indices.size();
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);

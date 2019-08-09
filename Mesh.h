@@ -4,6 +4,8 @@
 #include "GL/glew.h"
 #include "glm/glm.hpp"
 
+using std::vector;
+
 struct Vertex {
     glm::vec3 position;
     glm::vec3 normal;
@@ -14,7 +16,7 @@ struct Vertex {
 class Mesh {
 public:
     // default constructor
-    Mesh() : VAO(0), VBO(0), EBO(0) {}
+    Mesh() : num_vertices(0), num_indices(0), VAO(0), VBO(0), EBO(0) {}
 
     Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices);
 
@@ -33,13 +35,13 @@ public:
     void draw_elements(int count, int start);
 
 private:
-    std::vector<Vertex> vertices;
-    std::vector<GLuint> indices;
+    int num_vertices;
+    int num_indices;
 
     GLuint VAO;
     GLuint VBO;
     GLuint EBO;
 
-    void setup();
+    void setup(const vector<Vertex>& vertices, const vector<unsigned int>& indices);
 };
 
