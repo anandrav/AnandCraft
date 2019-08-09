@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <map>
 #include <algorithm>
 
 #include "Block.h"
@@ -10,6 +11,7 @@
 #include "util.h"
 
 using std::vector;
+using std::map;
 
 class GridChunk;
 
@@ -36,7 +38,28 @@ public:
 
 private:
     Transform transform;
-    vector<GridChunk*> chunks;
+    struct ChunkIndices {
+        int x_index;
+        int y_index;
+        int z_index;
+
+        bool operator==(const ChunkIndices& other) const {
+            return (this->x_index == other.x_index &&
+                    this->y_index == other.y_index &&
+                    this->z_index == other.z_index);
+        }
+
+        bool operator<(const ChunkIndices& other) const {
+            if (this->x_index != other.x_index) {
+                return this->x_index < other.x_index;
+            }
+            if (this->y_index != other.y_index) {
+                return this->y_index < other.y_index;
+            }
+            return this->z_index < other.z_index;
+        }
+    };
+    map<ChunkIndices, GridChunk*> chunks;
 
     //Grid(Grid& other) {}
     //Grid(Grid&& other) noexcept {}
