@@ -349,17 +349,17 @@ void Game::init() {
 
 void Game::render() {
     // clear
+    glDepthMask(GL_TRUE);
     glClearColor(.60f, .70f, .95f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glBindTexture(GL_TEXTURE_2D, texture);
     // render world
+    glBindTexture(GL_TEXTURE_2D, texture);
     //single_block->render(camera);
     grid->render_opaque(camera);
     grid->render_transparent(camera);
 
     // render UI/HUD
-
 
     // update display
     SDL_GL_SwapWindow(main_window);

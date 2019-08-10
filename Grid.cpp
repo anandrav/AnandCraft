@@ -136,6 +136,9 @@ void GridChunk::render_opaque(Camera& camera) {
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, &clip_transform[0][0]);
 
     glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+
+    glDisable(GL_BLEND);
     glEnable(GL_CULL_FACE);
 
     opaque_mesh.draw();
@@ -147,25 +150,14 @@ void GridChunk::render_transparent(Camera& camera) {
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, &clip_transform[0][0]);
 
     glEnable(GL_DEPTH_TEST);
+    // disable depth write for transparent surfaces
+    glDepthMask(GL_FALSE);
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_CULL_FACE);
 
-    //glm::vec3 camera_pos = camera.get_position();
-    //std::sort(transparent_faces.begin(), transparent_faces.end(),
-    //    [camera_pos](const TransparentFace& a, const TransparentFace& b) {
-    //        glm::vec3 a_pos = glm::vec3(a.x, a.y, a.z);
-    //        float a_distance = glm::length(a_pos - camera_pos);
-    //        glm::vec3 b_pos = glm::vec3(b.x, b.y, b.z);
-    //        float b_distance = glm::length(b_pos - camera_pos);
-
-    //        return a_distance > b_distance;
-    //    }
-    //);
-
-    for (int i = 0; i < transparent_faces.size(); ++i) {
-        transparent_mesh.draw_elements(6, transparent_faces[i].index * 6);
-    }
+    transparent_mesh.draw();
 }
 
 void GridChunk::create_opaque_mesh() {
@@ -244,32 +236,32 @@ void GridChunk::create_transparent_mesh() {
                     // only add faces that are adjacent to transparent
                     //      blocks, cull faces that are obscured
                     if (!check_if_opaque_at(x - 1, y, z) && !check_if_same_material_at(x - 1, y, z, current)) {
-                        transparent_faces.push_back(TransparentFace{ x,y,z,(int)indices.size() / 6 });
+                        transparent_faces.push_back(TransparentFace{ (float)x,(float)y+.5f,(float)z+.5f,(int)indices.size() / 6 });
                         append_block_face(vertices, indices, current,
                             Block::Face::XNEG, x, y, z);
                     }
                     if (!check_if_opaque_at(x + 1, y, z) && !check_if_same_material_at(x + 1, y, z, current)) {
-                        transparent_faces.push_back(TransparentFace{ x,y,z,(int)indices.size() / 6 });
+                        transparent_faces.push_back(TransparentFace{ (float)x+1.f,(float)y+.5f,(float)z+.5f,(int)indices.size() / 6 });
                         append_block_face(vertices, indices, current,
                             Block::Face::XPOS, x, y, z);
                     }
                     if (!check_if_opaque_at(x, y - 1, z) && !check_if_same_material_at(x, y - 1, z, current)) {
-                        transparent_faces.push_back(TransparentFace{ x,y,z,(int)indices.size() / 6 });
+                        transparent_faces.push_back(TransparentFace{ (float)x+.5f,(float)y,(float)z+.5f,(int)indices.size() / 6 });
                         append_block_face(vertices, indices, current,
                             Block::Face::YNEG, x, y, z);
                     }
                     if (!check_if_opaque_at(x, y + 1, z) && !check_if_same_material_at(x, y + 1, z, current)) {
-                        transparent_faces.push_back(TransparentFace{ x,y,z,(int)indices.size() / 6 });
+                        transparent_faces.push_back(TransparentFace{ (float)x+.5f,(float)y+1.f,(float)z+.5f,(int)indices.size() / 6 });
                         append_block_face(vertices, indices, current,
                             Block::Face::YPOS, x, y, z);
                     }
                     if (!check_if_opaque_at(x, y, z - 1) && !check_if_same_material_at(x, y, z - 1, current)) {
-                        transparent_faces.push_back(TransparentFace{ x,y,z,(int)indices.size() / 6 });
+                        transparent_faces.push_back(TransparentFace{ (float)x+.5f,(float)y+.5f,(float)z,(int)indices.size() / 6 });
                         append_block_face(vertices, indices, current,
                             Block::Face::ZNEG, x, y, z);
                     }
                     if (!check_if_opaque_at(x, y, z + 1) && !check_if_same_material_at(x, y, z + 1, current)) {
-                        transparent_faces.push_back(TransparentFace{ x,y,z,(int)indices.size() / 6 });
+                        transparent_faces.push_back(TransparentFace{ (float)x+.5f,(float)y+.5f,(float)z+1.f,(int)indices.size() / 6 });
                         append_block_face(vertices, indices, current,
                             Block::Face::ZPOS, x, y, z);
                     }

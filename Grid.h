@@ -98,9 +98,9 @@ private:
     Mesh opaque_mesh;
     Mesh transparent_mesh;
     struct TransparentFace {
-        int x;
-        int y;
-        int z;
+        float x;
+        float y;
+        float z;
 
         int index;
     };
