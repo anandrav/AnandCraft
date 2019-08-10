@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Model.h"
+#include "Graphics/Model.h"
 #include "Block.h"
 
 class SingleBlockDemo {
@@ -65,7 +65,7 @@ private:
         increment_vector(indices1, 20);
         indices_vec.insert(indices_vec.end(), indices1.begin(), indices1.end());
 
-        Shader shader("basic_vert.glsl", "basic_frag.glsl");
+        Shader shader("res/basic_vert.glsl", "res/basic_frag.glsl");
         Mesh mesh(vertices_vec, indices_vec);
         model = Model(mesh, shader, transform);
     }

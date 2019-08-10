@@ -6,12 +6,12 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
-#include "Shader.h"
-#include "Mesh.h"
+#include "Graphics/Shader.h"
+#include "Graphics/Mesh.h"
 #include "util.h"
-#include "Transform.h"
-#include "Camera.h"
-#include "Model.h"
+#include "Graphics/Transform.h"
+#include "Graphics/Camera.h"
+#include "Graphics/Model.h"
 #include "Block.h"
 #include "stb_image.h"
 #include "BlockDemo.h"

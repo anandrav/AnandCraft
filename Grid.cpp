@@ -23,8 +23,6 @@ void Grid::render_opaque(Camera& camera) {
 }
 
 void Grid::render_transparent(Camera& camera) {
-    //glm::vec3 camera_pos = camera.get_position();
-
     for (auto& chunk : chunks) {
         chunk.second->render_transparent(camera);
     }
@@ -127,7 +125,7 @@ GridChunk::GridChunk(int x_index, int y_index, int z_index,
                                    y_index * HEIGHT,
                                    z_index * DEPTH);
     transform.set_pos(location);
-    shader = Shader("basic_vert.glsl", "basic_frag.glsl");
+    shader = Shader("res/basic_vert.glsl", "res/basic_frag.glsl");
 }
 
 void GridChunk::render_opaque(Camera& camera) {

@@ -5,9 +5,9 @@
 #include <algorithm>
 
 #include "Block.h"
-#include "Camera.h"
-#include "Transform.h"
-#include "Shader.h"
+#include "Graphics/Camera.h"
+#include "Graphics/Transform.h"
+#include "Graphics/Shader.h"
 #include "util.h"
 
 using std::vector;

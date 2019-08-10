@@ -8,9 +8,9 @@ NOTE: I plan to add dependency management for all major platforms in the near fu
 - [x] chunks
 - [x] breaking and placing of blocks
 - [ ] terrain generation
+- [ ] basic UI/Menu system
 - [ ] lighting
 - [ ] collision detection
-- [ ] basic UI/Menu system
 
 ## Some pictures:
 ![Grass Block](/readme-images/grass-block.jpg)
