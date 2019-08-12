@@ -78,6 +78,8 @@ void Game::run_loop() {
 
         render();
     }
+
+    delete grid;
 }
 
 void Game::handle_click(SDL_Event& e) {

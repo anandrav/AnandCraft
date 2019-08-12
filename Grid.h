@@ -2,7 +2,11 @@
 
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include <algorithm>
+#include <thread>
+#include <atomic>
+#include <condition_variable>
 
 #include "Block.h"
 #include "Graphics/Camera.h"
@@ -12,6 +16,8 @@
 
 using std::vector;
 using std::map;
+using std::unordered_map;
+using std::thread;
 
 class GridChunk;
 
@@ -23,6 +29,11 @@ public:
     static const int CHUNK_DEPTH = 16;
 
     Grid();
+
+    //Grid(Grid& other) {}
+    //Grid(Grid&& other) noexcept {}
+    //void operator=(const Grid& lhs) noexcept {}
+    //void operator=(const Grid&& lhs) noexcept {}
 
     void render_opaque(Camera& camera);
 
@@ -59,12 +70,26 @@ private:
             return this->z_index < other.z_index;
         }
     };
-    map<ChunkIndices, GridChunk*> chunks;
 
-    //Grid(Grid& other) {}
-    //Grid(Grid&& other) noexcept {}
-    //void operator=(const Grid& lhs) noexcept {}
-    //void operator=(const Grid&& lhs) noexcept {}
+    struct ChunkIndicesHash {
+        std::size_t operator() (const ChunkIndices& indices) const {
+            std::size_t h1 = std::hash<int>()(indices.x_index);
+            std::size_t h2 = std::hash<int>()(indices.y_index);
+            std::size_t h3 = std::hash<int>()(indices.z_index);
+
+            return h1 ^ (h2 << 1) ^ (h3 << 2);
+        }
+    };
+
+    unordered_map<ChunkIndices, GridChunk*, ChunkIndicesHash> chunks;
+
+    thread chunk_thread;
+
+    std::atomic<bool> keep_running_thread;
+
+    std::condition_variable thread_condition;
+
+    void manage_chunks();
 
     GridChunk* generate_chunk(int x_index, int y_index, int z_index);
 
@@ -73,7 +98,7 @@ private:
 
 
 class GridChunk {
-    // Only Grid class can create and manage chunks
+    // Only Grid class can create and manage GridChunks
     friend class Grid;
 private:
     const int WIDTH = Grid::CHUNK_WIDTH;
@@ -97,14 +122,8 @@ private:
     Shader shader;
     Mesh opaque_mesh;
     Mesh transparent_mesh;
-    struct TransparentFace {
-        float x;
-        float y;
-        float z;
 
-        int index;
-    };
-    vector<TransparentFace> transparent_faces;
+    std::mutex mutex;
 
     GridChunk(int x_index, int y_index, int z_index,
         const vector<vector<vector<Block::State>>>& data, Grid& grid);

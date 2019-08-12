@@ -1,6 +1,8 @@
 #include "Grid.h"
 
-Grid::Grid() {
+Grid::Grid() : keep_running_thread(true) {
+    chunk_thread = thread(&Grid::manage_chunks, this);
+
     const int chunk_radius = 2;
     for (int x = -1*chunk_radius; x < chunk_radius; ++x) {
         for (int z = -1*chunk_radius; z < chunk_radius; ++z) {
@@ -58,6 +60,11 @@ void Grid::modify_block_at(int x, int y, int z, Block::State new_state) {
 }
 
 Grid::~Grid() {
+    keep_running_thread = false;
+
+    // join worker thread(s)
+    chunk_thread.join();
+
     for (auto& chunk : chunks) {
         delete chunk.second;
     }
@@ -80,20 +87,7 @@ GridChunk* Grid::generate_chunk(int x_index, int y_index, int z_index) {
                 data[x][y][z] = Block::State(Block::ID::DIRT);
             }
             // one layer of grass on top
-            data[x][7][z] = Block::State(Block::ID::GLASS);
-
-            // the rest is stone
-            //// top 5 layers air
-            //for (int y = CHUNK_HEIGHT - 1; y >= CHUNK_HEIGHT - 6 && y >= 0; --y) {
-            //    data[x][y][z] = Block::State(Block::ID::AIR);
-            //}
-            //// one layer of grass
-            //data[x][CHUNK_HEIGHT - 7][z] = Block::State(Block::ID::GRASS);
-            //// 2 layers of dirt under grass
-            //for (int y = CHUNK_HEIGHT - 8; y >= CHUNK_HEIGHT - 9 && y >= 0; --y) {
-            //    data[x][y][z] = Block::State(Block::ID::DIRT);
-            //}
-            //// the rest is stone
+            data[x][7][z] = Block::State(Block::ID::GRASS);
         }
     }
 
@@ -114,6 +108,14 @@ GridChunk* Grid::get_chunk_at(int x, int y, int z) {
         return chunks[ChunkIndices{ chunk_index_x,chunk_index_y,chunk_index_z }];
     }
     return nullptr;
+}
+
+void Grid::manage_chunks() {
+    while (keep_running_thread) {
+        //thread_condition.wait()
+    }
+
+    std::cout << "chunk manager no longer active" << std::endl;
 }
 
 GridChunk::GridChunk(int x_index, int y_index, int z_index,
@@ -234,32 +236,26 @@ void GridChunk::create_transparent_mesh() {
                     // only add faces that are adjacent to transparent
                     //      blocks, cull faces that are obscured
                     if (!check_if_opaque_at(x - 1, y, z) && !check_if_same_material_at(x - 1, y, z, current)) {
-                        transparent_faces.push_back(TransparentFace{ (float)x,(float)y+.5f,(float)z+.5f,(int)indices.size() / 6 });
                         append_block_face(vertices, indices, current,
                             Block::Face::XNEG, x, y, z);
                     }
                     if (!check_if_opaque_at(x + 1, y, z) && !check_if_same_material_at(x + 1, y, z, current)) {
-                        transparent_faces.push_back(TransparentFace{ (float)x+1.f,(float)y+.5f,(float)z+.5f,(int)indices.size() / 6 });
                         append_block_face(vertices, indices, current,
                             Block::Face::XPOS, x, y, z);
                     }
                     if (!check_if_opaque_at(x, y - 1, z) && !check_if_same_material_at(x, y - 1, z, current)) {
-                        transparent_faces.push_back(TransparentFace{ (float)x+.5f,(float)y,(float)z+.5f,(int)indices.size() / 6 });
                         append_block_face(vertices, indices, current,
                             Block::Face::YNEG, x, y, z);
                     }
                     if (!check_if_opaque_at(x, y + 1, z) && !check_if_same_material_at(x, y + 1, z, current)) {
-                        transparent_faces.push_back(TransparentFace{ (float)x+.5f,(float)y+1.f,(float)z+.5f,(int)indices.size() / 6 });
                         append_block_face(vertices, indices, current,
                             Block::Face::YPOS, x, y, z);
                     }
                     if (!check_if_opaque_at(x, y, z - 1) && !check_if_same_material_at(x, y, z - 1, current)) {
-                        transparent_faces.push_back(TransparentFace{ (float)x+.5f,(float)y+.5f,(float)z,(int)indices.size() / 6 });
                         append_block_face(vertices, indices, current,
                             Block::Face::ZNEG, x, y, z);
                     }
                     if (!check_if_opaque_at(x, y, z + 1) && !check_if_same_material_at(x, y, z + 1, current)) {
-                        transparent_faces.push_back(TransparentFace{ (float)x+.5f,(float)y+.5f,(float)z+1.f,(int)indices.size() / 6 });
                         append_block_face(vertices, indices, current,
                             Block::Face::ZPOS, x, y, z);
                     }

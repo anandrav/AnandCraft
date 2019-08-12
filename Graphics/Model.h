@@ -17,7 +17,7 @@ public:
         mesh(mesh), shader(shader), transform(transform) {
     }
 
-    virtual void render(Camera& camera) {
+    void render(Camera& camera) {
         shader.bind();
         glm::mat4 clip_transform = camera.get_view_projection() * transform.get_model();
         glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, &clip_transform[0][0]);
