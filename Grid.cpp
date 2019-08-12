@@ -112,10 +112,30 @@ GridChunk* Grid::get_chunk_at(int x, int y, int z) {
 
 void Grid::manage_chunks() {
     while (keep_running_thread) {
+
+        // wait for requests to be pushed to queue
         //thread_condition.wait()
+
+        // pop request from queue
+
+        // handle request
+
+        // potential requests: load_chunk(data, indices),
+        //                     update_opaque/transparent_meshes(indices),
+        //                     remove_chunk(indices)
+
+        // try to ensure that these request functions have all the data
+        //      they need as parameters, and only have to use a mutex
+        //      at the very end of their job
+        // AKA: 
+        // (a bunch of work happens)
+        // lock();
+        // chunk->mesh = our_mesh;
+        // unlock();
+        // return;
     }
 
-    std::cout << "chunk manager no longer active" << std::endl;
+    std::cout << "chunk management no longer active" << std::endl;
 }
 
 GridChunk::GridChunk(int x_index, int y_index, int z_index,
