@@ -6,7 +6,8 @@ namespace Block {
         //      as naming convention for cube's vertices' positions.
         // (0,0,0) is the 0th coordinate (000 in binary)
         // (0,0,1) is the 1st coordinate (001 in binary)
-        // (0,1,0) is the 2th coordinate (010 in binary)
+        // (0,1,0) is the 2nd coordinate (010 in binary)
+        //  etc.
     vector<Vertex> get_block_face_vertices(ID id, Face face) {
         vector<Vertex> vertices;
         std::pair<int, int> location = 
@@ -189,7 +190,7 @@ namespace Block {
             }
         default:
             // prevent compiler error
-            std::cout << "oopsss oh" << std::endl;
+            std::cout << "Block face vertices not found!" << std::endl;
             return vertices;
         }
 
@@ -225,7 +226,7 @@ namespace Block {
         }
         default:
             // prevent compiler error
-            std::cout << "uh oh" << std::endl;
+            std::cout << "Block face indices not found!" << std::endl;
             return indices;
         }
     }

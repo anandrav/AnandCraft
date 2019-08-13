@@ -83,7 +83,7 @@ private:
 
     unordered_map<ChunkIndices, GridChunk*, ChunkIndicesHash> chunks;
 
-    thread chunk_thread;
+    thread worker_thread;
 
     std::atomic<bool> keep_running_thread;
 

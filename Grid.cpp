@@ -1,7 +1,7 @@
 #include "Grid.h"
 
 Grid::Grid() : keep_running_thread(true) {
-    chunk_thread = thread(&Grid::manage_chunks, this);
+    worker_thread = thread(&Grid::manage_chunks, this);
 
     const int chunk_radius = 2;
     for (int x = -1*chunk_radius; x < chunk_radius; ++x) {
@@ -63,7 +63,7 @@ Grid::~Grid() {
     keep_running_thread = false;
 
     // join worker thread(s)
-    chunk_thread.join();
+    worker_thread.join();
 
     for (auto& chunk : chunks) {
         delete chunk.second;
