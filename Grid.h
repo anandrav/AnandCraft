@@ -30,10 +30,8 @@ public:
 
     Grid();
 
-    //Grid(Grid& other) {}
-    //Grid(Grid&& other) noexcept {}
-    //void operator=(const Grid& lhs) noexcept {}
-    //void operator=(const Grid&& lhs) noexcept {}
+    Grid(Grid&) = delete;
+    void operator=(const Grid&) = delete;
 
     void render_opaque(Camera& camera);
 
@@ -83,14 +81,6 @@ private:
 
     unordered_map<ChunkIndices, GridChunk*, ChunkIndicesHash> chunks;
 
-    thread worker_thread;
-
-    std::atomic<bool> keep_running_thread;
-
-    std::condition_variable thread_condition;
-
-    void manage_chunks();
-
     GridChunk* generate_chunk(int x_index, int y_index, int z_index);
 
     GridChunk* get_chunk_at(int x, int y, int z);
@@ -122,8 +112,7 @@ private:
     Shader shader;
     Mesh opaque_mesh;
     Mesh transparent_mesh;
-
-    std::mutex mutex;
+    std::mutex meshes_mutex;
 
     GridChunk(int x_index, int y_index, int z_index,
         const vector<vector<vector<Block::State>>>& data, Grid& grid);

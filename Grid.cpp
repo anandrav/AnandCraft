@@ -1,7 +1,8 @@
 #include "Grid.h"
 
-Grid::Grid() : keep_running_thread(true) {
-    worker_thread = thread(&Grid::manage_chunks, this);
+Grid::Grid() {
+    //keep_running.store(true);
+    //worker_thread = thread(&Grid::manage_chunks, this);
 
     const int chunk_radius = 2;
     for (int x = -1*chunk_radius; x < chunk_radius; ++x) {
@@ -60,14 +61,14 @@ void Grid::modify_block_at(int x, int y, int z, Block::State new_state) {
 }
 
 Grid::~Grid() {
-    keep_running_thread = false;
+    //keep_running_thread.store(false);
 
-    // join worker thread(s)
-    worker_thread.join();
+    //// join worker thread(s)
+    //worker_thread.join();
 
-    for (auto& chunk : chunks) {
-        delete chunk.second;
-    }
+    //for (auto& chunk : chunks) {
+    //    delete chunk.second;
+    //}
 }
 
 GridChunk* Grid::generate_chunk(int x_index, int y_index, int z_index) {
@@ -108,34 +109,6 @@ GridChunk* Grid::get_chunk_at(int x, int y, int z) {
         return chunks[ChunkIndices{ chunk_index_x,chunk_index_y,chunk_index_z }];
     }
     return nullptr;
-}
-
-void Grid::manage_chunks() {
-    while (keep_running_thread) {
-
-        // wait for requests to be pushed to queue
-        //thread_condition.wait()
-
-        // pop request from queue
-
-        // handle request
-
-        // potential requests: load_chunk(data, indices),
-        //                     update_opaque/transparent_meshes(indices),
-        //                     remove_chunk(indices)
-
-        // try to ensure that these request functions have all the data
-        //      they need as parameters, and only have to use a mutex
-        //      at the very end of their job
-        // AKA: 
-        // (a bunch of work happens)
-        // lock();
-        // chunk->mesh = our_mesh;
-        // unlock();
-        // return;
-    }
-
-    std::cout << "chunk management no longer active" << std::endl;
 }
 
 GridChunk::GridChunk(int x_index, int y_index, int z_index,

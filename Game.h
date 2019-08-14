@@ -17,6 +17,8 @@
 #include "BlockDemo.h"
 #include "Grid.h"
 #include "Ray.h"
+#include "DispatchQueue.h"
+#include <functional>
 
 class Game {
 public:
@@ -34,6 +36,7 @@ private:
     Camera camera;
     glm::vec3 camera_vel;
     glm::vec3 camera_rot;
+    std::function<void(void)> func;
     Grid* grid;
     unsigned int texture;
 

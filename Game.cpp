@@ -267,43 +267,6 @@ void Game::update() {
     camera.yaw(glm::radians(camera_rot.y) / 2.f);
     camera_rot.y = 0;
     camera_rot.x = 0;
-
-    // placing and breaking blocks
-
-
-    //if (SDL_GetTicks() % 11000 <= 1000) {
-    //    single_block->set_block(Block::State(Block::ID::DIRT));
-    //}
-    //else if (SDL_GetTicks() % 11000 <= 2000) {
-    //    single_block->set_block(Block::State(Block::ID::GRASS));
-    //}
-    //else if (SDL_GetTicks() % 11000 <= 3000) {
-    //    single_block->set_block(Block::State(Block::ID::STONE));
-    //}
-    //else if (SDL_GetTicks() % 11000 <= 4000) {
-    //    single_block->set_block(Block::State(Block::ID::COBBLESTONE));
-    //}
-    //else if (SDL_GetTicks() % 11000 <= 5000) {
-    //    single_block->set_block(Block::State(Block::ID::SAND));
-    //}
-    //else if (SDL_GetTicks() % 11000 <= 6000) {
-    //    single_block->set_block(Block::State(Block::ID::PLANK));
-    //}
-    //else if (SDL_GetTicks() % 11000 <= 7000) {
-    //    single_block->set_block(Block::State(Block::ID::LOG));
-    //}
-    //else if (SDL_GetTicks() % 11000 <= 8000) {
-    //    single_block->set_block(Block::State(Block::ID::LEAF));
-    //}
-    //else if (SDL_GetTicks() % 11000 <= 9000) {
-    //    single_block->set_block(Block::State(Block::ID::BRICK));
-    //}
-    //else if (SDL_GetTicks() % 11000 <= 10000) {
-    //    single_block->set_block(Block::State(Block::ID::GLASS));
-    //}
-    //else if (SDL_GetTicks() % 11000 <= 11000) {
-    //    single_block->set_block(Block::State(Block::ID::BOOKSHELF));
-    //}
 }
 
 void Game::init() {
@@ -347,6 +310,24 @@ void Game::init() {
     //}
 
     //std::cout << "COUNT: " << count << std::endl;
+
+    int x = 0;
+    //func = [x]() {
+    //    std::cout << x++ << std::endl;
+    //};
+
+    struct functor {
+        functor(int x_) : x(x_) {}
+
+        void operator()() {
+            std::cout << x++ << std::endl;
+        }
+
+        int x;
+    };
+
+    func = functor(0);
+
 }
 
 void Game::render() {
