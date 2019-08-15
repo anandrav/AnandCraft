@@ -200,6 +200,8 @@ void Grid::UpdateChunkMeshJob::operator()() {
         }
     }
 
+    // FIXME, you cannot use the Mesh constructor off the main thread
+    //      because it contains OpenGL calls, use the main thread somehow
     std::lock_guard<std::mutex> lock(chunk->meshes_mutex);
     chunk->opaque_mesh = Mesh(vertices, indices);
 }
