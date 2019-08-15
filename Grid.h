@@ -10,7 +10,7 @@
 #include "Graphics/Transform.h"
 #include "Graphics/Shader.h"
 #include "util.h"
-#include "ThreadQueue.h"
+#include "Async/ThreadQueue.h"
 
 using std::vector;
 using std::map;
