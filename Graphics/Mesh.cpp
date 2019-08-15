@@ -98,6 +98,14 @@ void Mesh::draw_elements(int count, int start) {
     glBindVertexArray(0);
 }
 
+int Mesh::get_num_vertices() {
+    return num_vertices;
+}
+
+int Mesh::get_num_indices() {
+    return num_indices;
+}
+
 void Mesh::setup(const vector<Vertex>& vertices, const vector<unsigned int>& indices) {
     if (vertices.size() == 0 || indices.size() == 0) {
         VAO = 0;

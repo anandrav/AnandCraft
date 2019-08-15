@@ -34,6 +34,10 @@ public:
 
     void draw_elements(int count, int start);
 
+    int get_num_vertices();
+
+    int get_num_indices();
+
 private:
     int num_vertices;
     int num_indices;

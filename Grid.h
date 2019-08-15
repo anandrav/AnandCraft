@@ -4,20 +4,17 @@
 #include <map>
 #include <unordered_map>
 #include <algorithm>
-#include <thread>
-#include <atomic>
-#include <condition_variable>
 
 #include "Block.h"
 #include "Graphics/Camera.h"
 #include "Graphics/Transform.h"
 #include "Graphics/Shader.h"
 #include "util.h"
+#include "ThreadQueue.h"
 
 using std::vector;
 using std::map;
 using std::unordered_map;
-using std::thread;
 
 class GridChunk;
 
@@ -81,59 +78,17 @@ private:
 
     unordered_map<ChunkIndices, GridChunk*, ChunkIndicesHash> chunks;
 
+    GridChunk* get_chunk_at(int x, int y, int z);
+
     GridChunk* generate_chunk(int x_index, int y_index, int z_index);
 
-    GridChunk* get_chunk_at(int x, int y, int z);
+    struct UpdateChunkMeshJob {
+        UpdateChunkMeshJob(Grid& grid, GridChunk* chunk);
+
+        Grid& grid;
+        GridChunk* chunk;
+        vector<vector<vector<Block::State>>> data_copy;
+
+        void operator()();
+    };
 };
-
-
-class GridChunk {
-    // Only Grid class can create and manage GridChunks
-    friend class Grid;
-private:
-    const int WIDTH = Grid::CHUNK_WIDTH;
-    const int HEIGHT = Grid::CHUNK_HEIGHT;
-    const int DEPTH = Grid::CHUNK_DEPTH;
-
-    // parent Grid
-    Grid& grid;
-
-    // position relative to other chunks in parent Grid
-    // (CHUNK_WIDTH * x_index is x-position in grid space, etc.)
-    int x_index;
-    int y_index;
-    int z_index;
-
-    // data for blocks in chunk, indexed by [x][y][z]
-    //      x, y, and z are position within chunk
-    vector<vector<vector<Block::State>>> data;
-
-    Transform transform;
-    Shader shader;
-    Mesh opaque_mesh;
-    Mesh transparent_mesh;
-    std::mutex meshes_mutex;
-
-    GridChunk(int x_index, int y_index, int z_index,
-        const vector<vector<vector<Block::State>>>& data, Grid& grid);
-
-    void render_opaque(Camera& camera);
-
-    void render_transparent(Camera& camera);
-
-    void create_opaque_mesh();
-
-    void create_transparent_mesh();
-
-    void append_block_face(vector<Vertex>& vertices, vector<unsigned int>& indices, Block::State state,
-        Block::Face face, int x, int y, int z);
-
-    void increment_face_indices(vector<unsigned int>& vec, int num);
-
-    void translate_vertices_in_vector(vector<Vertex>& vec, int x, int y, int z);
-
-    bool check_if_opaque_at(int x, int y, int z);
-
-    bool check_if_same_material_at(int x, int y, int z, Block::State current);
-};
-

@@ -267,6 +267,12 @@ void Game::update() {
     camera.yaw(glm::radians(camera_rot.y) / 2.f);
     camera_rot.y = 0;
     camera_rot.x = 0;
+
+    //DispatchQueue::get_instance().push(
+    //    []{ 
+    //        std::cout<<"lol\n"; 
+    //    }
+    //);
 }
 
 void Game::init() {
@@ -311,22 +317,22 @@ void Game::init() {
 
     //std::cout << "COUNT: " << count << std::endl;
 
-    int x = 0;
-    //func = [x]() {
-    //    std::cout << x++ << std::endl;
+    //int x = 0;
+    ////func = [x]() {
+    ////    std::cout << x++ << std::endl;
+    ////};
+
+    //struct functor {
+    //    functor(int x_) : x(x_) {}
+
+    //    void operator()() {
+    //        std::cout << x++ << std::endl;
+    //    }
+
+    //    int x;
     //};
 
-    struct functor {
-        functor(int x_) : x(x_) {}
-
-        void operator()() {
-            std::cout << x++ << std::endl;
-        }
-
-        int x;
-    };
-
-    func = functor(0);
+    //func = functor(0);
 
 }
 

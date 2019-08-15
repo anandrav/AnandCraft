@@ -9,20 +9,20 @@
 #include <iostream>
 
 // send jobs to be run asynchronously by worker threads
-class DispatchQueue {
+class ThreadQueue {
 public:
     // singleton
-    static DispatchQueue& get_instance();
+    static ThreadQueue& get_instance();
 
     void push(std::function<void(void)> func);
 
-    ~DispatchQueue();
+    ~ThreadQueue();
 
 private:
-    DispatchQueue();
+    ThreadQueue();
 
-    DispatchQueue(const DispatchQueue&) = delete;
-    void operator=(const DispatchQueue&) = delete;
+    ThreadQueue(const ThreadQueue&) = delete;
+    void operator=(const ThreadQueue&) = delete;
 
     void worker_routine();
 

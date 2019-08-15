@@ -17,7 +17,7 @@
 #include "BlockDemo.h"
 #include "Grid.h"
 #include "Ray.h"
-#include "DispatchQueue.h"
+#include "ThreadQueue.h"
 #include <functional>
 
 class Game {
