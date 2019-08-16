@@ -11,6 +11,7 @@
 #include "Graphics/Shader.h"
 #include "util.h"
 #include "Async/ThreadQueue.h"
+#include "Async/AsyncQueue.h"
 
 using std::vector;
 using std::map;
@@ -29,6 +30,8 @@ public:
 
     Grid(Grid&) = delete;
     void operator=(const Grid&) = delete;
+
+    void init();
 
     void render_opaque(Camera& camera);
 
@@ -77,6 +80,7 @@ private:
     };
 
     unordered_map<ChunkIndices, GridChunk*, ChunkIndicesHash> chunks;
+    std::mutex chunks_mutex;
 
     GridChunk* get_chunk_at(int x, int y, int z);
 
@@ -88,6 +92,8 @@ private:
         Grid& grid;
         GridChunk* chunk;
         vector<vector<vector<Block::State>>> data_copy;
+
+        void init();
 
         void operator()();
     };

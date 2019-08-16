@@ -13,7 +13,6 @@ GridChunk::GridChunk(int x_index, int y_index, int z_index,
 }
 
 void GridChunk::render_opaque(Camera& camera) {
-
     shader.bind();
     glm::mat4 clip_transform = camera.get_view_projection() * transform.get_model();
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, &clip_transform[0][0]);
@@ -24,7 +23,6 @@ void GridChunk::render_opaque(Camera& camera) {
     glDisable(GL_BLEND);
     glEnable(GL_CULL_FACE);
 
-    std::lock_guard<std::mutex> lock(meshes_mutex);
     opaque_mesh.draw();
 }
 
@@ -41,129 +39,140 @@ void GridChunk::render_transparent(Camera& camera) {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_CULL_FACE);
 
-    std::lock_guard<std::mutex> lock(meshes_mutex);
     transparent_mesh.draw();
 }
 
-void GridChunk::update_opaque_mesh() {
-    vector<Vertex> vertices;
-    vector<unsigned> indices;
+//void GridChunk::update_opaque_mesh() {
+//    std::lock_guard<std::mutex> lock(data_mutex);
+//
+//    vector<Vertex> vertices;
+//    vector<unsigned> indices;
+//
+//    for (int x = 0; x < WIDTH; ++x) {
+//        for (int y = 0; y < HEIGHT; ++y) {
+//            for (int z = 0; z < DEPTH; ++z) {
+//                Block::State& current = data[x][y][z];
+//
+//                // only render opaque blocks
+//                if (!check_if_opaque_at(x, y, z)) {
+//                    continue;
+//                }
+//
+//                switch (Block::get_block_mesh_type(current.id)) {
+//                case Block::MeshType::NONE:
+//                    continue;
+//                case Block::MeshType::CUBE:
+//                    // only add faces that are adjacent to transparent
+//                    //      blocks, cull faces that are obscured
+//                    if (!check_if_opaque_at(x - 1, y, z)) {
+//                        append_block_face(vertices, indices, current,
+//                            Block::Face::XNEG, x, y, z);
+//                    }
+//                    if (!check_if_opaque_at(x + 1, y, z)) {
+//                        append_block_face(vertices, indices, current,
+//                            Block::Face::XPOS, x, y, z);
+//                    }
+//                    if (!check_if_opaque_at(x, y - 1, z)) {
+//                        append_block_face(vertices, indices, current,
+//                            Block::Face::YNEG, x, y, z);
+//                    }
+//                    if (!check_if_opaque_at(x, y + 1, z)) {
+//                        append_block_face(vertices, indices, current,
+//                            Block::Face::YPOS, x, y, z);
+//                    }
+//                    if (!check_if_opaque_at(x, y, z - 1)) {
+//                        append_block_face(vertices, indices, current,
+//                            Block::Face::ZNEG, x, y, z);
+//                    }
+//                    if (!check_if_opaque_at(x, y, z + 1)) {
+//                        append_block_face(vertices, indices, current,
+//                            Block::Face::ZPOS, x, y, z);
+//                    }
+//                    break;
+//                default:
+//                    break;
+//                }
+//            }
+//        }
+//    }
+//
+//    opaque_mesh = Mesh(vertices, indices);
+//}
+//
+//void GridChunk::update_transparent_mesh() {
+//    std::lock_guard<std::mutex> lock(data_mutex);
+//
+//    vector<Vertex> vertices;
+//    vector<unsigned> indices;
+//
+//    for (int x = 0; x < WIDTH; ++x) {
+//        for (int y = 0; y < HEIGHT; ++y) {
+//            for (int z = 0; z < DEPTH; ++z) {
+//                Block::State& current = data[x][y][z];
+//
+//                // only render opaque blocks
+//                if (check_if_opaque_at(x, y, z)) {
+//                    continue;
+//                }
+//
+//                switch (Block::get_block_mesh_type(current.id)) {
+//                case Block::MeshType::NONE:
+//                    continue;
+//                case Block::MeshType::CUBE:
+//                    // only add faces that are adjacent to transparent
+//                    //      blocks, cull faces that are obscured
+//                    if (!check_if_opaque_at(x - 1, y, z) && !check_if_same_material_at(x - 1, y, z, current)) {
+//                        append_block_face(vertices, indices, current,
+//                            Block::Face::XNEG, x, y, z);
+//                    }
+//                    if (!check_if_opaque_at(x + 1, y, z) && !check_if_same_material_at(x + 1, y, z, current)) {
+//                        append_block_face(vertices, indices, current,
+//                            Block::Face::XPOS, x, y, z);
+//                    }
+//                    if (!check_if_opaque_at(x, y - 1, z) && !check_if_same_material_at(x, y - 1, z, current)) {
+//                        append_block_face(vertices, indices, current,
+//                            Block::Face::YNEG, x, y, z);
+//                    }
+//                    if (!check_if_opaque_at(x, y + 1, z) && !check_if_same_material_at(x, y + 1, z, current)) {
+//                        append_block_face(vertices, indices, current,
+//                            Block::Face::YPOS, x, y, z);
+//                    }
+//                    if (!check_if_opaque_at(x, y, z - 1) && !check_if_same_material_at(x, y, z - 1, current)) {
+//                        append_block_face(vertices, indices, current,
+//                            Block::Face::ZNEG, x, y, z);
+//                    }
+//                    if (!check_if_opaque_at(x, y, z + 1) && !check_if_same_material_at(x, y, z + 1, current)) {
+//                        append_block_face(vertices, indices, current,
+//                            Block::Face::ZPOS, x, y, z);
+//                    }
+//                    break;
+//                default:
+//                    break;
+//                }
+//            }
+//        }
+//    }
+//
+//    transparent_mesh = Mesh(vertices, indices);
+//}
 
-    for (int x = 0; x < WIDTH; ++x) {
-        for (int y = 0; y < HEIGHT; ++y) {
-            for (int z = 0; z < DEPTH; ++z) {
-                Block::State& current = data[x][y][z];
-
-                // only render opaque blocks
-                if (!check_if_opaque_at(x, y, z)) {
-                    continue;
-                }
-
-                switch (Block::get_block_mesh_type(current.id)) {
-                case Block::MeshType::NONE:
-                    continue;
-                case Block::MeshType::CUBE:
-                    // only add faces that are adjacent to transparent
-                    //      blocks, cull faces that are obscured
-                    if (!check_if_opaque_at(x - 1, y, z)) {
-                        append_block_face(vertices, indices, current,
-                            Block::Face::XNEG, x, y, z);
-                    }
-                    if (!check_if_opaque_at(x + 1, y, z)) {
-                        append_block_face(vertices, indices, current,
-                            Block::Face::XPOS, x, y, z);
-                    }
-                    if (!check_if_opaque_at(x, y - 1, z)) {
-                        append_block_face(vertices, indices, current,
-                            Block::Face::YNEG, x, y, z);
-                    }
-                    if (!check_if_opaque_at(x, y + 1, z)) {
-                        append_block_face(vertices, indices, current,
-                            Block::Face::YPOS, x, y, z);
-                    }
-                    if (!check_if_opaque_at(x, y, z - 1)) {
-                        append_block_face(vertices, indices, current,
-                            Block::Face::ZNEG, x, y, z);
-                    }
-                    if (!check_if_opaque_at(x, y, z + 1)) {
-                        append_block_face(vertices, indices, current,
-                            Block::Face::ZPOS, x, y, z);
-                    }
-                    break;
-                default:
-                    break;
-                }
-            }
-        }
-    }
-
-    std::lock_guard<std::mutex> lock(meshes_mutex);
-    opaque_mesh = Mesh(vertices, indices);
+void GridChunk::update_opaque_mesh(Mesh&& mesh) {
+    opaque_mesh = std::move(mesh);
 }
 
-void GridChunk::update_transparent_mesh() {
-    vector<Vertex> vertices;
-    vector<unsigned> indices;
-
-    for (int x = 0; x < WIDTH; ++x) {
-        for (int y = 0; y < HEIGHT; ++y) {
-            for (int z = 0; z < DEPTH; ++z) {
-                Block::State& current = data[x][y][z];
-
-                // only render opaque blocks
-                if (check_if_opaque_at(x, y, z)) {
-                    continue;
-                }
-
-                switch (Block::get_block_mesh_type(current.id)) {
-                case Block::MeshType::NONE:
-                    continue;
-                case Block::MeshType::CUBE:
-                    // only add faces that are adjacent to transparent
-                    //      blocks, cull faces that are obscured
-                    if (!check_if_opaque_at(x - 1, y, z) && !check_if_same_material_at(x - 1, y, z, current)) {
-                        append_block_face(vertices, indices, current,
-                            Block::Face::XNEG, x, y, z);
-                    }
-                    if (!check_if_opaque_at(x + 1, y, z) && !check_if_same_material_at(x + 1, y, z, current)) {
-                        append_block_face(vertices, indices, current,
-                            Block::Face::XPOS, x, y, z);
-                    }
-                    if (!check_if_opaque_at(x, y - 1, z) && !check_if_same_material_at(x, y - 1, z, current)) {
-                        append_block_face(vertices, indices, current,
-                            Block::Face::YNEG, x, y, z);
-                    }
-                    if (!check_if_opaque_at(x, y + 1, z) && !check_if_same_material_at(x, y + 1, z, current)) {
-                        append_block_face(vertices, indices, current,
-                            Block::Face::YPOS, x, y, z);
-                    }
-                    if (!check_if_opaque_at(x, y, z - 1) && !check_if_same_material_at(x, y, z - 1, current)) {
-                        append_block_face(vertices, indices, current,
-                            Block::Face::ZNEG, x, y, z);
-                    }
-                    if (!check_if_opaque_at(x, y, z + 1) && !check_if_same_material_at(x, y, z + 1, current)) {
-                        append_block_face(vertices, indices, current,
-                            Block::Face::ZPOS, x, y, z);
-                    }
-                    break;
-                default:
-                    break;
-                }
-            }
-        }
-    }
-
-    std::lock_guard<std::mutex> lock(meshes_mutex);
-    transparent_mesh = Mesh(vertices, indices);
+void GridChunk::update_transparent_mesh(Mesh&& mesh) {
+    transparent_mesh = std::move(mesh);
 }
 
 Block::State GridChunk::get_block_at(int x, int y, int z) {
-    std::lock_guard<std::mutex> lock(meshes_mutex);
+    std::lock_guard<std::mutex> lock(data_mutex);
 
     return data[x][y][z];
 }
 
 void GridChunk::set_block_at(int x, int y, int z, Block::State new_state) {
+    std::lock_guard<std::mutex> lock(data_mutex);
+
     data[x][y][z] = new_state;
 }
 
@@ -220,6 +229,7 @@ bool GridChunk::check_if_opaque_at(int x, int y, int z) {
         }
         return false;
     }
+
     return Block::get_block_opacity(data[x][y][z].id);
 }
 
@@ -237,5 +247,6 @@ bool GridChunk::check_if_same_material_at(int x, int y, int z, Block::State curr
         }
         return false;
     }
+
     return data[x][y][z].id == current.id;
 }

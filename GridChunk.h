@@ -7,9 +7,6 @@
 
 class GridChunk {
 public:
-    Mesh opaque_mesh;
-    Mesh transparent_mesh;
-    std::mutex meshes_mutex;
 
     GridChunk(int x_index, int y_index, int z_index,
         const vector<vector<vector<Block::State>>>& data, Grid& grid);
@@ -18,9 +15,13 @@ public:
 
     void render_transparent(Camera& camera);
 
-    void update_opaque_mesh();
+    //void update_opaque_mesh();
 
-    void update_transparent_mesh();
+    //void update_transparent_mesh();
+
+    void update_opaque_mesh(Mesh&& mesh);
+
+    void update_transparent_mesh(Mesh&& mesh);
 
     Block::State get_block_at(int x, int y, int z);
 
@@ -56,6 +57,10 @@ private:
     // data for blocks in chunk, indexed by [x][y][z]
     //      x, y, and z are position within chunk
     vector<vector<vector<Block::State>>> data;
+    std::mutex data_mutex;
+
+    Mesh opaque_mesh;
+    Mesh transparent_mesh;
 
     Transform transform;
     Shader shader;

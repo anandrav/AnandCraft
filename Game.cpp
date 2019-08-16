@@ -259,7 +259,9 @@ void Game::process_input() {
 }
 
 void Game::update() {
-    // camera/player movement
+    AsyncQueue::get_instance().process_tasks();
+
+    // TODO pack this behavior inside a Player class + Controller class
     camera.move_forward(-camera_vel.z);
     camera.move_left(-camera_vel.x);
     camera.move_up(camera_vel.y);
@@ -267,12 +269,6 @@ void Game::update() {
     camera.yaw(glm::radians(camera_rot.y) / 2.f);
     camera_rot.y = 0;
     camera_rot.x = 0;
-
-    //DispatchQueue::get_instance().push(
-    //    []{ 
-    //        std::cout<<"lol\n"; 
-    //    }
-    //);
 }
 
 void Game::init() {
@@ -296,44 +292,8 @@ void Game::init() {
     }
     stbi_image_free(data);
 
-    //single_block = new SingleBlockDemo(Block::State(Block::ID::GRASS));
-    //single_block->set_location(glm::vec3(-2.f, 0, -2.f));
-
     grid = new Grid();
-
-    //if (!grid->has_block_at(grid->CHUNK_WIDTH * -3 + 1, 3, grid->CHUNK_DEPTH * -3 + 1)) {
-    //    std::cout << "NO BLOCK" << std::endl;
-    //}
-
-    //int count = 0;
-    //for (int x = -32; x < 32; ++x) {
-    //    for (int z = -32; z < 32; ++z) {
-    //        if (!grid->has_block_at(x, 3, z)) {
-    //            std::cout << "NO BLOCK at " << x << ' ' << 3 << ' ' << z << std::endl;
-    //        }
-    //        count++;
-    //    }
-    //}
-
-    //std::cout << "COUNT: " << count << std::endl;
-
-    //int x = 0;
-    ////func = [x]() {
-    ////    std::cout << x++ << std::endl;
-    ////};
-
-    //struct functor {
-    //    functor(int x_) : x(x_) {}
-
-    //    void operator()() {
-    //        std::cout << x++ << std::endl;
-    //    }
-
-    //    int x;
-    //};
-
-    //func = functor(0);
-
+    grid->init();
 }
 
 void Game::render() {
@@ -344,7 +304,6 @@ void Game::render() {
 
     // render world
     glBindTexture(GL_TEXTURE_2D, texture);
-    //single_block->render(camera);
     grid->render_opaque(camera);
     grid->render_transparent(camera);
 

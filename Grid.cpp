@@ -2,10 +2,7 @@
 #include "GridChunk.h"
 
 Grid::Grid() {
-    //keep_running.store(true);
-    //worker_thread = thread(&Grid::manage_chunks, this);
-
-    const int chunk_radius = 2;
+    const int chunk_radius = 4;
     for (int x = -1*chunk_radius; x < chunk_radius; ++x) {
         for (int z = -1*chunk_radius; z < chunk_radius; ++z) {
             for (int y = -2*chunk_radius; y < 0; ++y) {
@@ -13,12 +10,11 @@ Grid::Grid() {
             }
         }
     }
+}
 
-    int x = 0;
-    for (auto& chunk : chunks) {
-        chunk.second->update_opaque_mesh();
-        chunk.second->update_transparent_mesh();
-    }
+void Grid::init() {
+    std::cout << "began\n";
+    //std::lock_guard<std::mutex> lock(chunks_mutex);
     for (auto& chunk : chunks) {
         //chunk.second->update_opaque_mesh();
         //chunk.second->update_transparent_mesh();
@@ -29,14 +25,18 @@ Grid::Grid() {
 }
 
 void Grid::render_opaque(Camera& camera) {
+    std::lock_guard<std::mutex> lock(chunks_mutex);
+
     for (auto& chunk : chunks) {
         chunk.second->render_opaque(camera);
     }
 }
 
 void Grid::render_transparent(Camera& camera) {
+    std::lock_guard<std::mutex> lock(chunks_mutex);
+
     for (auto& chunk : chunks) {
-        //chunk.second->render_transparent(camera);
+        chunk.second->render_transparent(camera);
     }
 }
 
@@ -62,14 +62,16 @@ void Grid::modify_block_at(int x, int y, int z, Block::State new_state) {
         int block_coord_y = util::positive_modulo(y, CHUNK_HEIGHT);
         int block_coord_z = util::positive_modulo(z, CHUNK_DEPTH);
         chunk->set_block_at(block_coord_x,block_coord_y,block_coord_z, new_state);
-        chunk->update_opaque_mesh();
-        chunk->update_transparent_mesh();
+        UpdateChunkMeshJob job(*this, chunk);
+        job();
         return;
     }
     throw std::range_error("block does not exist");
 }
 
 Grid::~Grid() {
+    std::lock_guard<std::mutex> lock(chunks_mutex);
+
     for (auto& chunk : chunks) {
         delete chunk.second;
     }
@@ -108,6 +110,7 @@ GridChunk* Grid::get_chunk_at(int x, int y, int z) {
     int chunk_index_z = (z >= 0) ? z / CHUNK_DEPTH
         : ((z + 1) / CHUNK_DEPTH) - 1;
 
+    std::lock_guard<std::mutex> lock(chunks_mutex);
     if (chunks.find(ChunkIndices{ chunk_index_x, chunk_index_y, chunk_index_z })
         != chunks.end()) {
         return chunks[ChunkIndices{ chunk_index_x,chunk_index_y,chunk_index_z }];
@@ -115,15 +118,19 @@ GridChunk* Grid::get_chunk_at(int x, int y, int z) {
     return nullptr;
 }
 
-Grid::UpdateChunkMeshJob::UpdateChunkMeshJob(Grid& grid, GridChunk* chunk) : 
+Grid::UpdateChunkMeshJob::UpdateChunkMeshJob(Grid& grid, GridChunk* chunk) :
     grid(grid),
-    chunk(chunk),
-    data_copy(CHUNK_WIDTH + 2, vector<vector<Block::State>>(
-              CHUNK_HEIGHT + 2, vector<Block::State>(
-              CHUNK_WIDTH + 2, Block::State{ Block::ID::AIR }))) {
-     //data copy has extra 2 blocks for each dimension to hold data
-     //     from adjacent chunks to determine whether to expose faces
-     //     on the outside
+    chunk(chunk) {
+}
+
+void Grid::UpdateChunkMeshJob::init() {
+    //data copy has extra 2 blocks for each dimension to hold data
+    //     from adjacent chunks to determine whether to expose faces
+    //     on the outside
+    data_copy = vector<vector<vector<Block::State>>>(
+        CHUNK_WIDTH + 2, vector<vector<Block::State>>(
+        CHUNK_HEIGHT + 2, vector<Block::State>(
+        CHUNK_WIDTH + 2, Block::State{ Block::ID::AIR })));
     for (int x = 0; x < CHUNK_WIDTH + 2; ++x) {
         for (int y = 0; y < CHUNK_HEIGHT + 2; ++y) {
             for (int z = 0; z < CHUNK_DEPTH + 2; ++z) {
@@ -131,14 +138,16 @@ Grid::UpdateChunkMeshJob::UpdateChunkMeshJob(Grid& grid, GridChunk* chunk) :
                 if (x == 0 || x == CHUNK_WIDTH + 1 ||
                     y == 0 || y == CHUNK_HEIGHT + 1 ||
                     z == 0 || z == CHUNK_DEPTH + 1) {
-                    int grid_x = chunk->get_x_index() * CHUNK_WIDTH + x-1;
-                    int grid_y = chunk->get_y_index() * CHUNK_HEIGHT + y-1;
-                    int grid_z = chunk->get_z_index() * CHUNK_DEPTH + z-1;
+                    int grid_x = chunk->get_x_index() * CHUNK_WIDTH + x - 1;
+                    int grid_y = chunk->get_y_index() * CHUNK_HEIGHT + y - 1;
+                    int grid_z = chunk->get_z_index() * CHUNK_DEPTH + z - 1;
                     if (grid.has_block_at(grid_x, grid_y, grid_z)) {
                         data_copy[x][y][z] = grid.get_block_at(grid_x, grid_y, grid_z);
                     }
-                } else {
-                    data_copy[x][y][z] = chunk->get_block_at(x-1, y-1, z-1);
+                    //data_copy[x][y][z] = Block::State{ Block::ID::AIR };
+                }
+                else {
+                    data_copy[x][y][z] = chunk->get_block_at(x - 1, y - 1, z - 1);
                 }
             }
         }
@@ -146,8 +155,7 @@ Grid::UpdateChunkMeshJob::UpdateChunkMeshJob(Grid& grid, GridChunk* chunk) :
 }
 
 void Grid::UpdateChunkMeshJob::operator()() {
-    std::this_thread::sleep_for(std::chrono::milliseconds(130));
-    std::cout << "done\n";
+    init();
 
     vector<Vertex> vertices;
     vector<unsigned> indices;
@@ -184,11 +192,11 @@ void Grid::UpdateChunkMeshJob::operator()() {
                         GridChunk::append_block_face(vertices, indices, current,
                             Block::Face::YPOS, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
-                    if (!Block::get_block_opacity(data_copy[x - 1][y][z - 1].id)) {
+                    if (!Block::get_block_opacity(data_copy[x][y][z - 1].id)) {
                         GridChunk::append_block_face(vertices, indices, current,
                             Block::Face::ZNEG, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
-                    if (!Block::get_block_opacity(data_copy[x - 1][y][z + 1].id)) {
+                    if (!Block::get_block_opacity(data_copy[x][y][z + 1].id)) {
                         GridChunk::append_block_face(vertices, indices, current,
                             Block::Face::ZPOS, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
@@ -200,8 +208,12 @@ void Grid::UpdateChunkMeshJob::operator()() {
         }
     }
 
-    // FIXME, you cannot use the Mesh constructor off the main thread
-    //      because it contains OpenGL calls, use the main thread somehow
-    std::lock_guard<std::mutex> lock(chunk->meshes_mutex);
-    chunk->opaque_mesh = Mesh(vertices, indices);
+    // Mesh creation must be done on the main thread because it contains
+    //      OpenGL calls, so we send a task to AsyncQueue
+    GridChunk* chunk_ptr = chunk;
+    AsyncQueue::get_instance().push(
+        [chunk_ptr, vertices, indices]() {
+            chunk_ptr->update_opaque_mesh(Mesh(vertices, indices));
+        }
+    );
 }

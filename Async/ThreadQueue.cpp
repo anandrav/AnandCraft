@@ -37,8 +37,8 @@ void ThreadQueue::worker_routine() {
         if (!queue.empty()) {
             auto func = std::move(queue.front());
             queue.pop();
-            std::cout << "popped " << x++ << std::endl;
-            std::cout << "queue size: " << queue.size() << std::endl;
+            //std::cout << "popped " << x++ << std::endl;
+            //std::cout << "queue size: " << queue.size() << std::endl;
 
 
             lock.unlock();
