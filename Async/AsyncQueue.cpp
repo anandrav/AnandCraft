@@ -11,10 +11,13 @@ void AsyncQueue::push(std::function<void(void)> func) {
 }
 
 void AsyncQueue::process_tasks() {
-    std::lock_guard<std::mutex> lock(mutex);
     while (!queue.empty()) {
-        auto task = queue.front();
-        queue.pop();
+        std::function<void(void)> task;
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            task = queue.front();
+            queue.pop();
+        }
 
         task();
     }

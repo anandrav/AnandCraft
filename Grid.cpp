@@ -2,7 +2,7 @@
 #include "GridChunk.h"
 
 Grid::Grid() {
-    const int chunk_radius = 4;
+    const int chunk_radius = 3;
     for (int x = -1*chunk_radius; x < chunk_radius; ++x) {
         for (int z = -1*chunk_radius; z < chunk_radius; ++z) {
             for (int y = -2*chunk_radius; y < 0; ++y) {
@@ -14,10 +14,7 @@ Grid::Grid() {
 
 void Grid::init() {
     std::cout << "began\n";
-    //std::lock_guard<std::mutex> lock(chunks_mutex);
     for (auto& chunk : chunks) {
-        //chunk.second->update_opaque_mesh();
-        //chunk.second->update_transparent_mesh();
         UpdateChunkMeshJob job(*this, chunk.second);
         ThreadQueue::get_instance().push(job);
     }
@@ -25,16 +22,12 @@ void Grid::init() {
 }
 
 void Grid::render_opaque(Camera& camera) {
-    std::lock_guard<std::mutex> lock(chunks_mutex);
-
     for (auto& chunk : chunks) {
         chunk.second->render_opaque(camera);
     }
 }
 
 void Grid::render_transparent(Camera& camera) {
-    std::lock_guard<std::mutex> lock(chunks_mutex);
-
     for (auto& chunk : chunks) {
         chunk.second->render_transparent(camera);
     }
@@ -70,8 +63,6 @@ void Grid::modify_block_at(int x, int y, int z, Block::State new_state) {
 }
 
 Grid::~Grid() {
-    std::lock_guard<std::mutex> lock(chunks_mutex);
-
     for (auto& chunk : chunks) {
         delete chunk.second;
     }
@@ -110,7 +101,7 @@ GridChunk* Grid::get_chunk_at(int x, int y, int z) {
     int chunk_index_z = (z >= 0) ? z / CHUNK_DEPTH
         : ((z + 1) / CHUNK_DEPTH) - 1;
 
-    std::lock_guard<std::mutex> lock(chunks_mutex);
+    //std::lock_guard<std::mutex> lock(chunks_mutex);
     if (chunks.find(ChunkIndices{ chunk_index_x, chunk_index_y, chunk_index_z })
         != chunks.end()) {
         return chunks[ChunkIndices{ chunk_index_x,chunk_index_y,chunk_index_z }];
@@ -141,6 +132,7 @@ void Grid::UpdateChunkMeshJob::init() {
                     int grid_x = chunk->get_x_index() * CHUNK_WIDTH + x - 1;
                     int grid_y = chunk->get_y_index() * CHUNK_HEIGHT + y - 1;
                     int grid_z = chunk->get_z_index() * CHUNK_DEPTH + z - 1;
+                    // TODO check adjacent chunks without creating contention
                     if (grid.has_block_at(grid_x, grid_y, grid_z)) {
                         data_copy[x][y][z] = grid.get_block_at(grid_x, grid_y, grid_z);
                     }

@@ -15,10 +15,6 @@ public:
 
     void render_transparent(Camera& camera);
 
-    //void update_opaque_mesh();
-
-    //void update_transparent_mesh();
-
     void update_opaque_mesh(Mesh&& mesh);
 
     void update_transparent_mesh(Mesh&& mesh);
