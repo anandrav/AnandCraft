@@ -93,7 +93,7 @@ private:
         GridChunk* chunk;
         vector<vector<vector<Block::State>>> data_copy;
 
-        void init();
+        void init_data_copy();
 
         void operator()();
     };
