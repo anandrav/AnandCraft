@@ -43,6 +43,8 @@ public:
 
     void modify_block_at(int x, int y, int z, Block::State new_state);
 
+
+
     ~Grid();
 
 private:
@@ -86,6 +88,19 @@ private:
 
     GridChunk* generate_chunk(int x_index, int y_index, int z_index);
 
+    struct GenerateChunkJob {
+        GenerateChunkJob(Grid& grid, vector<vector<vector<Block::State>>> data,
+            int chunk_index_x, int chunk_index_y, int chunk_index_z);
+
+        Grid& grid;
+        vector<vector<vector<Block::State>>> data;
+        int chunk_index_x;
+        int chunk_index_y;
+        int chunk_index_z;
+
+        void operator()();
+    };
+
     struct UpdateChunkMeshJob {
         UpdateChunkMeshJob(Grid& grid, GridChunk* chunk);
 
@@ -97,4 +112,7 @@ private:
 
         void operator()();
     };
+
+    friend struct GenerateChunkJob;
+    friend struct UpdateChunkMeshJob;
 };

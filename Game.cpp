@@ -69,6 +69,7 @@ void Game::run_loop() {
         previous = current;
         lag += elapsed;
 
+
         process_input();
 
         while (lag >= MS_PER_UPDATE) {
@@ -77,6 +78,11 @@ void Game::run_loop() {
         }
 
         render();
+
+        AsyncQueue::get_instance().process_all_tasks();
+
+        //AsyncQueue::get_instance().process_tasks_for(10);
+        //std::cout << "----------- GAME LOOP --------------\n";
     }
 
     delete grid;
@@ -259,8 +265,6 @@ void Game::process_input() {
 }
 
 void Game::update() {
-    AsyncQueue::get_instance().process_tasks();
-
     // TODO pack this behavior inside a Player class + Controller class
     camera.move_forward(-camera_vel.z);
     camera.move_left(-camera_vel.x);

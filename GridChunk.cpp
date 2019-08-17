@@ -1,14 +1,17 @@
 #include "GridChunk.h"
 
 GridChunk::GridChunk(int x_index, int y_index, int z_index,
-    const vector<vector<vector<Block::State>>>& data, Grid& grid) : x_index(x_index)
+    const vector<vector<vector<Block::State>>>&& data, Grid& grid) : x_index(x_index)
     , y_index(y_index)
     , z_index(z_index)
-    , data(data), grid(grid) {
+    , data(std::move(data)), grid(grid) {
     glm::vec3 location = glm::vec3(x_index * WIDTH,
         y_index * HEIGHT,
         z_index * DEPTH);
     transform.set_pos(location);
+}
+
+void GridChunk::init_shader() {
     shader = Shader("res/basic_vert.glsl", "res/basic_frag.glsl");
 }
 

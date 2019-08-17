@@ -11,10 +11,18 @@
 // send jobs to be run asynchronously by worker threads
 class ThreadQueue {
 public:
+    enum class Priority {
+        VERY_LOW,
+        LOW,
+        NORMAL,
+        HIGH,
+        VERY_HIGH
+    };
+
     // singleton
     static ThreadQueue& get_instance();
 
-    void push(std::function<void(void)> func);
+    void push(std::function<void(void)> func, Priority priority);
 
     ~ThreadQueue();
 
@@ -26,11 +34,19 @@ private:
 
     void worker_routine();
 
-    const int THREAD_COUNT = 7;
+    const int THREAD_COUNT = 2;
 
     std::atomic<bool> is_terminating;
 
-    std::queue<std::function<void(void)>> queue;
+    struct JobHolder {
+        std::function<void(void)> func;
+        Priority priority;
+
+        bool operator<(const JobHolder& other) const {
+            return this->priority < other.priority;
+        }
+    };
+    std::priority_queue<JobHolder> queue;
     std::vector<std::thread> workers;
 
     std::mutex mutex;

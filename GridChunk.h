@@ -9,7 +9,9 @@ class GridChunk {
 public:
 
     GridChunk(int x_index, int y_index, int z_index,
-        const vector<vector<vector<Block::State>>>& data, Grid& grid);
+        const vector<vector<vector<Block::State>>>&& data, Grid& grid);
+
+    void init_shader();
 
     void render_opaque(Camera& camera);
 

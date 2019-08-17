@@ -5,10 +5,10 @@ ThreadQueue& ThreadQueue::get_instance() {
     return instance;
 }
 
-void ThreadQueue::push(std::function<void(void)> func) {
+void ThreadQueue::push(std::function<void(void)> func, Priority priority) {
     {
         std::lock_guard<std::mutex> lock(mutex);
-        queue.push(func);
+        queue.push(JobHolder{ func, priority });
     }
 
     cv.notify_one();
@@ -35,14 +35,14 @@ void ThreadQueue::worker_routine() {
         
         // in case of spurious wakeup or destructor
         if (!queue.empty()) {
-            auto func = std::move(queue.front());
+            auto job = std::move(queue.top());
             queue.pop();
             //std::cout << "popped " << x++ << std::endl;
             //std::cout << "queue size: " << queue.size() << std::endl;
 
 
             lock.unlock();
-            func();
+            job.func();
             lock.lock();
         }
     }
