@@ -5,21 +5,17 @@ AsyncQueue& AsyncQueue::get_instance() {
     return instance;
 }
 
-void AsyncQueue::push(std::function<void(void)> func, Priority priority) {
+void AsyncQueue::push(std::function<void(void)> func) {
     std::lock_guard<std::mutex> lock(mutex);
-    queue.push(JobHolder{ func, priority });
+    queue.push(func);
 }
 
 void AsyncQueue::process_all_tasks() {
+    std::lock_guard<std::mutex> lock(mutex);
     while (!queue.empty()) {
-        JobHolder job;
-        {
-            std::lock_guard<std::mutex> lock(mutex);
-            job = queue.top();
-            queue.pop();
-        }
-
-        job.func();
+        auto job = queue.front();
+        queue.pop();
+        job();
     }
 }
 
@@ -31,14 +27,14 @@ void AsyncQueue::process_tasks_for(int duration) {
     int elapsed = 0;
 
     while (!queue.empty() && elapsed <= duration) {
-        JobHolder job;
+        std::function<void(void)> job;
         {
             std::lock_guard<std::mutex> lock(mutex);
-            job = queue.top();
+            job = queue.front();
             queue.pop();
         }
 
-        job.func();
+        job();
 
         auto now = Time::now();
         elapsed = (int)std::chrono::duration_cast<ms>(now - start).count();

@@ -80,8 +80,6 @@ void Game::run_loop() {
         render();
 
         AsyncQueue::get_instance().process_all_tasks();
-
-        //AsyncQueue::get_instance().process_tasks_for(10);
         //std::cout << "----------- GAME LOOP --------------\n";
     }
 

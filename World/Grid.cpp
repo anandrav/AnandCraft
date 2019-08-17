@@ -22,19 +22,17 @@ Grid::Grid() {
         }
     }
 
-    std::cout << "BEGIN LOOP\n";
+    std::cout << "BEGIN Terrain Generation\n";
     const int chunk_radius = 3;
     for (int x = -1*chunk_radius; x < chunk_radius; ++x) {
         for (int z = -1*chunk_radius; z < chunk_radius; ++z) {
             for (int y = -2*chunk_radius; y < 0; ++y) {
-                //chunks[ChunkIndices{ x,y,z }] = generate_chunk(x, y, z);
-
                 GenerateChunkJob job(*this, data, x, y, z);
                 ThreadQueue::get_instance().push(job, ThreadQueue::Priority::NORMAL);
             }
         }
     }
-    std::cout << "END LOOP\n";
+    std::cout << "END Terrain Generation\n";
 
 }
 
@@ -284,15 +282,15 @@ void Grid::UpdateChunkMeshJob::operator()() {
     AsyncQueue::get_instance().push(
         [chunk_ptr, opaque_vertices, opaque_indices]() {
             chunk_ptr->update_opaque_mesh(Mesh(opaque_vertices, opaque_indices));
-            std::cout << "swapped creating meshes\n";
-        },
-        AsyncQueue::Priority::HIGH
+            std::cout << "Chunk Mesh Updated\n";
+        }//,
+        //AsyncQueue::Priority::NORMAL
     );
     AsyncQueue::get_instance().push(
         [chunk_ptr, transparent_vertices, transparent_indices]() {
             chunk_ptr->update_transparent_mesh(Mesh(transparent_vertices, transparent_indices));
-        },
-        AsyncQueue::Priority::HIGH
+        }//,
+        //AsyncQueue::Priority::NORMAL
     );
 }
 
@@ -310,23 +308,18 @@ void Grid::GenerateChunkJob::operator()() {
         GridChunk* chunk = new GridChunk(chunk_index_x, chunk_index_y, chunk_index_z, std::move(data), grid);
         AsyncQueue::get_instance().push([chunk]() {
                 chunk->init_shader();
-                std::cout << "shader initialized\n";
-            }, 
-        AsyncQueue::Priority::NORMAL);
+                std::cout << "Chunk Shader Initialized\n";
+            }//, 
+        //AsyncQueue::Priority::HIGH
+        );
 
-        Grid* grid_ptr = &grid;
-        ThreadQueue::get_instance().push([grid_ptr, chunk]() {
-            ChunkIndices indices{ chunk->get_x_index(), chunk->get_y_index(), chunk->get_z_index() };
-            {
-                std::lock_guard<std::mutex> lock(grid_ptr->chunks_mutex);
-                grid_ptr->chunks[indices] = chunk;
-            }
+        ChunkIndices indices{ chunk->get_x_index(), chunk->get_y_index(), chunk->get_z_index() };
+        {
+            std::lock_guard<std::mutex> lock(grid.chunks_mutex);
+            grid.chunks[indices] = chunk;
+        }
 
-             //update the chunk's mesh (for the first time)
-            Grid& grid = *grid_ptr;
-            UpdateChunkMeshJob job(grid, chunk);
-            ThreadQueue::get_instance().push(job, ThreadQueue::Priority::NORMAL);
-        },
-        ThreadQueue::Priority::NORMAL
-    );
+        //update the chunk's mesh (for the first time)
+        UpdateChunkMeshJob job(grid, chunk);
+        ThreadQueue::get_instance().push(job, ThreadQueue::Priority::HIGH);
 }
