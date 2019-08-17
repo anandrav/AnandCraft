@@ -15,7 +15,7 @@
 #include "Block.h"
 #include "stb_image.h"
 #include "BlockDemo.h"
-#include "Grid.h"
+#include "World/Grid.h"
 #include "Ray.h"
 #include "Async/AsyncQueue.h"
 #include <functional>

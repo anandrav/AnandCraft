@@ -5,13 +5,13 @@
 #include <unordered_map>
 #include <algorithm>
 
-#include "Block.h"
-#include "Graphics/Camera.h"
-#include "Graphics/Transform.h"
-#include "Graphics/Shader.h"
-#include "util.h"
-#include "Async/ThreadQueue.h"
-#include "Async/AsyncQueue.h"
+#include "../Block.h"
+#include "../Graphics/Camera.h"
+#include "../Graphics/Transform.h"
+#include "../Graphics/Shader.h"
+#include "../util.h"
+#include "../Async/ThreadQueue.h"
+#include "../Async/AsyncQueue.h"
 
 using std::vector;
 using std::map;

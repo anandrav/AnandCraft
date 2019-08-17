@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "Graphics/Mesh.h"
+#include "../Graphics/Mesh.h"
 #include "Grid.h"
 
 class GridChunk {
