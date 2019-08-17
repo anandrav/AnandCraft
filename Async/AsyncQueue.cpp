@@ -19,24 +19,24 @@ void AsyncQueue::process_all_tasks() {
     }
 }
 
-void AsyncQueue::process_tasks_for(int duration) {
-    typedef std::chrono::high_resolution_clock Time;
-    typedef std::chrono::milliseconds ms;
-
-    auto start = Time::now();
-    int elapsed = 0;
-
-    while (!queue.empty() && elapsed <= duration) {
-        std::function<void(void)> job;
-        {
-            std::lock_guard<std::mutex> lock(mutex);
-            job = queue.front();
-            queue.pop();
-        }
-
-        job();
-
-        auto now = Time::now();
-        elapsed = (int)std::chrono::duration_cast<ms>(now - start).count();
-    }
-}
+//void AsyncQueue::process_tasks_for(int duration) {
+//    typedef std::chrono::high_resolution_clock Time;
+//    typedef std::chrono::milliseconds ms;
+//
+//    auto start = Time::now();
+//    int elapsed = 0;
+//
+//    while (!queue.empty() && elapsed <= duration) {
+//        std::function<void(void)> job;
+//        {
+//            std::lock_guard<std::mutex> lock(mutex);
+//            job = queue.front();
+//            queue.pop();
+//        }
+//
+//        job();
+//
+//        auto now = Time::now();
+//        elapsed = (int)std::chrono::duration_cast<ms>(now - start).count();
+//    }
+//}

@@ -20,7 +20,7 @@ public:
     void process_all_tasks();
 
     //// this should only be done from the main thread in game loop
-    void process_tasks_for(int duration_ms);
+    //void process_tasks_for(int duration_ms);
 
 private:
     AsyncQueue() = default;

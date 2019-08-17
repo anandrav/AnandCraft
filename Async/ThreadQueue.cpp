@@ -29,12 +29,14 @@ void ThreadQueue::worker_routine() {
     while (!is_terminating.load()) {
         // wait until notified that a job was pushed
         cv.wait(lock, [this]() {
+                // don't wake up unless work to do or must terminate
                 return !queue.empty() || is_terminating.load();
             }
         );
         
-        // in case of spurious wakeup or destructor
-        if (!queue.empty()) {
+        // in case of spurious wakeup double check that queue is not empty
+        // in case woken up due to terminating, check if terminating
+        if (!queue.empty() && !is_terminating.load()) {
             auto job = std::move(queue.top());
             queue.pop();
             //std::cout << "popped " << x++ << std::endl;

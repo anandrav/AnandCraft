@@ -23,7 +23,7 @@ Grid::Grid() {
     }
 
     std::cout << "BEGIN Terrain Generation\n";
-    const int chunk_radius = 3;
+    const int chunk_radius = 4;
     for (int x = -1*chunk_radius; x < chunk_radius; ++x) {
         for (int z = -1*chunk_radius; z < chunk_radius; ++z) {
             for (int y = -2*chunk_radius; y < 0; ++y) {
@@ -282,7 +282,7 @@ void Grid::UpdateChunkMeshJob::operator()() {
     AsyncQueue::get_instance().push(
         [chunk_ptr, opaque_vertices, opaque_indices]() {
             chunk_ptr->update_opaque_mesh(Mesh(opaque_vertices, opaque_indices));
-            std::cout << "Chunk Mesh Updated\n";
+            //std::cout << "Chunk Mesh Updated\n";
         }//,
         //AsyncQueue::Priority::NORMAL
     );
@@ -308,7 +308,7 @@ void Grid::GenerateChunkJob::operator()() {
         GridChunk* chunk = new GridChunk(chunk_index_x, chunk_index_y, chunk_index_z, std::move(data), grid);
         AsyncQueue::get_instance().push([chunk]() {
                 chunk->init_shader();
-                std::cout << "Chunk Shader Initialized\n";
+                //std::cout << "Chunk Shader Initialized\n";
             }//, 
         //AsyncQueue::Priority::HIGH
         );
