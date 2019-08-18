@@ -80,10 +80,7 @@ void Game::run_loop() {
         render();
 
         AsyncQueue::get_instance().process_all_tasks();
-        //std::cout << "----------- GAME LOOP --------------\n";
     }
-
-    delete grid;
 }
 
 void Game::handle_click(SDL_Event& e) {
@@ -108,20 +105,20 @@ void Game::handle_click(SDL_Event& e) {
             continue;
         }
 
-        if (grid->has_block_at(x_coord, y_coord, z_coord)) {
-            Block::State block = grid->get_block_at(x_coord, y_coord, z_coord);
+        if (world.has_block_at(x_coord, y_coord, z_coord)) {
+            Block::State block = world.get_block_at(x_coord, y_coord, z_coord);
             std::cout << "Block: " << Block::get_block_name(block.id) << '\n';
             if (block.id != Block::ID::AIR) {
                 if (e.button.button == SDL_BUTTON_LEFT) {
                     // break block
                     Block::State new_state = Block::State(Block::ID::AIR);
-                    grid->modify_block_at(x_coord, y_coord, z_coord, new_state);
+                    world.modify_block_at(x_coord, y_coord, z_coord, new_state);
                 }
                 if (e.button.button == SDL_BUTTON_RIGHT) {
                     // place block
                     Block::State new_state = Block::State(Block::ID::COBBLESTONE);
-                    if (grid->has_block_at(prev_x_coord, prev_y_coord, prev_z_coord)) {
-                        grid->modify_block_at(prev_x_coord, prev_y_coord, prev_z_coord, new_state);
+                    if (world.has_block_at(prev_x_coord, prev_y_coord, prev_z_coord)) {
+                        world.modify_block_at(prev_x_coord, prev_y_coord, prev_z_coord, new_state);
                     }
                 }
                 break;
@@ -294,8 +291,6 @@ void Game::init() {
     }
     stbi_image_free(data);
 
-    grid = new Grid();
-    grid->init();
 }
 
 void Game::render() {
@@ -306,8 +301,8 @@ void Game::render() {
 
     // render world
     glBindTexture(GL_TEXTURE_2D, texture);
-    grid->render_opaque(camera);
-    grid->render_transparent(camera);
+    world.render_opaque(camera);
+    world.render_transparent(camera);
 
     // render UI/HUD
 

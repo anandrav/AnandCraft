@@ -39,12 +39,10 @@ void ThreadQueue::worker_routine() {
         if (!queue.empty() && !is_terminating.load()) {
             auto job = std::move(queue.top());
             queue.pop();
-            //std::cout << "popped " << x++ << std::endl;
-            //std::cout << "queue size: " << queue.size() << std::endl;
-
-
             lock.unlock();
+
             job.func();
+
             lock.lock();
         }
     }
@@ -55,8 +53,6 @@ ThreadQueue::~ThreadQueue() {
     cv.notify_all();
 
     for (int i = 0; i < workers.size(); ++i) {
-        std::cout << "join attempt " << i << std::endl;
         workers[i].join();
-        std::cout << "join success " << i << std::endl;
     }
 }

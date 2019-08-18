@@ -1,9 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <map>
 #include <unordered_map>
-#include <algorithm>
 
 #include "../Block.h"
 #include "../Graphics/Camera.h"
@@ -14,7 +12,6 @@
 #include "../Async/AsyncQueue.h"
 
 using std::vector;
-using std::map;
 using std::unordered_map;
 
 class GridChunk;
@@ -26,16 +23,21 @@ public:
     static const int CHUNK_HEIGHT = 16;
     static const int CHUNK_DEPTH = 16;
 
-    Grid();
+    Grid() = default;
 
     Grid(Grid&) = delete;
     void operator=(const Grid&) = delete;
 
-    void init();
-
     void render_opaque(Camera& camera);
 
     void render_transparent(Camera& camera);
+
+    void add_chunk(int chunk_index_x, int chunk_index_y, int chunk_index_z,
+        vector<vector<vector<Block::State>>> data);
+
+    bool has_chunk(int chunk_index_x, int chunk_index_y, int chunk_index_z);
+
+    void remove_chunk(int chunk_index_x, int chunk_index_y, int chunk_index_z);
 
     bool has_block_at(int x, int y, int z);
 
@@ -43,12 +45,6 @@ public:
 
     void modify_block_at(int x, int y, int z, Block::State new_state);
 
-
-
-    ~Grid();
-
-private:
-    Transform transform;
     struct ChunkIndices {
         int x_index;
         int y_index;
@@ -56,8 +52,8 @@ private:
 
         bool operator==(const ChunkIndices& other) const {
             return (this->x_index == other.x_index &&
-                    this->y_index == other.y_index &&
-                    this->z_index == other.z_index);
+                this->y_index == other.y_index &&
+                this->z_index == other.z_index);
         }
 
         bool operator<(const ChunkIndices& other) const {
@@ -80,6 +76,13 @@ private:
             return h1 ^ (h2 << 1) ^ (h3 << 2);
         }
     };
+
+    static ChunkIndices get_chunk_indices_at(int x, int y, int z);
+
+    ~Grid();
+
+private:
+    Transform transform;
 
     unordered_map<ChunkIndices, GridChunk*, ChunkIndicesHash> chunks;
     std::mutex chunks_mutex;

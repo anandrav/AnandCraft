@@ -1,44 +1,6 @@
 #include "Grid.h"
 #include "GridChunk.h"
 
-Grid::Grid() {
-    auto data = vector<vector<vector<Block::State>>>(CHUNK_WIDTH,
-        vector<vector<Block::State>>(CHUNK_HEIGHT,
-            vector<Block::State>(CHUNK_WIDTH,
-                Block::State(Block::ID::AIR))));
-
-    for (int x = 0; x < CHUNK_WIDTH; ++x) {
-        for (int z = 0; z < CHUNK_WIDTH; ++z) {
-            // bottom 5 layers stone
-            for (int y = 0; y < 5 && y < CHUNK_HEIGHT; ++y) {
-                data[x][y][z] = Block::State(Block::ID::STONE);
-            }
-            // 2 layers of dirt under grass
-            for (int y = 5; y < 7 && y < CHUNK_HEIGHT; ++y) {
-                data[x][y][z] = Block::State(Block::ID::DIRT);
-            }
-            // one layer of grass on top
-            data[x][7][z] = Block::State(Block::ID::GRASS);
-        }
-    }
-
-    std::cout << "BEGIN Terrain Generation\n";
-    const int chunk_radius = 4;
-    for (int x = -1*chunk_radius; x < chunk_radius; ++x) {
-        for (int z = -1*chunk_radius; z < chunk_radius; ++z) {
-            for (int y = -2*chunk_radius; y < 0; ++y) {
-                GenerateChunkJob job(*this, data, x, y, z);
-                ThreadQueue::get_instance().push(job, ThreadQueue::Priority::NORMAL);
-            }
-        }
-    }
-    std::cout << "END Terrain Generation\n";
-
-}
-
-void Grid::init() {
-}
-
 void Grid::render_opaque(Camera& camera) {
     for (auto& chunk : chunks) {
         chunk.second->render_opaque(camera);
@@ -49,6 +11,21 @@ void Grid::render_transparent(Camera& camera) {
     for (auto& chunk : chunks) {
         chunk.second->render_transparent(camera);
     }
+}
+
+void Grid::add_chunk(int chunk_index_x, int chunk_index_y, int chunk_index_z,
+    vector<vector<vector<Block::State>>> data) {
+    GenerateChunkJob job(*this, data, chunk_index_x, chunk_index_y, chunk_index_z);
+    ThreadQueue::get_instance().push(job, ThreadQueue::Priority::NORMAL);
+}
+
+bool Grid::has_chunk(int chunk_index_x, int chunk_index_y, int chunk_index_z) {
+    ChunkIndices indices{ chunk_index_x, chunk_index_x, chunk_index_z };
+    return chunks.find(indices) != chunks.end();
+}
+
+void Grid::remove_chunk(int chunk_index_x, int chunk_index_y, int chunk_index_z) {
+    chunks.erase(ChunkIndices{ chunk_index_x, chunk_index_y, chunk_index_z });
 }
 
 bool Grid::has_block_at(int x, int y, int z) {
@@ -74,7 +51,7 @@ void Grid::modify_block_at(int x, int y, int z, Block::State new_state) {
         int block_coord_z = util::positive_modulo(z, CHUNK_DEPTH);
         chunk->set_block_at(block_coord_x,block_coord_y,block_coord_z, new_state);
         UpdateChunkMeshJob job(*this, chunk);
-        ThreadQueue::get_instance().push(job, ThreadQueue::Priority::NORMAL);
+        ThreadQueue::get_instance().push(job, ThreadQueue::Priority::HIGH);
         return;
     }
     throw std::range_error("block does not exist");
@@ -111,7 +88,7 @@ GridChunk* Grid::generate_chunk(int x_index, int y_index, int z_index) {
     return chunk;
 }
 
-GridChunk* Grid::get_chunk_at(int x, int y, int z) {
+Grid::ChunkIndices Grid::get_chunk_indices_at(int x, int y, int z) {
     int chunk_index_x = (x >= 0) ? x / CHUNK_WIDTH
         : ((x + 1) / CHUNK_WIDTH) - 1;
     int chunk_index_y = (y >= 0) ? y / CHUNK_HEIGHT
@@ -119,9 +96,15 @@ GridChunk* Grid::get_chunk_at(int x, int y, int z) {
     int chunk_index_z = (z >= 0) ? z / CHUNK_DEPTH
         : ((z + 1) / CHUNK_DEPTH) - 1;
 
-    if (chunks.find(ChunkIndices{ chunk_index_x, chunk_index_y, chunk_index_z })
+    return ChunkIndices{ chunk_index_x, chunk_index_y, chunk_index_z };
+}
+
+GridChunk* Grid::get_chunk_at(int x, int y, int z) {
+    ChunkIndices indices = get_chunk_indices_at(x, y, z);
+
+    if (chunks.find(indices)
         != chunks.end()) {
-        return chunks[ChunkIndices{ chunk_index_x,chunk_index_y,chunk_index_z }];
+        return chunks[indices];
     }
     return nullptr;
 }
@@ -283,14 +266,12 @@ void Grid::UpdateChunkMeshJob::operator()() {
         [chunk_ptr, opaque_vertices, opaque_indices]() {
             chunk_ptr->update_opaque_mesh(Mesh(opaque_vertices, opaque_indices));
             //std::cout << "Chunk Mesh Updated\n";
-        }//,
-        //AsyncQueue::Priority::NORMAL
+        }
     );
     AsyncQueue::get_instance().push(
         [chunk_ptr, transparent_vertices, transparent_indices]() {
             chunk_ptr->update_transparent_mesh(Mesh(transparent_vertices, transparent_indices));
-        }//,
-        //AsyncQueue::Priority::NORMAL
+        }
     );
 }
 
@@ -309,8 +290,7 @@ void Grid::GenerateChunkJob::operator()() {
         AsyncQueue::get_instance().push([chunk]() {
                 chunk->init_shader();
                 //std::cout << "Chunk Shader Initialized\n";
-            }//, 
-        //AsyncQueue::Priority::HIGH
+            }
         );
 
         ChunkIndices indices{ chunk->get_x_index(), chunk->get_y_index(), chunk->get_z_index() };
@@ -321,5 +301,5 @@ void Grid::GenerateChunkJob::operator()() {
 
         //update the chunk's mesh (for the first time)
         UpdateChunkMeshJob job(grid, chunk);
-        ThreadQueue::get_instance().push(job, ThreadQueue::Priority::HIGH);
+        ThreadQueue::get_instance().push(job, ThreadQueue::Priority::NORMAL);
 }

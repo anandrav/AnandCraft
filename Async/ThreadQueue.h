@@ -6,9 +6,8 @@
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
-#include <iostream>
 
-// send jobs to be run asynchronously by worker threads
+// send jobs to be run by worker threads
 class ThreadQueue {
 public:
     enum class Priority {

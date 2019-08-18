@@ -6,19 +6,15 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
-#include "Graphics/Shader.h"
-#include "Graphics/Mesh.h"
+#include "stb_image.h"
 #include "util.h"
+#include "Graphics/Shader.h"
 #include "Graphics/Transform.h"
 #include "Graphics/Camera.h"
-#include "Graphics/Model.h"
-#include "Block.h"
-#include "stb_image.h"
-#include "BlockDemo.h"
-#include "World/Grid.h"
-#include "Ray.h"
 #include "Async/AsyncQueue.h"
-#include <functional>
+#include "World/World.h"
+
+#include "Ray.h"
 
 class Game {
 public:
@@ -33,12 +29,12 @@ public:
 
 private:
     void init();
+
     Camera camera;
     glm::vec3 camera_vel;
     glm::vec3 camera_rot;
-    std::function<void(void)> func;
-    Grid* grid;
     unsigned int texture;
+    World world;
 
     const int MINECRAFT_TICKRATE = 20;
     const int MS_PER_UPDATE = 1000 / MINECRAFT_TICKRATE;

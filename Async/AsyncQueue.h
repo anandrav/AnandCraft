@@ -6,7 +6,8 @@
 #include <iostream>
 #include <chrono>
 
-// send small tasks to be run asynchronously on main thread in game loop
+// send small tasks to be run on main thread in game loop
+// used by the ThreadQueue to send messages/results
 class AsyncQueue {
 public:
 
@@ -18,9 +19,6 @@ public:
 
     // this should only be done from the main thread in game loop
     void process_all_tasks();
-
-    //// this should only be done from the main thread in game loop
-    //void process_tasks_for(int duration_ms);
 
 private:
     AsyncQueue() = default;
