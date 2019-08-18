@@ -33,7 +33,7 @@ private:
 
     void worker_routine();
 
-    const int THREAD_COUNT = 2;
+    const int THREAD_COUNT = 7;
 
     std::atomic<bool> is_terminating;
 

@@ -9,6 +9,8 @@ public:
     GridChunk(int x_index, int y_index, int z_index,
         const vector<vector<vector<Block::State>>>&& data, Grid& grid);
 
+    // FIXME IF YOU RENDER A CHUNK WHOSE SHADER WASN'T INITIALIZED IT CRASHES
+    //      THIS BUG IS EXTRMEELY RARE BUT YOU SHOULD FIX IT
     void init_shader();
 
     void render_opaque(Camera& camera);

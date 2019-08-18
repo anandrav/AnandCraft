@@ -19,9 +19,9 @@ class GridChunk;
 /* 3-dimensional coordinate system of blocks */
 class Grid {
 public:
-    static const int CHUNK_WIDTH = 16;
-    static const int CHUNK_HEIGHT = 16;
-    static const int CHUNK_DEPTH = 16;
+    static const int CHUNK_WIDTH = 32;
+    static const int CHUNK_HEIGHT = 32;
+    static const int CHUNK_DEPTH = 32;
 
     Grid() = default;
 
