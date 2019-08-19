@@ -1,38 +1,42 @@
-#include "Grid.h"
+#include "BlockGrid.h"
 #include "GridChunk.h"
 
-void Grid::render_opaque(Camera& camera) {
+BlockGrid::BlockGrid() {
+    shader = Shader("res/basic_vert.glsl", "res/basic_frag.glsl");
+}
+
+void BlockGrid::render_opaque(Camera& camera) {
     for (auto& chunk : chunks) {
-        chunk.second->render_opaque(camera);
+        chunk.second->draw_opaque(camera, shader);
     }
 }
 
-void Grid::render_transparent(Camera& camera) {
+void BlockGrid::render_transparent(Camera& camera) {
     for (auto& chunk : chunks) {
-        chunk.second->render_transparent(camera);
+        chunk.second->draw_transparent(camera, shader);
     }
 }
 
-void Grid::add_chunk(int chunk_index_x, int chunk_index_y, int chunk_index_z,
+void BlockGrid::add_chunk(BlockGrid::ChunkIndices indices,
     vector<vector<vector<Block::State>>> data) {
-    GenerateChunkJob job(*this, data, chunk_index_x, chunk_index_y, chunk_index_z);
+    GenerateChunkJob job(*this, std::move(data), indices.x, indices.y, indices.z);
     ThreadQueue::get_instance().push(job, ThreadQueue::Priority::NORMAL);
 }
 
-bool Grid::has_chunk(int chunk_index_x, int chunk_index_y, int chunk_index_z) {
-    ChunkIndices indices{ chunk_index_x, chunk_index_x, chunk_index_z };
+bool BlockGrid::has_chunk(BlockGrid::ChunkIndices indices) {
     return chunks.find(indices) != chunks.end();
 }
 
-void Grid::remove_chunk(int chunk_index_x, int chunk_index_y, int chunk_index_z) {
-    chunks.erase(ChunkIndices{ chunk_index_x, chunk_index_y, chunk_index_z });
+void BlockGrid::remove_chunk(BlockGrid::ChunkIndices indices) {
+    // mutex? AsyncQueue?
+    //chunks.erase(indices);
 }
 
-bool Grid::has_block_at(int x, int y, int z) {
+bool BlockGrid::has_block(int x, int y, int z) {
     return (get_chunk_at(x, y, z) != nullptr);
 }
 
-Block::State Grid::get_block_at(int x, int y, int z) {
+Block::State BlockGrid::get_block(int x, int y, int z) {
     GridChunk* chunk = get_chunk_at(x,y,z);
     if (chunk) {
         int block_coord_x = util::positive_modulo(x, CHUNK_WIDTH);
@@ -43,7 +47,7 @@ Block::State Grid::get_block_at(int x, int y, int z) {
     throw std::range_error("block does not exist");
 }
 
-void Grid::modify_block_at(int x, int y, int z, Block::State new_state) {
+void BlockGrid::modify_block(int x, int y, int z, Block::State new_state) {
     GridChunk* chunk = get_chunk_at(x, y, z);
     if (chunk) {
         int block_coord_x = util::positive_modulo(x, CHUNK_WIDTH);
@@ -57,13 +61,40 @@ void Grid::modify_block_at(int x, int y, int z, Block::State new_state) {
     throw std::range_error("block does not exist");
 }
 
-Grid::~Grid() {
+// convert from grid-space coordinates to indices of the chunk where they
+//      are located
+BlockGrid::ChunkIndices BlockGrid::get_chunk_indices(int x, int y, int z) {
+    // blocks 0 to 15 are in chunk index 0
+    // blocks -16 to -1 are in chunk index -1
+    // and so on...
+    // so negative grid-space coords must use a different formula
+    int chunk_index_x = (x >= 0) ? x / CHUNK_WIDTH
+        : ((x + 1) / CHUNK_WIDTH) - 1;
+    int chunk_index_y = (y >= 0) ? y / CHUNK_HEIGHT
+        : ((y + 1) / CHUNK_HEIGHT) - 1;
+    int chunk_index_z = (z >= 0) ? z / CHUNK_DEPTH
+        : ((z + 1) / CHUNK_DEPTH) - 1;
+
+    return ChunkIndices{ chunk_index_x, chunk_index_y, chunk_index_z };
+}
+
+vector<BlockGrid::ChunkIndices> BlockGrid::get_loaded_chunks() {
+    vector<ChunkIndices> loaded_chunks(chunks.size());
+    int i = 0;
+    for (auto it = chunks.begin(); it != chunks.end(); ++it, ++i) {
+        loaded_chunks[i] = it->first;
+    }
+    return loaded_chunks;
+}
+
+
+BlockGrid::~BlockGrid() {
     for (auto& chunk : chunks) {
         delete chunk.second;
     }
 }
 
-GridChunk* Grid::generate_chunk(int x_index, int y_index, int z_index) {
+GridChunk* BlockGrid::generate_chunk(int x_index, int y_index, int z_index) {
     auto data = vector<vector<vector<Block::State>>>(CHUNK_WIDTH,
                        vector<vector<Block::State>>(CHUNK_HEIGHT,
                               vector<Block::State>(CHUNK_WIDTH,
@@ -88,19 +119,8 @@ GridChunk* Grid::generate_chunk(int x_index, int y_index, int z_index) {
     return chunk;
 }
 
-Grid::ChunkIndices Grid::get_chunk_indices_at(int x, int y, int z) {
-    int chunk_index_x = (x >= 0) ? x / CHUNK_WIDTH
-        : ((x + 1) / CHUNK_WIDTH) - 1;
-    int chunk_index_y = (y >= 0) ? y / CHUNK_HEIGHT
-        : ((y + 1) / CHUNK_HEIGHT) - 1;
-    int chunk_index_z = (z >= 0) ? z / CHUNK_DEPTH
-        : ((z + 1) / CHUNK_DEPTH) - 1;
-
-    return ChunkIndices{ chunk_index_x, chunk_index_y, chunk_index_z };
-}
-
-GridChunk* Grid::get_chunk_at(int x, int y, int z) {
-    ChunkIndices indices = get_chunk_indices_at(x, y, z);
+GridChunk* BlockGrid::get_chunk_at(int x, int y, int z) {
+    ChunkIndices indices = get_chunk_indices(x, y, z);
 
     if (chunks.find(indices)
         != chunks.end()) {
@@ -109,21 +129,24 @@ GridChunk* Grid::get_chunk_at(int x, int y, int z) {
     return nullptr;
 }
 
-Grid::UpdateChunkMeshJob::UpdateChunkMeshJob(Grid& grid, GridChunk* chunk) :
+BlockGrid::UpdateChunkMeshJob::UpdateChunkMeshJob(BlockGrid& grid, GridChunk* chunk) :
     grid(grid),
     chunk(chunk) {
 }
 
-void Grid::UpdateChunkMeshJob::init_data_copy() {
+void BlockGrid::UpdateChunkMeshJob::init_data_copy() {
     //data copy has extra 2 blocks for each dimension to hold data
     //     from adjacent chunks to determine whether to expose faces
     //     on the outside
-    std::lock_guard<std::mutex> lock(grid.chunks_mutex);
-
-    data_copy = vector<vector<vector<Block::State>>>(
+    chunk_data_copy = vector<vector<vector<Block::State>>>(
         CHUNK_WIDTH + 2, vector<vector<Block::State>>(
         CHUNK_HEIGHT + 2, vector<Block::State>(
         CHUNK_WIDTH + 2, Block::State{ Block::ID::AIR })));
+
+    // since we iterate through the chunks map when we call grid.has_block and
+    //  grid.get_block, we must acquire a lock to prevent our iterators from 
+    //  being invalidated by the main thread
+    std::lock_guard<std::mutex> lock(grid.chunks_mutex);
     for (int x = 0; x < CHUNK_WIDTH + 2; ++x) {
         for (int y = 0; y < CHUNK_HEIGHT + 2; ++y) {
             for (int z = 0; z < CHUNK_DEPTH + 2; ++z) {
@@ -134,12 +157,12 @@ void Grid::UpdateChunkMeshJob::init_data_copy() {
                     int grid_x = chunk->get_x_index() * CHUNK_WIDTH + x - 1;
                     int grid_y = chunk->get_y_index() * CHUNK_HEIGHT + y - 1;
                     int grid_z = chunk->get_z_index() * CHUNK_DEPTH + z - 1;
-                    if (grid.has_block_at(grid_x, grid_y, grid_z)) {
-                        data_copy[x][y][z] = grid.get_block_at(grid_x, grid_y, grid_z);
+                    if (grid.has_block(grid_x, grid_y, grid_z)) {
+                        chunk_data_copy[x][y][z] = grid.get_block(grid_x, grid_y, grid_z);
                     }
                 }
                 else {
-                    data_copy[x][y][z] = chunk->get_block_at(x - 1, y - 1, z - 1);
+                    chunk_data_copy[x][y][z] = chunk->get_block_at(x - 1, y - 1, z - 1);
                 }
             }
         }
@@ -148,7 +171,7 @@ void Grid::UpdateChunkMeshJob::init_data_copy() {
 
 // TODO make this way cleaner, do both meshes in ONE pass to increase the speed,
 //  use helper functions, move static functions from Grid into the job.
-void Grid::UpdateChunkMeshJob::operator()() {
+void BlockGrid::UpdateChunkMeshJob::operator()() {
     init_data_copy();
 
     vector<Vertex> opaque_vertices;
@@ -157,7 +180,7 @@ void Grid::UpdateChunkMeshJob::operator()() {
     for (size_t x = 1; x < CHUNK_WIDTH + 1; ++x) {
         for (size_t y = 1; y < CHUNK_HEIGHT + 1; ++y) {
             for (size_t z = 1; z < CHUNK_DEPTH + 1; ++z) {
-                Block::State& current = data_copy[x][y][z];
+                Block::State& current = chunk_data_copy[x][y][z];
 
                 // only render opaque blocks
                 if (!Block::get_block_opacity(current.id)) {
@@ -170,27 +193,27 @@ void Grid::UpdateChunkMeshJob::operator()() {
                 case Block::MeshType::CUBE:
                     // only add faces that are adjacent to transparent
                     //      blocks, cull faces that are obscured
-                    if (!Block::get_block_opacity(data_copy[x - 1][y][z].id)) {
+                    if (!Block::get_block_opacity(chunk_data_copy[x - 1][y][z].id)) {
                         GridChunk::append_block_face(opaque_vertices, opaque_indices, current,
                             Block::Face::XNEG, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
-                    if (!Block::get_block_opacity(data_copy[x + 1][y][z].id)) {
+                    if (!Block::get_block_opacity(chunk_data_copy[x + 1][y][z].id)) {
                         GridChunk::append_block_face(opaque_vertices, opaque_indices, current,
                             Block::Face::XPOS, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
-                    if (!Block::get_block_opacity(data_copy[x][y - 1][z].id)) {
+                    if (!Block::get_block_opacity(chunk_data_copy[x][y - 1][z].id)) {
                         GridChunk::append_block_face(opaque_vertices, opaque_indices, current,
                             Block::Face::YNEG, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
-                    if (!Block::get_block_opacity(data_copy[x][y + 1][z].id)) {
+                    if (!Block::get_block_opacity(chunk_data_copy[x][y + 1][z].id)) {
                         GridChunk::append_block_face(opaque_vertices, opaque_indices, current,
                             Block::Face::YPOS, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
-                    if (!Block::get_block_opacity(data_copy[x][y][z - 1].id)) {
+                    if (!Block::get_block_opacity(chunk_data_copy[x][y][z - 1].id)) {
                         GridChunk::append_block_face(opaque_vertices, opaque_indices, current,
                             Block::Face::ZNEG, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
-                    if (!Block::get_block_opacity(data_copy[x][y][z + 1].id)) {
+                    if (!Block::get_block_opacity(chunk_data_copy[x][y][z + 1].id)) {
                         GridChunk::append_block_face(opaque_vertices, opaque_indices, current,
                             Block::Face::ZPOS, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
@@ -208,7 +231,7 @@ void Grid::UpdateChunkMeshJob::operator()() {
     for (size_t x = 1; x < CHUNK_WIDTH + 1; ++x) {
         for (size_t y = 1; y < CHUNK_HEIGHT + 1; ++y) {
             for (size_t z = 1; z < CHUNK_DEPTH + 1; ++z) {
-                Block::State& current = data_copy[x][y][z];
+                Block::State& current = chunk_data_copy[x][y][z];
 
                 // only render transparent blocks
                 if (Block::get_block_opacity(current.id)) {
@@ -221,33 +244,33 @@ void Grid::UpdateChunkMeshJob::operator()() {
                 case Block::MeshType::CUBE:
                     // only add faces that are adjacent to transparent
                     //      blocks, cull faces that are obscured
-                    if (!Block::get_block_opacity(data_copy[x - 1][y][z].id) &&
-                        current.id != data_copy[x - 1][y][z].id) {
+                    if (!Block::get_block_opacity(chunk_data_copy[x - 1][y][z].id) &&
+                        current.id != chunk_data_copy[x - 1][y][z].id) {
                         GridChunk::append_block_face(transparent_vertices, transparent_indices, current,
                             Block::Face::XNEG, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
-                    if (!Block::get_block_opacity(data_copy[x + 1][y][z].id) &&
-                        current.id != data_copy[x + 1][y][z].id) {
+                    if (!Block::get_block_opacity(chunk_data_copy[x + 1][y][z].id) &&
+                        current.id != chunk_data_copy[x + 1][y][z].id) {
                         GridChunk::append_block_face(transparent_vertices, transparent_indices, current,
                             Block::Face::XPOS, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
-                    if (!Block::get_block_opacity(data_copy[x][y - 1][z].id) &&
-                        current.id != data_copy[x][y - 1][z].id) {
+                    if (!Block::get_block_opacity(chunk_data_copy[x][y - 1][z].id) &&
+                        current.id != chunk_data_copy[x][y - 1][z].id) {
                         GridChunk::append_block_face(transparent_vertices, transparent_indices, current,
                             Block::Face::YNEG, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
-                    if (!Block::get_block_opacity(data_copy[x][y + 1][z].id) &&
-                        current.id != data_copy[x][y + 1][z].id) {
+                    if (!Block::get_block_opacity(chunk_data_copy[x][y + 1][z].id) &&
+                        current.id != chunk_data_copy[x][y + 1][z].id) {
                         GridChunk::append_block_face(transparent_vertices, transparent_indices, current,
                             Block::Face::YPOS, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
-                    if (!Block::get_block_opacity(data_copy[x][y][z - 1].id) &&
-                        current.id != data_copy[x][y][z - 1].id) {
+                    if (!Block::get_block_opacity(chunk_data_copy[x][y][z - 1].id) &&
+                        current.id != chunk_data_copy[x][y][z - 1].id) {
                         GridChunk::append_block_face(transparent_vertices, transparent_indices, current,
                             Block::Face::ZNEG, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
-                    if (!Block::get_block_opacity(data_copy[x][y][z + 1].id) &&
-                        current.id != data_copy[x][y][z + 1].id) {
+                    if (!Block::get_block_opacity(chunk_data_copy[x][y][z + 1].id) &&
+                        current.id != chunk_data_copy[x][y][z + 1].id) {
                         GridChunk::append_block_face(transparent_vertices, transparent_indices, current,
                             Block::Face::ZPOS, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
@@ -265,7 +288,6 @@ void Grid::UpdateChunkMeshJob::operator()() {
     AsyncQueue::get_instance().push(
         [chunk_ptr, opaque_vertices, opaque_indices]() {
             chunk_ptr->update_opaque_mesh(Mesh(opaque_vertices, opaque_indices));
-            //std::cout << "Chunk Mesh Updated\n";
         }
     );
     AsyncQueue::get_instance().push(
@@ -275,31 +297,33 @@ void Grid::UpdateChunkMeshJob::operator()() {
     );
 }
 
-Grid::GenerateChunkJob::GenerateChunkJob(Grid& grid, vector<vector<vector<Block::State>>> data,
+BlockGrid::GenerateChunkJob::GenerateChunkJob(BlockGrid& grid, vector<vector<vector<Block::State>>>&& data,
     int chunk_index_x, int chunk_index_y, int chunk_index_z) :
     grid(grid),
-    data(data), 
+    data(std::move(data)),
     chunk_index_x(chunk_index_x), 
     chunk_index_y(chunk_index_y),
     chunk_index_z(chunk_index_z) {
 }
 
-void Grid::GenerateChunkJob::operator()() {
-        // add chunk to grid
-        GridChunk* chunk = new GridChunk(chunk_index_x, chunk_index_y, chunk_index_z, std::move(data), grid);
-        AsyncQueue::get_instance().push([chunk]() {
-                chunk->init_shader();
-                //std::cout << "Chunk Shader Initialized\n";
-            }
-        );
+void BlockGrid::GenerateChunkJob::operator()() {
+    // add chunk to grid
+    GridChunk* chunk = new GridChunk(chunk_index_x, chunk_index_y, chunk_index_z, std::move(data), grid);
 
+    BlockGrid* grid_ptr = &grid;
+    AsyncQueue::get_instance().push([grid_ptr, chunk]() {
+        // add the chunk to the BlockGrid
+        // we do this on the main thread so that only worker threads have
+        //      to worry about iterators being invalidated, or else calling the
+        //      render functions will require acquiring locks which is slow
         ChunkIndices indices{ chunk->get_x_index(), chunk->get_y_index(), chunk->get_z_index() };
-        {
-            std::lock_guard<std::mutex> lock(grid.chunks_mutex);
-            grid.chunks[indices] = chunk;
+        std::lock_guard<std::mutex> lock(grid_ptr->chunks_mutex);
+        grid_ptr->chunks[indices] = chunk;
         }
+    );
 
-        //update the chunk's mesh (for the first time)
-        UpdateChunkMeshJob job(grid, chunk);
-        ThreadQueue::get_instance().push(job, ThreadQueue::Priority::NORMAL);
+    //update the chunk's mesh (for the first time)
+    BlockGrid& grid_ref = *grid_ptr;
+    UpdateChunkMeshJob job(grid_ref, chunk);
+    ThreadQueue::get_instance().push(job, ThreadQueue::Priority::NORMAL);
 }

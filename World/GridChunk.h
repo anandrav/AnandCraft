@@ -1,21 +1,17 @@
 #pragma once
 
 #include "../Graphics/Mesh.h"
-#include "Grid.h"
+#include "BlockGrid.h"
 
 class GridChunk {
 public:
 
     GridChunk(int x_index, int y_index, int z_index,
-        const vector<vector<vector<Block::State>>>&& data, Grid& grid);
+        const vector<vector<vector<Block::State>>>&& data, BlockGrid& grid);
 
-    // FIXME IF YOU RENDER A CHUNK WHOSE SHADER WASN'T INITIALIZED IT CRASHES
-    //      THIS BUG IS EXTRMEELY RARE BUT YOU SHOULD FIX IT
-    void init_shader();
+    void draw_opaque(Camera& camera, Shader& shader);
 
-    void render_opaque(Camera& camera);
-
-    void render_transparent(Camera& camera);
+    void draw_transparent(Camera& camera, Shader& shader);
 
     void update_opaque_mesh(Mesh&& mesh);
 
@@ -39,12 +35,12 @@ public:
     static void translate_vertices_in_vector(vector<Vertex>& vec, int x, int y, int z);
 
 private:
-    const int WIDTH = Grid::CHUNK_WIDTH;
-    const int HEIGHT = Grid::CHUNK_HEIGHT;
-    const int DEPTH = Grid::CHUNK_DEPTH;
+    const int WIDTH = BlockGrid::CHUNK_WIDTH;
+    const int HEIGHT = BlockGrid::CHUNK_HEIGHT;
+    const int DEPTH = BlockGrid::CHUNK_DEPTH;
 
     // parent Grid
-    Grid& grid;
+    BlockGrid& grid;
 
     // position relative to other chunks in parent Grid
     // (CHUNK_WIDTH * x_index is x-position in grid space, etc.)
@@ -61,7 +57,6 @@ private:
     Mesh transparent_mesh;
 
     Transform transform;
-    Shader shader;
 
     bool check_if_opaque_at(int x, int y, int z);
 

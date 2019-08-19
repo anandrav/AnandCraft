@@ -34,7 +34,7 @@ private:
     glm::vec3 camera_vel;
     glm::vec3 camera_rot;
     unsigned int texture;
-    World world;
+    World* world;
 
     const int MINECRAFT_TICKRATE = 20;
     const int MS_PER_UPDATE = 1000 / MINECRAFT_TICKRATE;

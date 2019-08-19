@@ -17,71 +17,76 @@ using std::unordered_map;
 class GridChunk;
 
 /* 3-dimensional coordinate system of blocks */
-class Grid {
+class BlockGrid {
 public:
+    struct ChunkIndices;
+
     static const int CHUNK_WIDTH = 32;
     static const int CHUNK_HEIGHT = 32;
     static const int CHUNK_DEPTH = 32;
 
-    Grid() = default;
+    BlockGrid();
 
-    Grid(Grid&) = delete;
-    void operator=(const Grid&) = delete;
+    BlockGrid(BlockGrid&) = delete;
+    void operator=(const BlockGrid&) = delete;
 
     void render_opaque(Camera& camera);
 
     void render_transparent(Camera& camera);
 
-    void add_chunk(int chunk_index_x, int chunk_index_y, int chunk_index_z,
+    void add_chunk(BlockGrid::ChunkIndices indices,
         vector<vector<vector<Block::State>>> data);
 
-    bool has_chunk(int chunk_index_x, int chunk_index_y, int chunk_index_z);
+    bool has_chunk(BlockGrid::ChunkIndices indices);
 
-    void remove_chunk(int chunk_index_x, int chunk_index_y, int chunk_index_z);
+    void remove_chunk(BlockGrid::ChunkIndices indices);
 
-    bool has_block_at(int x, int y, int z);
+    bool has_block(int grid_x, int grid_y, int grid_z);
 
-    Block::State get_block_at(int x, int y, int z);
+    Block::State get_block(int grid_x, int grid_y, int grid_z);
 
-    void modify_block_at(int x, int y, int z, Block::State new_state);
+    void modify_block(int grid_x, int grid_y, int grid_z, Block::State new_state);
 
     struct ChunkIndices {
-        int x_index;
-        int y_index;
-        int z_index;
+        int x;
+        int y;
+        int z;
 
         bool operator==(const ChunkIndices& other) const {
-            return (this->x_index == other.x_index &&
-                this->y_index == other.y_index &&
-                this->z_index == other.z_index);
+            return (this->x == other.x &&
+                this->y == other.y &&
+                this->z == other.z);
         }
 
         bool operator<(const ChunkIndices& other) const {
-            if (this->x_index != other.x_index) {
-                return this->x_index < other.x_index;
+            if (this->x != other.x) {
+                return this->x < other.x;
             }
-            if (this->y_index != other.y_index) {
-                return this->y_index < other.y_index;
+            if (this->y != other.y) {
+                return this->y < other.y;
             }
-            return this->z_index < other.z_index;
+            return this->z < other.z;
         }
     };
 
     struct ChunkIndicesHash {
         std::size_t operator() (const ChunkIndices& indices) const {
-            std::size_t h1 = std::hash<int>()(indices.x_index);
-            std::size_t h2 = std::hash<int>()(indices.y_index);
-            std::size_t h3 = std::hash<int>()(indices.z_index);
+            std::size_t h1 = std::hash<int>()(indices.x);
+            std::size_t h2 = std::hash<int>()(indices.y);
+            std::size_t h3 = std::hash<int>()(indices.z);
 
             return h1 ^ (h2 << 1) ^ (h3 << 2);
         }
     };
 
-    static ChunkIndices get_chunk_indices_at(int x, int y, int z);
+    static ChunkIndices get_chunk_indices(int grid_x, int grid_y, int grid_z);
 
-    ~Grid();
+    vector<ChunkIndices> get_loaded_chunks();
+
+    ~BlockGrid();
 
 private:
+    Shader shader;
     Transform transform;
 
     unordered_map<ChunkIndices, GridChunk*, ChunkIndicesHash> chunks;
@@ -92,10 +97,10 @@ private:
     GridChunk* generate_chunk(int x_index, int y_index, int z_index);
 
     struct GenerateChunkJob {
-        GenerateChunkJob(Grid& grid, vector<vector<vector<Block::State>>> data,
+        GenerateChunkJob(BlockGrid& grid, vector<vector<vector<Block::State>>>&& data,
             int chunk_index_x, int chunk_index_y, int chunk_index_z);
 
-        Grid& grid;
+        BlockGrid& grid;
         vector<vector<vector<Block::State>>> data;
         int chunk_index_x;
         int chunk_index_y;
@@ -105,11 +110,11 @@ private:
     };
 
     struct UpdateChunkMeshJob {
-        UpdateChunkMeshJob(Grid& grid, GridChunk* chunk);
+        UpdateChunkMeshJob(BlockGrid& grid, GridChunk* chunk);
 
-        Grid& grid;
+        BlockGrid& grid;
         GridChunk* chunk;
-        vector<vector<vector<Block::State>>> data_copy;
+        vector<vector<vector<Block::State>>> chunk_data_copy;
 
         void init_data_copy();
 

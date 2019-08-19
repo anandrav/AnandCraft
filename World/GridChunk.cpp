@@ -1,7 +1,7 @@
 #include "GridChunk.h"
 
 GridChunk::GridChunk(int x_index, int y_index, int z_index,
-    const vector<vector<vector<Block::State>>>&& data, Grid& grid) : x_index(x_index)
+    const vector<vector<vector<Block::State>>>&& data, BlockGrid& grid) : x_index(x_index)
     , y_index(y_index)
     , z_index(z_index)
     , data(std::move(data)), grid(grid) {
@@ -11,11 +11,7 @@ GridChunk::GridChunk(int x_index, int y_index, int z_index,
     transform.set_pos(location);
 }
 
-void GridChunk::init_shader() {
-    shader = Shader("res/basic_vert.glsl", "res/basic_frag.glsl");
-}
-
-void GridChunk::render_opaque(Camera& camera) {
+void GridChunk::draw_opaque(Camera& camera, Shader& shader) {
     shader.bind();
     glm::mat4 clip_transform = camera.get_view_projection() * transform.get_model();
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, &clip_transform[0][0]);
@@ -29,7 +25,7 @@ void GridChunk::render_opaque(Camera& camera) {
     opaque_mesh.draw();
 }
 
-void GridChunk::render_transparent(Camera& camera) {
+void GridChunk::draw_transparent(Camera& camera, Shader& shader) {
     shader.bind();
     glm::mat4 clip_transform = camera.get_view_projection() * transform.get_model();
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, &clip_transform[0][0]);
@@ -113,8 +109,8 @@ bool GridChunk::check_if_opaque_at(int x, int y, int z) {
         int grid_y = y_index * HEIGHT + y;
         int grid_z = z_index * DEPTH + z;
 
-        if (grid.has_block_at(grid_x, grid_y, grid_z)) {
-            return Block::get_block_opacity(grid.get_block_at(grid_x, grid_y, grid_z).id);
+        if (grid.has_block(grid_x, grid_y, grid_z)) {
+            return Block::get_block_opacity(grid.get_block(grid_x, grid_y, grid_z).id);
         }
         return false;
     }
@@ -131,8 +127,8 @@ bool GridChunk::check_if_same_material_at(int x, int y, int z, Block::State curr
         int grid_y = y_index * HEIGHT + y;
         int grid_z = z_index * DEPTH + z;
 
-        if (grid.has_block_at(grid_x, grid_y, grid_z)) {
-            return current.id == grid.get_block_at(grid_x, grid_y, grid_z).id;
+        if (grid.has_block(grid_x, grid_y, grid_z)) {
+            return current.id == grid.get_block(grid_x, grid_y, grid_z).id;
         }
         return false;
     }

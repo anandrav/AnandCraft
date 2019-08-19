@@ -69,7 +69,6 @@ void Game::run_loop() {
         previous = current;
         lag += elapsed;
 
-
         process_input();
 
         while (lag >= MS_PER_UPDATE) {
@@ -79,7 +78,9 @@ void Game::run_loop() {
 
         render();
 
+        //AsyncQueue::get_instance().process_all_tasks();
         AsyncQueue::get_instance().process_all_tasks();
+        std::cout << "---------------GAME LOOP-----------------\n";
     }
 }
 
@@ -105,20 +106,20 @@ void Game::handle_click(SDL_Event& e) {
             continue;
         }
 
-        if (world.has_block_at(x_coord, y_coord, z_coord)) {
-            Block::State block = world.get_block_at(x_coord, y_coord, z_coord);
+        if (world->has_block_at(x_coord, y_coord, z_coord)) {
+            Block::State block = world->get_block_at(x_coord, y_coord, z_coord);
             std::cout << "Block: " << Block::get_block_name(block.id) << '\n';
             if (block.id != Block::ID::AIR) {
                 if (e.button.button == SDL_BUTTON_LEFT) {
                     // break block
                     Block::State new_state = Block::State(Block::ID::AIR);
-                    world.modify_block_at(x_coord, y_coord, z_coord, new_state);
+                    world->modify_block_at(x_coord, y_coord, z_coord, new_state);
                 }
                 if (e.button.button == SDL_BUTTON_RIGHT) {
                     // place block
                     Block::State new_state = Block::State(Block::ID::COBBLESTONE);
-                    if (world.has_block_at(prev_x_coord, prev_y_coord, prev_z_coord)) {
-                        world.modify_block_at(prev_x_coord, prev_y_coord, prev_z_coord, new_state);
+                    if (world->has_block_at(prev_x_coord, prev_y_coord, prev_z_coord)) {
+                        world->modify_block_at(prev_x_coord, prev_y_coord, prev_z_coord, new_state);
                     }
                 }
                 break;
@@ -134,7 +135,8 @@ void Game::handle_click(SDL_Event& e) {
 void Game::process_input() {
     SDL_Event e;
 
-    #define VEL 1.1f/5.f
+    //#define VEL 1.1f/5.f
+    #define VEL 3.f/5.f
     // 50 updates per second times 1.1/5 is 11 units/second
 
     while (SDL_PollEvent(&e)) {
@@ -260,6 +262,10 @@ void Game::process_input() {
 }
 
 void Game::update() {
+    int now = SDL_GetTicks();
+    if (now % 1001 >= 0 && now % 1001 < 50) {
+        world->update(camera.get_position());
+    }
     // TODO pack this behavior inside a Player class + Controller class
     camera.move_forward(-camera_vel.z);
     camera.move_left(-camera_vel.x);
@@ -291,6 +297,7 @@ void Game::init() {
     }
     stbi_image_free(data);
 
+    world = new World();
 }
 
 void Game::render() {
@@ -301,8 +308,8 @@ void Game::render() {
 
     // render world
     glBindTexture(GL_TEXTURE_2D, texture);
-    world.render_opaque(camera);
-    world.render_transparent(camera);
+    world->render_opaque(camera);
+    world->render_transparent(camera);
 
     // render UI/HUD
 

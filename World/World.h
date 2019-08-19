@@ -1,16 +1,19 @@
 #pragma once
 
-#include <unordered_map>
-#include <list>
+#include <vector>
+#include <algorithm>
 #include <math.h>
 
 #include "glm/glm.hpp"
-#include "Grid.h"
+#include "BlockGrid.h"
 
 class World {
 public:
-    const static int RENDER_DISTANCE_IN_CHUNKS = 4;
-    const int LRU_CAPACITY = pow(RENDER_DISTANCE_IN_CHUNKS, 3);
+    const static int RENDER_DIST_IN_CHUNKS = 4;
+    const int CHUNK_CAPACITY = (int)pow(RENDER_DIST_IN_CHUNKS, 3);
+    // seed?
+    // world name?
+    // time of day?
 
     World();
 
@@ -27,11 +30,5 @@ public:
     void update(glm::vec3 player_location);
 
 private:
-    Grid grid;
-
-    struct ChunkInfo {
-        bool dirty;
-    };
-    unordered_map<Grid::ChunkIndices, ChunkInfo, Grid::ChunkIndicesHash> chunks;
-    std::list<int> LRU;
+    BlockGrid grid;
 };

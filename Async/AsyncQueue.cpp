@@ -1,4 +1,5 @@
 #include "AsyncQueue.h"
+#include "SDL2/SDL.h"
 
 AsyncQueue& AsyncQueue::get_instance() {
     static AsyncQueue instance;
