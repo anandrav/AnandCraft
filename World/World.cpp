@@ -1,6 +1,12 @@
 #include "World.h"
 
-World::World() {
+World::World() : 
+    grid_chunk_manager_thread(&World::grid_chunk_manager_thread_routine, this),
+    is_terminating(false) {
+}
+
+World::~World() {
+    is_terminating = true;
 }
 
 void World::render_opaque(Camera& camera) {
@@ -27,6 +33,12 @@ void World::modify_block_at(int x, int y, int z, Block::State new_state) {
 // ensure that chunks within render dist are loaded and that chunks
 //      outside render dist are unloaded
 void World::update(glm::vec3 player_location) {
+    last_player_location = player_location;
+}
+
+// FIXME calling add_chunk and remove_chunk is not working, it fails sometimes.
+// you need to make these operations thread safe or something!
+void World::grid_chunk_manager_thread_routine() {
     auto data = vector<vector<vector<Block::State>>>(
         BlockGrid::CHUNK_WIDTH, vector<vector<Block::State>>(
             BlockGrid::CHUNK_HEIGHT, vector<Block::State>(
@@ -34,7 +46,7 @@ void World::update(glm::vec3 player_location) {
 
     for (int x = 0; x < BlockGrid::CHUNK_WIDTH; ++x) {
         for (int z = 0; z < BlockGrid::CHUNK_WIDTH; ++z) {
-            // bottom 5 layers stone
+            // 4 layers stone
             for (int y = 0; y < 10 && y < BlockGrid::CHUNK_HEIGHT; ++y) {
                 data[x][y][z] = Block::State(Block::ID::STONE);
             }
@@ -47,46 +59,60 @@ void World::update(glm::vec3 player_location) {
         }
     }
 
-    int player_x = (int)player_location.x;
-    int player_y = (int)player_location.y;
-    int player_z = (int)player_location.z;
+    while (!is_terminating) {
+        int player_x = (int)last_player_location.x;
+        int player_y = (int)last_player_location.y;
+        int player_z = (int)last_player_location.z;
+        auto player_indices = BlockGrid::get_chunk_indices(player_x, player_y, player_z);
 
+        std::vector<BlockGrid::ChunkIndices> must_be_loaded;
+        vector<BlockGrid::ChunkIndices> already_loaded;
+        for (auto it = chunk_states.begin(); it != chunk_states.end(); ++it) {
+            already_loaded.push_back(it->first);
+        }
 
-    std::vector<BlockGrid::ChunkIndices> must_be_loaded;
-    must_be_loaded.reserve(CHUNK_CAPACITY);
+        for (int x = player_indices.x - RENDER_DIST_IN_CHUNKS;
+            x <= player_indices.x + RENDER_DIST_IN_CHUNKS; ++x) {
+            for (int y = player_indices.y /*- RENDER_DIST_IN_CHUNKS*/;
+                y <= player_indices.y /*+ RENDER_DIST_IN_CHUNKS*/; ++y) {
+                for (int z = player_indices.z - RENDER_DIST_IN_CHUNKS;
+                    z <= player_indices.z + RENDER_DIST_IN_CHUNKS; ++z) {
+                    auto indices = BlockGrid::ChunkIndices{ x, y, z };
+                    must_be_loaded.push_back(indices);
 
-    auto player_indices = BlockGrid::get_chunk_indices(player_x, player_y, player_z);
-    //std::cout << "PLAYER LOCATION: " << player_indices.x << ' ' << player_indices.y << ' ' << player_indices.z << std::endl;
-
-    for (int x = player_indices.x - RENDER_DIST_IN_CHUNKS;
-        x < player_indices.x + RENDER_DIST_IN_CHUNKS; ++x) {
-        for (int y = player_indices.y /*RENDER_DIST_IN_CHUNKS*/;
-            y < player_indices.y + 1/*+ RENDER_DIST_IN_CHUNKS*/; ++y) {
-            for (int z = player_indices.z - RENDER_DIST_IN_CHUNKS;
-                z < player_indices.z + RENDER_DIST_IN_CHUNKS; ++z) {
-                auto chunk_indices = BlockGrid::ChunkIndices{ x, y, z };
-                must_be_loaded.push_back(chunk_indices);
-
-                // THS IS AN URGENT ISSUE
-                // FIXME this isn't a good check because if you've already tried
-                // to add a chunk but it hasn't gone through yet, you'll
-                // do it again and again and again!
-                if (!grid.has_chunk(chunk_indices)) {
-                    grid.add_chunk(chunk_indices, data);
+                    BlockGrid* grid_ptr = &grid;
+                    if (chunk_states.find(indices) == chunk_states.end()) {
+                        chunk_states[indices] = ChunkState{ false };
+                        AsyncQueue::get_instance().push([grid_ptr, indices, data]() {
+                                grid_ptr->add_chunk(indices, data);
+                            }
+                        );
+                    }
                 }
             }
         }
+
+        std::sort(must_be_loaded.begin(), must_be_loaded.end());
+        std::sort(already_loaded.begin(), already_loaded.end());
+
+        std::vector<BlockGrid::ChunkIndices> must_be_evicted(already_loaded.size());
+        std::vector<BlockGrid::ChunkIndices>::iterator it;
+        it = std::set_difference(already_loaded.begin(), already_loaded.end(),
+            must_be_loaded.begin(), must_be_loaded.end(), must_be_evicted.begin());
+
+        must_be_evicted.resize(it - must_be_evicted.begin());
+
+        for (int i = 0; i < must_be_evicted.size(); ++i) {
+            auto indices = must_be_evicted[i];
+            // todo use chunk info here
+            BlockGrid* grid_ptr = &grid;
+            chunk_states.erase(indices);
+            AsyncQueue::get_instance().push([grid_ptr, indices]() {
+                    grid_ptr->remove_chunk(indices);
+                }
+            );
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
-
-    //auto already_loaded = grid.get_loaded_chunks();
-
-    //std::sort(must_be_loaded.begin(), must_be_loaded.end());
-    //std::sort(already_loaded.begin(), already_loaded.end());
-
-    //std::vector<BlockGrid::ChunkIndices> must_be_evicted(already_loaded.size());
-    //std::vector<BlockGrid::ChunkIndices>::iterator it;
-    //it = std::set_difference(already_loaded.begin(), already_loaded.end(),
-    //    must_be_loaded.begin(), must_be_loaded.end(), must_be_evicted.begin());
-
-    //must_be_evicted.resize(it - must_be_evicted.begin());
 }

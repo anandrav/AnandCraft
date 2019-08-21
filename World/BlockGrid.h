@@ -81,14 +81,13 @@ public:
 
     static ChunkIndices get_chunk_indices(int grid_x, int grid_y, int grid_z);
 
-    vector<ChunkIndices> get_loaded_chunks();
-
     ~BlockGrid();
 
 private:
     Shader shader;
     Transform transform;
 
+    // todo use unique_ptr or shared_ptr instead of raw pointer
     unordered_map<ChunkIndices, GridChunk*, ChunkIndicesHash> chunks;
     std::mutex chunks_mutex;
 
@@ -98,29 +97,30 @@ private:
 
     struct GenerateChunkJob {
         GenerateChunkJob(BlockGrid& grid, vector<vector<vector<Block::State>>>&& data,
-            int chunk_index_x, int chunk_index_y, int chunk_index_z);
+            ChunkIndices indices);
 
         BlockGrid& grid;
         vector<vector<vector<Block::State>>> data;
-        int chunk_index_x;
-        int chunk_index_y;
-        int chunk_index_z;
+        ChunkIndices indices;
 
         void operator()();
     };
 
     struct UpdateChunkMeshJob {
-        UpdateChunkMeshJob(BlockGrid& grid, GridChunk* chunk);
+        UpdateChunkMeshJob(BlockGrid& grid, ChunkIndices indices);
 
         BlockGrid& grid;
-        GridChunk* chunk;
+        ChunkIndices indices;
         vector<vector<vector<Block::State>>> chunk_data_copy;
+        bool cancel_job;
 
-        void init_data_copy();
+        void init_data_copy(GridChunk* chunk);
 
         void operator()();
     };
 
+    // fixme instead of making these friends, maybe construct with references
+    //      to what is necessary?
     friend struct GenerateChunkJob;
     friend struct UpdateChunkMeshJob;
 };

@@ -78,9 +78,7 @@ void Game::run_loop() {
 
         render();
 
-        //AsyncQueue::get_instance().process_all_tasks();
         AsyncQueue::get_instance().process_all_tasks();
-        std::cout << "---------------GAME LOOP-----------------\n";
     }
 }
 
@@ -136,7 +134,7 @@ void Game::process_input() {
     SDL_Event e;
 
     //#define VEL 1.1f/5.f
-    #define VEL 3.f/5.f
+    #define VEL 1.1f/5.f
     // 50 updates per second times 1.1/5 is 11 units/second
 
     while (SDL_PollEvent(&e)) {
@@ -262,10 +260,7 @@ void Game::process_input() {
 }
 
 void Game::update() {
-    int now = SDL_GetTicks();
-    if (now % 1001 >= 0 && now % 1001 < 50) {
-        world->update(camera.get_position());
-    }
+    world->update(camera.get_position());
     // TODO pack this behavior inside a Player class + Controller class
     camera.move_forward(-camera_vel.z);
     camera.move_left(-camera_vel.x);
@@ -278,6 +273,7 @@ void Game::update() {
 
 void Game::init() {
     camera.move_forward(-2.f);
+    camera.move_up(16.f);
 
     // Create texture from image
     glGenTextures(1, &texture);

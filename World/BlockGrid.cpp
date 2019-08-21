@@ -7,33 +7,52 @@ BlockGrid::BlockGrid() {
 
 void BlockGrid::render_opaque(Camera& camera) {
     for (auto& chunk : chunks) {
-        chunk.second->draw_opaque(camera, shader);
+        if (chunk.second) {
+            chunk.second->draw_opaque(camera, shader);
+        }
     }
 }
 
 void BlockGrid::render_transparent(Camera& camera) {
     for (auto& chunk : chunks) {
-        chunk.second->draw_transparent(camera, shader);
+        if (chunk.second) {
+            chunk.second->draw_transparent(camera, shader);
+        }
     }
 }
 
 void BlockGrid::add_chunk(BlockGrid::ChunkIndices indices,
     vector<vector<vector<Block::State>>> data) {
-    GenerateChunkJob job(*this, std::move(data), indices.x, indices.y, indices.z);
+    //add a dummy chunk pointer to the chunks map as a placeholder to be
+    //      updated later
+    {
+        std::lock_guard<std::mutex> lock(chunks_mutex);
+        // if there's already a chunk at indices, delete it
+        if (chunks[indices]) {
+            delete chunks[indices];
+        }
+        chunks[indices] = nullptr;
+    }
+
+    GenerateChunkJob job(*this, std::move(data), indices);
     ThreadQueue::get_instance().push(job, ThreadQueue::Priority::NORMAL);
 }
 
+// fixme the two functions beneath are kind of redundant.
 bool BlockGrid::has_chunk(BlockGrid::ChunkIndices indices) {
     return chunks.find(indices) != chunks.end();
 }
 
-void BlockGrid::remove_chunk(BlockGrid::ChunkIndices indices) {
-    // mutex? AsyncQueue?
-    //chunks.erase(indices);
-}
-
 bool BlockGrid::has_block(int x, int y, int z) {
     return (get_chunk_at(x, y, z) != nullptr);
+}
+
+void BlockGrid::remove_chunk(BlockGrid::ChunkIndices indices) {
+    std::lock_guard<std::mutex> lock(chunks_mutex);
+    if (chunks[indices]) {
+    }
+    delete chunks[indices];
+    chunks.erase(indices);
 }
 
 Block::State BlockGrid::get_block(int x, int y, int z) {
@@ -48,13 +67,15 @@ Block::State BlockGrid::get_block(int x, int y, int z) {
 }
 
 void BlockGrid::modify_block(int x, int y, int z, Block::State new_state) {
+    // fixme this is all very redundant, remove code duplication
     GridChunk* chunk = get_chunk_at(x, y, z);
+    ChunkIndices indices = get_chunk_indices(x, y, z);
     if (chunk) {
         int block_coord_x = util::positive_modulo(x, CHUNK_WIDTH);
         int block_coord_y = util::positive_modulo(y, CHUNK_HEIGHT);
         int block_coord_z = util::positive_modulo(z, CHUNK_DEPTH);
         chunk->set_block_at(block_coord_x,block_coord_y,block_coord_z, new_state);
-        UpdateChunkMeshJob job(*this, chunk);
+        UpdateChunkMeshJob job(*this, indices);
         ThreadQueue::get_instance().push(job, ThreadQueue::Priority::HIGH);
         return;
     }
@@ -77,16 +98,6 @@ BlockGrid::ChunkIndices BlockGrid::get_chunk_indices(int x, int y, int z) {
 
     return ChunkIndices{ chunk_index_x, chunk_index_y, chunk_index_z };
 }
-
-vector<BlockGrid::ChunkIndices> BlockGrid::get_loaded_chunks() {
-    vector<ChunkIndices> loaded_chunks(chunks.size());
-    int i = 0;
-    for (auto it = chunks.begin(); it != chunks.end(); ++it, ++i) {
-        loaded_chunks[i] = it->first;
-    }
-    return loaded_chunks;
-}
-
 
 BlockGrid::~BlockGrid() {
     for (auto& chunk : chunks) {
@@ -129,12 +140,13 @@ GridChunk* BlockGrid::get_chunk_at(int x, int y, int z) {
     return nullptr;
 }
 
-BlockGrid::UpdateChunkMeshJob::UpdateChunkMeshJob(BlockGrid& grid, GridChunk* chunk) :
+BlockGrid::UpdateChunkMeshJob::UpdateChunkMeshJob(BlockGrid& grid, ChunkIndices indices) :
     grid(grid),
-    chunk(chunk) {
+    indices(indices),
+    cancel_job(false) {
 }
 
-void BlockGrid::UpdateChunkMeshJob::init_data_copy() {
+void BlockGrid::UpdateChunkMeshJob::init_data_copy(GridChunk* chunk) {
     //data copy has extra 2 blocks for each dimension to hold data
     //     from adjacent chunks to determine whether to expose faces
     //     on the outside
@@ -143,10 +155,6 @@ void BlockGrid::UpdateChunkMeshJob::init_data_copy() {
         CHUNK_HEIGHT + 2, vector<Block::State>(
         CHUNK_WIDTH + 2, Block::State{ Block::ID::AIR })));
 
-    // since we iterate through the chunks map when we call grid.has_block and
-    //  grid.get_block, we must acquire a lock to prevent our iterators from 
-    //  being invalidated by the main thread
-    std::lock_guard<std::mutex> lock(grid.chunks_mutex);
     for (int x = 0; x < CHUNK_WIDTH + 2; ++x) {
         for (int y = 0; y < CHUNK_HEIGHT + 2; ++y) {
             for (int z = 0; z < CHUNK_DEPTH + 2; ++z) {
@@ -154,9 +162,9 @@ void BlockGrid::UpdateChunkMeshJob::init_data_copy() {
                 if (x == 0 || x == CHUNK_WIDTH + 1 ||
                     y == 0 || y == CHUNK_HEIGHT + 1 ||
                     z == 0 || z == CHUNK_DEPTH + 1) {
-                    int grid_x = chunk->get_x_index() * CHUNK_WIDTH + x - 1;
-                    int grid_y = chunk->get_y_index() * CHUNK_HEIGHT + y - 1;
-                    int grid_z = chunk->get_z_index() * CHUNK_DEPTH + z - 1;
+                    int grid_x = indices.x * CHUNK_WIDTH + x - 1;
+                    int grid_y = indices.y * CHUNK_HEIGHT + y - 1;
+                    int grid_z = indices.z * CHUNK_DEPTH + z - 1;
                     if (grid.has_block(grid_x, grid_y, grid_z)) {
                         chunk_data_copy[x][y][z] = grid.get_block(grid_x, grid_y, grid_z);
                     }
@@ -172,7 +180,28 @@ void BlockGrid::UpdateChunkMeshJob::init_data_copy() {
 // TODO make this way cleaner, do both meshes in ONE pass to increase the speed,
 //  use helper functions, move static functions from Grid into the job.
 void BlockGrid::UpdateChunkMeshJob::operator()() {
-    init_data_copy();
+    // since we iterate through the chunks map when we call grid.has_block and
+    //  grid.get_block, we must acquire a lock to prevent our iterators from 
+    //  being invalidated by the main thread
+    //  Also, the chunk may have been deleted after this job was created
+    GridChunk* chunk = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(grid.chunks_mutex);
+
+        if (grid.chunks.find(indices)
+            != grid.chunks.end()) {
+            chunk = grid.chunks[indices];
+        }
+        // if chunk wasn't found in map then it was deleted.
+        // if chunk was in the map but it was a nullptr, then the chunk has been
+        //      replaced
+        // in either case, we must cancel the job
+        if (chunk == nullptr) {
+            return;
+        }
+
+        init_data_copy(chunk);
+    }
 
     vector<Vertex> opaque_vertices;
     vector<unsigned> opaque_indices;
@@ -284,46 +313,61 @@ void BlockGrid::UpdateChunkMeshJob::operator()() {
 
     // Mesh creation must be done on the main thread because it contains
     //      OpenGL calls, so we send a task to AsyncQueue
-    GridChunk* chunk_ptr = chunk;
     AsyncQueue::get_instance().push(
-        [chunk_ptr, opaque_vertices, opaque_indices]() {
-            chunk_ptr->update_opaque_mesh(Mesh(opaque_vertices, opaque_indices));
+        [chunk, opaque_vertices, opaque_indices]() {
+            chunk->update_opaque_mesh(Mesh(opaque_vertices, opaque_indices));
         }
     );
     AsyncQueue::get_instance().push(
-        [chunk_ptr, transparent_vertices, transparent_indices]() {
-            chunk_ptr->update_transparent_mesh(Mesh(transparent_vertices, transparent_indices));
+        [chunk, transparent_vertices, transparent_indices]() {
+            chunk->update_transparent_mesh(Mesh(transparent_vertices, transparent_indices));
         }
     );
 }
 
 BlockGrid::GenerateChunkJob::GenerateChunkJob(BlockGrid& grid, vector<vector<vector<Block::State>>>&& data,
-    int chunk_index_x, int chunk_index_y, int chunk_index_z) :
+    ChunkIndices indices) :
     grid(grid),
     data(std::move(data)),
-    chunk_index_x(chunk_index_x), 
-    chunk_index_y(chunk_index_y),
-    chunk_index_z(chunk_index_z) {
+    indices(indices) {
 }
 
 void BlockGrid::GenerateChunkJob::operator()() {
     // add chunk to grid
-    GridChunk* chunk = new GridChunk(chunk_index_x, chunk_index_y, chunk_index_z, std::move(data), grid);
+    GridChunk* chunk = new GridChunk(indices.x, indices.y, indices.z, std::move(data), grid);
+    //num_chunks_in_memory++;
 
     BlockGrid* grid_ptr = &grid;
     AsyncQueue::get_instance().push([grid_ptr, chunk]() {
-        // add the chunk to the BlockGrid
-        // we do this on the main thread so that only worker threads have
-        //      to worry about iterators being invalidated, or else calling the
-        //      render functions will require acquiring locks which is slow
-        ChunkIndices indices{ chunk->get_x_index(), chunk->get_y_index(), chunk->get_z_index() };
-        std::lock_guard<std::mutex> lock(grid_ptr->chunks_mutex);
-        grid_ptr->chunks[indices] = chunk;
+            // add the chunk to the BlockGrid
+            // we do this on the main thread so that only worker threads have
+            //      to worry about iterators being invalidated, or else calling the
+            //      render functions will require acquiring locks which is slow
+            ChunkIndices indices{ chunk->get_x_index(), chunk->get_y_index(), chunk->get_z_index() };
+            // ensure that the chunk is still there in map and hasn't been removed
+            //      before we update it
+            bool update_chunk = false;
+            {
+                std::lock_guard<std::mutex> lock(grid_ptr->chunks_mutex);
+                if (grid_ptr->chunks.find(indices) != grid_ptr->chunks.end()) {
+                    // if there's already a chunk at indices, delete it
+                    if (grid_ptr->chunks[indices]) {
+                        delete grid_ptr->chunks[indices];
+                    }
+                    grid_ptr->chunks[indices] = chunk;
+                    update_chunk = true;
+                }
+                else {
+                    delete chunk;
+                }
+            }
+
+            if (update_chunk) {
+                BlockGrid& grid_ref = *grid_ptr;
+                //update the chunk's mesh (for the first time)
+                UpdateChunkMeshJob job(grid_ref, indices);
+                ThreadQueue::get_instance().push(job, ThreadQueue::Priority::NORMAL);
+            }
         }
     );
-
-    //update the chunk's mesh (for the first time)
-    BlockGrid& grid_ref = *grid_ptr;
-    UpdateChunkMeshJob job(grid_ref, chunk);
-    ThreadQueue::get_instance().push(job, ThreadQueue::Priority::NORMAL);
 }

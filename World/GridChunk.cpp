@@ -50,13 +50,13 @@ void GridChunk::update_transparent_mesh(Mesh&& mesh) {
 }
 
 Block::State GridChunk::get_block_at(int x, int y, int z) {
-    std::lock_guard<std::mutex> lock(data_mutex);
+    std::lock_guard<std::mutex> lock(mutex);
 
     return data[x][y][z];
 }
 
 void GridChunk::set_block_at(int x, int y, int z, Block::State new_state) {
-    std::lock_guard<std::mutex> lock(data_mutex);
+    std::lock_guard<std::mutex> lock(mutex);
 
     data[x][y][z] = new_state;
 }

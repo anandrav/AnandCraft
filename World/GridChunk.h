@@ -51,7 +51,7 @@ private:
     // data for blocks in chunk, indexed by [x][y][z]
     //      x, y, and z are position within chunk
     vector<vector<vector<Block::State>>> data;
-    std::mutex data_mutex;
+    std::mutex mutex;
 
     Mesh opaque_mesh;
     Mesh transparent_mesh;
