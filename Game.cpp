@@ -134,7 +134,7 @@ void Game::process_input() {
     SDL_Event e;
 
     //#define VEL 1.1f/5.f
-    #define VEL 1.1f/5.f
+    #define VEL 3.1f/5.f
     // 50 updates per second times 1.1/5 is 11 units/second
 
     while (SDL_PollEvent(&e)) {
@@ -273,7 +273,7 @@ void Game::update() {
 
 void Game::init() {
     camera.move_forward(-2.f);
-    camera.move_up(16.f);
+    camera.move_up(8.f);
 
     // Create texture from image
     glGenTextures(1, &texture);

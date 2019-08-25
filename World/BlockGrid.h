@@ -21,9 +21,9 @@ class BlockGrid {
 public:
     struct ChunkIndices;
 
-    static const int CHUNK_WIDTH = 32;
-    static const int CHUNK_HEIGHT = 32;
-    static const int CHUNK_DEPTH = 32;
+    static const int CHUNK_WIDTH = 16;
+    static const int CHUNK_HEIGHT = 16;
+    static const int CHUNK_DEPTH = 16;
 
     BlockGrid();
 

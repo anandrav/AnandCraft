@@ -47,17 +47,22 @@ void World::grid_chunk_manager_thread_routine() {
     for (int x = 0; x < BlockGrid::CHUNK_WIDTH; ++x) {
         for (int z = 0; z < BlockGrid::CHUNK_WIDTH; ++z) {
             // 4 layers stone
-            for (int y = 0; y < 10 && y < BlockGrid::CHUNK_HEIGHT; ++y) {
+            for (int y = 0; y < 5 && y < BlockGrid::CHUNK_HEIGHT; ++y) {
                 data[x][y][z] = Block::State(Block::ID::STONE);
             }
             // 2 layers of dirt under grass
-            for (int y = 10; y < 14 && y < BlockGrid::CHUNK_HEIGHT; ++y) {
+            for (int y = 5; y < 7 && y < BlockGrid::CHUNK_HEIGHT; ++y) {
                 data[x][y][z] = Block::State(Block::ID::DIRT);
             }
             // one layer of grass on top
-            data[x][14][z] = Block::State(Block::ID::GRASS);
+            data[x][7][z] = Block::State(Block::ID::GRASS);
         }
     }
+
+    auto data_air = vector<vector<vector<Block::State>>>(
+        BlockGrid::CHUNK_WIDTH, vector<vector<Block::State>>(
+            BlockGrid::CHUNK_HEIGHT, vector<Block::State>(
+                BlockGrid::CHUNK_WIDTH, Block::State(Block::ID::AIR))));
 
     while (!is_terminating) {
         int player_x = (int)last_player_location.x;
@@ -73,8 +78,8 @@ void World::grid_chunk_manager_thread_routine() {
 
         for (int x = player_indices.x - RENDER_DIST_IN_CHUNKS;
             x <= player_indices.x + RENDER_DIST_IN_CHUNKS; ++x) {
-            for (int y = player_indices.y /*- RENDER_DIST_IN_CHUNKS*/;
-                y <= player_indices.y /*+ RENDER_DIST_IN_CHUNKS*/; ++y) {
+            for (int y = player_indices.y - RENDER_DIST_IN_CHUNKS;
+                y <= player_indices.y + RENDER_DIST_IN_CHUNKS; ++y) {
                 for (int z = player_indices.z - RENDER_DIST_IN_CHUNKS;
                     z <= player_indices.z + RENDER_DIST_IN_CHUNKS; ++z) {
                     auto indices = BlockGrid::ChunkIndices{ x, y, z };
@@ -83,10 +88,18 @@ void World::grid_chunk_manager_thread_routine() {
                     BlockGrid* grid_ptr = &grid;
                     if (chunk_states.find(indices) == chunk_states.end()) {
                         chunk_states[indices] = ChunkState{ false };
-                        AsyncQueue::get_instance().push([grid_ptr, indices, data]() {
+                        if (indices.y == 0) {
+                            AsyncQueue::get_instance().push([grid_ptr, indices, data]() {
                                 grid_ptr->add_chunk(indices, data);
-                            }
-                        );
+                                }
+                            );
+                        }
+                        else {
+                            AsyncQueue::get_instance().push([grid_ptr, indices, data_air]() {
+                                grid_ptr->add_chunk(indices, data_air);
+                                }
+                            );
+                        }
                     }
                 }
             }
@@ -113,6 +126,6 @@ void World::grid_chunk_manager_thread_routine() {
             );
         }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        std::this_thread::sleep_for(std::chrono::milliseconds(250));
     }
 }
