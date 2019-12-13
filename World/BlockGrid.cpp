@@ -1,6 +1,8 @@
 #include "BlockGrid.h"
 #include "GridChunk.h"
 
+using namespace std;
+
 BlockGrid::BlockGrid() {
     shader = Shader("res/basic_vert.glsl", "res/basic_frag.glsl");
 }

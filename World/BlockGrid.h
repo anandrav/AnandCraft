@@ -11,9 +11,6 @@
 #include "../Async/ThreadQueue.h"
 #include "../Async/AsyncQueue.h"
 
-using std::vector;
-using std::unordered_map;
-
 class GridChunk;
 
 /* 3-dimensional coordinate system of blocks */
@@ -35,7 +32,7 @@ public:
     void render_transparent(Camera& camera);
 
     void add_chunk(BlockGrid::ChunkIndices indices,
-        vector<vector<vector<Block::State>>> data);
+        std::vector<std::vector<std::vector<Block::State>>> data);
 
     bool has_chunk(BlockGrid::ChunkIndices indices);
 
@@ -88,7 +85,7 @@ private:
     Transform transform;
 
     // todo use unique_ptr or shared_ptr instead of raw pointer
-    unordered_map<ChunkIndices, GridChunk*, ChunkIndicesHash> chunks;
+    std::unordered_map<ChunkIndices, GridChunk*, ChunkIndicesHash> chunks;
     std::mutex chunks_mutex;
 
     GridChunk* get_chunk_at(int x, int y, int z);
@@ -96,11 +93,11 @@ private:
     GridChunk* generate_chunk(int x_index, int y_index, int z_index);
 
     struct GenerateChunkJob {
-        GenerateChunkJob(BlockGrid& grid, vector<vector<vector<Block::State>>>&& data,
+        GenerateChunkJob(BlockGrid& grid, std::vector<std::vector<std::vector<Block::State>>>&& data,
             ChunkIndices indices);
 
         BlockGrid& grid;
-        vector<vector<vector<Block::State>>> data;
+        std::vector<std::vector<std::vector<Block::State>>> data;
         ChunkIndices indices;
 
         void operator()();
@@ -111,7 +108,7 @@ private:
 
         BlockGrid& grid;
         ChunkIndices indices;
-        vector<vector<vector<Block::State>>> chunk_data_copy;
+        std::vector<std::vector<std::vector<Block::State>>> chunk_data_copy;
         bool cancel_job;
 
         void init_data_copy(GridChunk* chunk);

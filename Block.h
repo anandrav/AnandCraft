@@ -4,11 +4,6 @@
 #include <vector>
 #include <iostream>
 
-using std::vector;
-using std::string;
-using std::cerr;
-using std::endl;
-
 namespace Block {
 
     const unsigned int TEXTURE_ATLAS_WIDTH_IN_BLOCKS = 16;
@@ -83,9 +78,9 @@ namespace Block {
 
     /* functions for constructing meshes with block faces */
 
-    vector<Vertex> get_block_face_vertices(ID id, Face face);
+    std::vector<Vertex> get_block_face_vertices(ID id, Face face);
 
-    vector<unsigned int> get_block_face_indices(ID id, Face face);
+    std::vector<unsigned int> get_block_face_indices(ID id, Face face);
 
     std::pair<int, int> get_texture_atlas_location(ID id, Face face);
 
@@ -95,5 +90,5 @@ namespace Block {
 
     bool get_block_opacity(ID id);
 
-    string get_block_name(ID id);
+    std::string get_block_name(ID id);
 };

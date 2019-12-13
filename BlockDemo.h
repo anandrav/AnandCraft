@@ -70,7 +70,7 @@ private:
         model = Model(mesh, shader, transform);
     }
 
-    void increment_vector(vector<unsigned int>& vec, int num) {
+    void increment_vector(std::vector<unsigned int>& vec, int num) {
         for (int i = 0; i < vec.size(); ++i) {
             vec[i] += num;
         }

@@ -1,5 +1,7 @@
 #include "Block.h"
 
+using namespace std;
+
 namespace Block {
 
     // Lexicographical naming convention and right-hand rule used

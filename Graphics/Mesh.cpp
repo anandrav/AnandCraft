@@ -1,5 +1,7 @@
 #include "Mesh.h"
 
+using namespace std;
+
 Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices) {
     setup(vertices, indices);
 }

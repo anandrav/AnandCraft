@@ -7,7 +7,7 @@ class GridChunk {
 public:
 
     GridChunk(int x_index, int y_index, int z_index,
-        const vector<vector<vector<Block::State>>>&& data, BlockGrid& grid);
+        const std::vector<std::vector<std::vector<Block::State>>>&& data, BlockGrid& grid);
 
     void draw_opaque(Camera& camera, Shader& shader);
 
@@ -27,12 +27,12 @@ public:
 
     int get_z_index();
 
-    static void append_block_face(vector<Vertex>& vertices, vector<unsigned int>& indices, Block::State state,
+    static void append_block_face(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, Block::State state,
         Block::Face face, int x, int y, int z);
 
-    static void increment_face_indices(vector<unsigned int>& vec, int num);
+    static void increment_face_indices(std::vector<unsigned int>& vec, int num);
 
-    static void translate_vertices_in_vector(vector<Vertex>& vec, int x, int y, int z);
+    static void translate_vertices_in_vector(std::vector<Vertex>& vec, int x, int y, int z);
 
 private:
     const int WIDTH = BlockGrid::CHUNK_WIDTH;
@@ -50,7 +50,7 @@ private:
 
     // data for blocks in chunk, indexed by [x][y][z]
     //      x, y, and z are position within chunk
-    vector<vector<vector<Block::State>>> data;
+    std::vector<std::vector<std::vector<Block::State>>> data;
     std::mutex mutex;
 
     Mesh opaque_mesh;

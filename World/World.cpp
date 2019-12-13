@@ -1,5 +1,7 @@
 #include "World.h"
 
+using namespace std;
+
 World::World() : 
     grid_chunk_manager_thread(&World::grid_chunk_manager_thread_routine, this),
     is_terminating(false) {

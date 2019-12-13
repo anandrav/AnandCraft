@@ -36,7 +36,7 @@ private:
     struct ChunkState {
         bool dirty = false;
     };
-    unordered_map<BlockGrid::ChunkIndices, ChunkState, 
+    std::unordered_map<BlockGrid::ChunkIndices, ChunkState, 
         BlockGrid::ChunkIndicesHash> chunk_states;
     glm::vec3 last_player_location;
     // thread responsible for loading and evicting chunks based on the

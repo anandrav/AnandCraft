@@ -1,7 +1,7 @@
 #include "GridChunk.h"
 
 GridChunk::GridChunk(int x_index, int y_index, int z_index,
-    const vector<vector<vector<Block::State>>>&& data, BlockGrid& grid) : x_index(x_index)
+    const std::vector<std::vector<std::vector<Block::State>>>&& data, BlockGrid& grid) : x_index(x_index)
     , y_index(y_index)
     , z_index(z_index)
     , data(std::move(data)), grid(grid) {
@@ -73,7 +73,7 @@ int GridChunk::get_z_index() {
     return z_index;
 }
 
-void GridChunk::append_block_face(vector<Vertex>& vertices, vector<unsigned int>& indices, Block::State state,
+void GridChunk::append_block_face(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, Block::State state,
     Block::Face face, int x, int y, int z) {
     std::vector<unsigned int> face_indices = Block::get_block_face_indices(state.id, face);
     // adjust face_indices to point to the vertices we are about to add
@@ -86,13 +86,13 @@ void GridChunk::append_block_face(vector<Vertex>& vertices, vector<unsigned int>
     vertices.insert(vertices.end(), face_vertices.begin(), face_vertices.end());
 }
 
-void GridChunk::increment_face_indices(vector<unsigned int>& vec, int num) {
+void GridChunk::increment_face_indices(std::vector<unsigned int>& vec, int num) {
     for (int i = 0; i < vec.size(); ++i) {
         vec[i] += num;
     }
 }
 
-void GridChunk::translate_vertices_in_vector(vector<Vertex>& vec, int x, int y, int z) {
+void GridChunk::translate_vertices_in_vector(std::vector<Vertex>& vec, int x, int y, int z) {
     for (int i = 0; i < vec.size(); ++i) {
         vec[i].position[0] += x;
         vec[i].position[1] += y;

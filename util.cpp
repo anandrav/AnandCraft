@@ -1,5 +1,7 @@
 #include "util.h"
 
+using namespace std;
+
 namespace util {
 
     void output_error_msg(const string& msg, int line = -1) {

@@ -5,8 +5,6 @@
 #include "GL/glew.h"
 #include "glm/glm.hpp"
 
-using std::vector;
-
 struct Vertex {
     glm::vec3 position;
     glm::vec3 normal;
@@ -47,6 +45,6 @@ private:
     GLuint VBO;
     GLuint EBO;
 
-    void setup(const vector<Vertex>& vertices, const vector<unsigned int>& indices);
+    void setup(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices);
 };
 
