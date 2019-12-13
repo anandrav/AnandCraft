@@ -32,7 +32,7 @@ public:
     void render_transparent(Camera& camera);
 
     void add_chunk(BlockGrid::ChunkIndices indices,
-        std::vector<std::vector<std::vector<Block::State>>> data);
+        std::vector<std::vector<std::vector<BlockData>>> data);
 
     bool has_chunk(BlockGrid::ChunkIndices indices);
 
@@ -40,9 +40,9 @@ public:
 
     bool has_block(int grid_x, int grid_y, int grid_z);
 
-    Block::State get_block(int grid_x, int grid_y, int grid_z);
+    BlockData get_block(int grid_x, int grid_y, int grid_z);
 
-    void modify_block(int grid_x, int grid_y, int grid_z, Block::State new_state);
+    void modify_block(int grid_x, int grid_y, int grid_z, BlockData new_state);
 
     struct ChunkIndices {
         int x;
@@ -93,11 +93,11 @@ private:
     GridChunk* generate_chunk(int x_index, int y_index, int z_index);
 
     struct GenerateChunkJob {
-        GenerateChunkJob(BlockGrid& grid, std::vector<std::vector<std::vector<Block::State>>>&& data,
+        GenerateChunkJob(BlockGrid& grid, std::vector<std::vector<std::vector<BlockData>>>&& data,
             ChunkIndices indices);
 
         BlockGrid& grid;
-        std::vector<std::vector<std::vector<Block::State>>> data;
+        std::vector<std::vector<std::vector<BlockData>>> data;
         ChunkIndices indices;
 
         void operator()();
@@ -108,7 +108,7 @@ private:
 
         BlockGrid& grid;
         ChunkIndices indices;
-        std::vector<std::vector<std::vector<Block::State>>> chunk_data_copy;
+        std::vector<std::vector<std::vector<BlockData>>> chunk_data_copy;
         bool cancel_job;
 
         void init_data_copy(GridChunk* chunk);

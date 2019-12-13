@@ -1,7 +1,7 @@
 #include "GridChunk.h"
 
 GridChunk::GridChunk(int x_index, int y_index, int z_index,
-    const std::vector<std::vector<std::vector<Block::State>>>&& data, BlockGrid& grid) : x_index(x_index)
+    const std::vector<std::vector<std::vector<BlockData>>>&& data, BlockGrid& grid) : x_index(x_index)
     , y_index(y_index)
     , z_index(z_index)
     , data(std::move(data)), grid(grid) {
@@ -49,13 +49,13 @@ void GridChunk::update_transparent_mesh(Mesh&& mesh) {
     transparent_mesh = std::move(mesh);
 }
 
-Block::State GridChunk::get_block_at(int x, int y, int z) {
+BlockData GridChunk::get_block_at(int x, int y, int z) {
     std::lock_guard<std::mutex> lock(mutex);
 
     return data[x][y][z];
 }
 
-void GridChunk::set_block_at(int x, int y, int z, Block::State new_state) {
+void GridChunk::set_block_at(int x, int y, int z, BlockData new_state) {
     std::lock_guard<std::mutex> lock(mutex);
 
     data[x][y][z] = new_state;
@@ -73,14 +73,14 @@ int GridChunk::get_z_index() {
     return z_index;
 }
 
-void GridChunk::append_block_face(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, Block::State state,
-    Block::Face face, int x, int y, int z) {
-    std::vector<unsigned int> face_indices = Block::get_block_face_indices(state.id, face);
+void GridChunk::append_block_face(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, BlockData state,
+    BlockFace face, int x, int y, int z) {
+    std::vector<unsigned int> face_indices = get_block_face_indices(state.id, face);
     // adjust face_indices to point to the vertices we are about to add
     increment_face_indices(face_indices, (int)vertices.size());
     indices.insert(indices.end(), face_indices.begin(), face_indices.end());
 
-    std::vector<Vertex> face_vertices = Block::get_block_face_vertices(state.id, face);
+    std::vector<Vertex> face_vertices = get_block_face_vertices(state.id, face);
     // adjust face_vertices to be located at the proper position in chunk
     translate_vertices_in_vector(face_vertices, x, y, z);
     vertices.insert(vertices.end(), face_vertices.begin(), face_vertices.end());
@@ -110,15 +110,15 @@ bool GridChunk::check_if_opaque_at(int x, int y, int z) {
         int grid_z = z_index * DEPTH + z;
 
         if (grid.has_block(grid_x, grid_y, grid_z)) {
-            return Block::get_block_opacity(grid.get_block(grid_x, grid_y, grid_z).id);
+            return get_block_opacity(grid.get_block(grid_x, grid_y, grid_z).id);
         }
         return false;
     }
 
-    return Block::get_block_opacity(data[x][y][z].id);
+    return get_block_opacity(data[x][y][z].id);
 }
 
-bool GridChunk::check_if_same_material_at(int x, int y, int z, Block::State current) {
+bool GridChunk::check_if_same_material_at(int x, int y, int z, BlockData current) {
     if (x < 0 || x >= WIDTH ||
         y < 0 || y >= HEIGHT ||
         z < 0 || z >= DEPTH) {

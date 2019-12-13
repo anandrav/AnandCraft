@@ -24,7 +24,7 @@ void BlockGrid::render_transparent(Camera& camera) {
 }
 
 void BlockGrid::add_chunk(BlockGrid::ChunkIndices indices,
-    vector<vector<vector<Block::State>>> data) {
+    vector<vector<vector<BlockData>>> data) {
     //add a dummy chunk pointer to the chunks map as a placeholder to be
     //      updated later
     {
@@ -57,7 +57,7 @@ void BlockGrid::remove_chunk(BlockGrid::ChunkIndices indices) {
     chunks.erase(indices);
 }
 
-Block::State BlockGrid::get_block(int x, int y, int z) {
+BlockData BlockGrid::get_block(int x, int y, int z) {
     GridChunk* chunk = get_chunk_at(x,y,z);
     if (chunk) {
         int block_coord_x = util::positive_modulo(x, CHUNK_WIDTH);
@@ -68,7 +68,7 @@ Block::State BlockGrid::get_block(int x, int y, int z) {
     throw std::range_error("block does not exist");
 }
 
-void BlockGrid::modify_block(int x, int y, int z, Block::State new_state) {
+void BlockGrid::modify_block(int x, int y, int z, BlockData new_state) {
     // fixme this is all very redundant, remove code duplication
     GridChunk* chunk = get_chunk_at(x, y, z);
     ChunkIndices indices = get_chunk_indices(x, y, z);
@@ -108,23 +108,23 @@ BlockGrid::~BlockGrid() {
 }
 
 GridChunk* BlockGrid::generate_chunk(int x_index, int y_index, int z_index) {
-    auto data = vector<vector<vector<Block::State>>>(CHUNK_WIDTH,
-                       vector<vector<Block::State>>(CHUNK_HEIGHT,
-                              vector<Block::State>(CHUNK_WIDTH,
-                                     Block::State(Block::ID::AIR))));
+    auto data = vector<vector<vector<BlockData>>>(CHUNK_WIDTH,
+                       vector<vector<BlockData>>(CHUNK_HEIGHT,
+                              vector<BlockData>(CHUNK_WIDTH,
+                                     BlockData(BlockID::AIR))));
 
     for (int x = 0; x < CHUNK_WIDTH; ++x) {
         for (int z = 0; z < CHUNK_WIDTH; ++z) {
             // bottom 5 layers stone
             for (int y = 0; y < 5 && y < CHUNK_HEIGHT; ++y) {
-                data[x][y][z] = Block::State(Block::ID::STONE);
+                data[x][y][z] = BlockData(BlockID::STONE);
             }
             // 2 layers of dirt under grass
             for (int y = 5; y < 7 && y < CHUNK_HEIGHT; ++y) {
-                data[x][y][z] = Block::State(Block::ID::DIRT);
+                data[x][y][z] = BlockData(BlockID::DIRT);
             }
             // one layer of grass on top
-            data[x][7][z] = Block::State(Block::ID::GRASS);
+            data[x][7][z] = BlockData(BlockID::GRASS);
         }
     }
 
@@ -152,10 +152,10 @@ void BlockGrid::UpdateChunkMeshJob::init_data_copy(GridChunk* chunk) {
     //data copy has extra 2 blocks for each dimension to hold data
     //     from adjacent chunks to determine whether to expose faces
     //     on the outside
-    chunk_data_copy = vector<vector<vector<Block::State>>>(
-        CHUNK_WIDTH + 2, vector<vector<Block::State>>(
-        CHUNK_HEIGHT + 2, vector<Block::State>(
-        CHUNK_WIDTH + 2, Block::State{ Block::ID::AIR })));
+    chunk_data_copy = vector<vector<vector<BlockData>>>(
+        CHUNK_WIDTH + 2, vector<vector<BlockData>>(
+        CHUNK_HEIGHT + 2, vector<BlockData>(
+        CHUNK_WIDTH + 2, BlockData{ BlockID::AIR })));
 
     for (int x = 0; x < CHUNK_WIDTH + 2; ++x) {
         for (int y = 0; y < CHUNK_HEIGHT + 2; ++y) {
@@ -211,42 +211,42 @@ void BlockGrid::UpdateChunkMeshJob::operator()() {
     for (size_t x = 1; x < CHUNK_WIDTH + 1; ++x) {
         for (size_t y = 1; y < CHUNK_HEIGHT + 1; ++y) {
             for (size_t z = 1; z < CHUNK_DEPTH + 1; ++z) {
-                Block::State& current = chunk_data_copy[x][y][z];
+                BlockData& current = chunk_data_copy[x][y][z];
 
                 // only render opaque blocks
-                if (!Block::get_block_opacity(current.id)) {
+                if (!get_block_opacity(current.id)) {
                     continue;
                 }
 
-                switch (Block::get_block_mesh_type(current.id)) {
-                case Block::MeshType::NONE:
+                switch (get_block_mesh_type(current.id)) {
+                case BlockMesh::NONE:
                     continue;
-                case Block::MeshType::CUBE:
+                case BlockMesh::CUBE:
                     // only add faces that are adjacent to transparent
                     //      blocks, cull faces that are obscured
-                    if (!Block::get_block_opacity(chunk_data_copy[x - 1][y][z].id)) {
+                    if (!get_block_opacity(chunk_data_copy[x - 1][y][z].id)) {
                         GridChunk::append_block_face(opaque_vertices, opaque_indices, current,
-                            Block::Face::XNEG, (int)x - 1, (int)y - 1, (int)z - 1);
+                            BlockFace::XNEG, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
-                    if (!Block::get_block_opacity(chunk_data_copy[x + 1][y][z].id)) {
+                    if (!get_block_opacity(chunk_data_copy[x + 1][y][z].id)) {
                         GridChunk::append_block_face(opaque_vertices, opaque_indices, current,
-                            Block::Face::XPOS, (int)x - 1, (int)y - 1, (int)z - 1);
+                            BlockFace::XPOS, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
-                    if (!Block::get_block_opacity(chunk_data_copy[x][y - 1][z].id)) {
+                    if (!get_block_opacity(chunk_data_copy[x][y - 1][z].id)) {
                         GridChunk::append_block_face(opaque_vertices, opaque_indices, current,
-                            Block::Face::YNEG, (int)x - 1, (int)y - 1, (int)z - 1);
+                            BlockFace::YNEG, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
-                    if (!Block::get_block_opacity(chunk_data_copy[x][y + 1][z].id)) {
+                    if (!get_block_opacity(chunk_data_copy[x][y + 1][z].id)) {
                         GridChunk::append_block_face(opaque_vertices, opaque_indices, current,
-                            Block::Face::YPOS, (int)x - 1, (int)y - 1, (int)z - 1);
+                            BlockFace::YPOS, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
-                    if (!Block::get_block_opacity(chunk_data_copy[x][y][z - 1].id)) {
+                    if (!get_block_opacity(chunk_data_copy[x][y][z - 1].id)) {
                         GridChunk::append_block_face(opaque_vertices, opaque_indices, current,
-                            Block::Face::ZNEG, (int)x - 1, (int)y - 1, (int)z - 1);
+                            BlockFace::ZNEG, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
-                    if (!Block::get_block_opacity(chunk_data_copy[x][y][z + 1].id)) {
+                    if (!get_block_opacity(chunk_data_copy[x][y][z + 1].id)) {
                         GridChunk::append_block_face(opaque_vertices, opaque_indices, current,
-                            Block::Face::ZPOS, (int)x - 1, (int)y - 1, (int)z - 1);
+                            BlockFace::ZPOS, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
                     break;
                 default:
@@ -262,48 +262,48 @@ void BlockGrid::UpdateChunkMeshJob::operator()() {
     for (size_t x = 1; x < CHUNK_WIDTH + 1; ++x) {
         for (size_t y = 1; y < CHUNK_HEIGHT + 1; ++y) {
             for (size_t z = 1; z < CHUNK_DEPTH + 1; ++z) {
-                Block::State& current = chunk_data_copy[x][y][z];
+                BlockData& current = chunk_data_copy[x][y][z];
 
                 // only render transparent blocks
-                if (Block::get_block_opacity(current.id)) {
+                if (get_block_opacity(current.id)) {
                     continue;
                 }
 
-                switch (Block::get_block_mesh_type(current.id)) {
-                case Block::MeshType::NONE:
+                switch (get_block_mesh_type(current.id)) {
+                case BlockMesh::NONE:
                     continue;
-                case Block::MeshType::CUBE:
+                case BlockMesh::CUBE:
                     // only add faces that are adjacent to transparent
                     //      blocks, cull faces that are obscured
-                    if (!Block::get_block_opacity(chunk_data_copy[x - 1][y][z].id) &&
+                    if (!get_block_opacity(chunk_data_copy[x - 1][y][z].id) &&
                         current.id != chunk_data_copy[x - 1][y][z].id) {
                         GridChunk::append_block_face(transparent_vertices, transparent_indices, current,
-                            Block::Face::XNEG, (int)x - 1, (int)y - 1, (int)z - 1);
+                            BlockFace::XNEG, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
-                    if (!Block::get_block_opacity(chunk_data_copy[x + 1][y][z].id) &&
+                    if (!get_block_opacity(chunk_data_copy[x + 1][y][z].id) &&
                         current.id != chunk_data_copy[x + 1][y][z].id) {
                         GridChunk::append_block_face(transparent_vertices, transparent_indices, current,
-                            Block::Face::XPOS, (int)x - 1, (int)y - 1, (int)z - 1);
+                            BlockFace::XPOS, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
-                    if (!Block::get_block_opacity(chunk_data_copy[x][y - 1][z].id) &&
+                    if (!get_block_opacity(chunk_data_copy[x][y - 1][z].id) &&
                         current.id != chunk_data_copy[x][y - 1][z].id) {
                         GridChunk::append_block_face(transparent_vertices, transparent_indices, current,
-                            Block::Face::YNEG, (int)x - 1, (int)y - 1, (int)z - 1);
+                            BlockFace::YNEG, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
-                    if (!Block::get_block_opacity(chunk_data_copy[x][y + 1][z].id) &&
+                    if (!get_block_opacity(chunk_data_copy[x][y + 1][z].id) &&
                         current.id != chunk_data_copy[x][y + 1][z].id) {
                         GridChunk::append_block_face(transparent_vertices, transparent_indices, current,
-                            Block::Face::YPOS, (int)x - 1, (int)y - 1, (int)z - 1);
+                            BlockFace::YPOS, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
-                    if (!Block::get_block_opacity(chunk_data_copy[x][y][z - 1].id) &&
+                    if (!get_block_opacity(chunk_data_copy[x][y][z - 1].id) &&
                         current.id != chunk_data_copy[x][y][z - 1].id) {
                         GridChunk::append_block_face(transparent_vertices, transparent_indices, current,
-                            Block::Face::ZNEG, (int)x - 1, (int)y - 1, (int)z - 1);
+                            BlockFace::ZNEG, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
-                    if (!Block::get_block_opacity(chunk_data_copy[x][y][z + 1].id) &&
+                    if (!get_block_opacity(chunk_data_copy[x][y][z + 1].id) &&
                         current.id != chunk_data_copy[x][y][z + 1].id) {
                         GridChunk::append_block_face(transparent_vertices, transparent_indices, current,
-                            Block::Face::ZPOS, (int)x - 1, (int)y - 1, (int)z - 1);
+                            BlockFace::ZPOS, (int)x - 1, (int)y - 1, (int)z - 1);
                     }
                     break;
                 default:
@@ -327,7 +327,7 @@ void BlockGrid::UpdateChunkMeshJob::operator()() {
     );
 }
 
-BlockGrid::GenerateChunkJob::GenerateChunkJob(BlockGrid& grid, vector<vector<vector<Block::State>>>&& data,
+BlockGrid::GenerateChunkJob::GenerateChunkJob(BlockGrid& grid, vector<vector<vector<BlockData>>>&& data,
     ChunkIndices indices) :
     grid(grid),
     data(std::move(data)),

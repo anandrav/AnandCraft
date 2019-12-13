@@ -23,11 +23,11 @@ bool World::has_block_at(int x, int y, int z) {
     return grid.has_block(x, y, z);
 }
 
-Block::State World::get_block_at(int x, int y, int z) {
+BlockData World::get_block_at(int x, int y, int z) {
     return grid.get_block(x, y, z);
 }
 
-void World::modify_block_at(int x, int y, int z, Block::State new_state) {
+void World::modify_block_at(int x, int y, int z, BlockData new_state) {
     return grid.modify_block(x, y, z, new_state);
 }
 
@@ -41,30 +41,30 @@ void World::update(glm::vec3 player_location) {
 // FIXME calling add_chunk and remove_chunk is not working, it fails sometimes.
 // you need to make these operations thread safe or something!
 void World::grid_chunk_manager_thread_routine() {
-    auto data = vector<vector<vector<Block::State>>>(
-        BlockGrid::CHUNK_WIDTH, vector<vector<Block::State>>(
-            BlockGrid::CHUNK_HEIGHT, vector<Block::State>(
-                BlockGrid::CHUNK_WIDTH, Block::State(Block::ID::AIR))));
+    auto data = vector<vector<vector<BlockData>>>(
+        BlockGrid::CHUNK_WIDTH, vector<vector<BlockData>>(
+            BlockGrid::CHUNK_HEIGHT, vector<BlockData>(
+                BlockGrid::CHUNK_WIDTH, BlockData(BlockID::AIR))));
 
     for (int x = 0; x < BlockGrid::CHUNK_WIDTH; ++x) {
         for (int z = 0; z < BlockGrid::CHUNK_WIDTH; ++z) {
             // 4 layers stone
             for (int y = 0; y < 5 && y < BlockGrid::CHUNK_HEIGHT; ++y) {
-                data[x][y][z] = Block::State(Block::ID::STONE);
+                data[x][y][z] = BlockData(BlockID::STONE);
             }
             // 2 layers of dirt under grass
             for (int y = 5; y < 7 && y < BlockGrid::CHUNK_HEIGHT; ++y) {
-                data[x][y][z] = Block::State(Block::ID::DIRT);
+                data[x][y][z] = BlockData(BlockID::DIRT);
             }
             // one layer of grass on top
-            data[x][7][z] = Block::State(Block::ID::GRASS);
+            data[x][7][z] = BlockData(BlockID::GRASS);
         }
     }
 
-    auto data_air = vector<vector<vector<Block::State>>>(
-        BlockGrid::CHUNK_WIDTH, vector<vector<Block::State>>(
-            BlockGrid::CHUNK_HEIGHT, vector<Block::State>(
-                BlockGrid::CHUNK_WIDTH, Block::State(Block::ID::AIR))));
+    auto data_air = vector<vector<vector<BlockData>>>(
+        BlockGrid::CHUNK_WIDTH, vector<vector<BlockData>>(
+            BlockGrid::CHUNK_HEIGHT, vector<BlockData>(
+                BlockGrid::CHUNK_WIDTH, BlockData(BlockID::AIR))));
 
     while (!is_terminating) {
         int player_x = (int)last_player_location.x;

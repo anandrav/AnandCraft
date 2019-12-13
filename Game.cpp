@@ -103,19 +103,19 @@ void Game::handle_click(SDL_Event& e) {
         }
 
         if (world->has_block_at(x_coord, y_coord, z_coord)) {
-            Block::State block = world->get_block_at(x_coord, y_coord, z_coord);
-            std::cout << "Block: " << Block::get_block_name(block.id) << '\n';
-            if (block.id != Block::ID::AIR) {
+            BlockData block = world->get_block_at(x_coord, y_coord, z_coord);
+            std::cout << "Block: " << get_block_name(block.id) << '\n';
+            if (block.id != BlockID::AIR) {
                 if (e.button.button == SDL_BUTTON_LEFT) {
                     // break block
-                    Block::State new_state = Block::State(Block::ID::AIR);
-                    world->modify_block_at(x_coord, y_coord, z_coord, new_state);
+                    BlockData new_data = BlockData(BlockID::AIR);
+                    world->modify_block_at(x_coord, y_coord, z_coord, new_data);
                 }
                 if (e.button.button == SDL_BUTTON_RIGHT) {
                     // place block
-                    Block::State new_state = Block::State(Block::ID::COBBLESTONE);
+                    BlockData new_data = BlockData(BlockID::COBBLESTONE);
                     if (world->has_block_at(prev_x_coord, prev_y_coord, prev_z_coord)) {
-                        world->modify_block_at(prev_x_coord, prev_y_coord, prev_z_coord, new_state);
+                        world->modify_block_at(prev_x_coord, prev_y_coord, prev_z_coord, new_data);
                     }
                 }
                 break;
