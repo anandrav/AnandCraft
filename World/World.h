@@ -12,7 +12,7 @@
 class World {
 public:
     // render distance not including the chunk the character is standing on
-    const static int RENDER_DIST_IN_CHUNKS = 4;
+    const static int RENDER_DIST_IN_CHUNKS = 3;
 
     World();
 

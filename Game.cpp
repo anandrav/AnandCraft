@@ -52,9 +52,7 @@ void Game::set_OpenGL_attributes() {
 
 Game::~Game() {
     SDL_GL_DeleteContext(main_context);
-
     SDL_DestroyWindow(main_window);
-
     SDL_Quit();
 }
 

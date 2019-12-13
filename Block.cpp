@@ -3,11 +3,11 @@
 namespace Block {
 
     // Lexicographical naming convention and right-hand rule used
-        //      as naming convention for cube's vertices' positions.
-        // (0,0,0) is the 0th coordinate (000 in binary)
-        // (0,0,1) is the 1st coordinate (001 in binary)
-        // (0,1,0) is the 2nd coordinate (010 in binary)
-        //  etc.
+    //      as naming convention for cube's vertices' positions.
+    // (0,0,0) is the 0th coordinate (000 in binary)
+    // (0,0,1) is the 1st coordinate (001 in binary)
+    // (0,1,0) is the 2nd coordinate (010 in binary)
+    //  etc.
     vector<Vertex> get_block_face_vertices(ID id, Face face) {
         vector<Vertex> vertices;
         std::pair<int, int> location = 
@@ -345,11 +345,11 @@ namespace Block {
     string get_block_name(ID id) {
         switch (id) {
         case ID::AIR:
-            return string("Air");
+            return "Air";
         case ID::DIRT:
-            return string("Dirt");
+            return "Dirt";
         case ID::GRASS:
-            return string("Grass");
+            return "Grass";
         case ID::STONE:
             return "Stone";
         case ID::COBBLESTONE:
