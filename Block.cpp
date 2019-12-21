@@ -2,6 +2,9 @@
 
 using namespace std;
 
+const unsigned int TEXTURE_ATLAS_WIDTH_IN_BLOCKS = 16;
+const unsigned int TEXTURE_ATLAS_HEIGHT_IN_BLOCKS = 16;
+
 /*
 Lexicographical naming convention and right-hand rule used as naming convention for cube's vertices' positions.
 (0,0,0) is the 0th coordinate (000 in binary)

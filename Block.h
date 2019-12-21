@@ -4,9 +4,6 @@
 #include <vector>
 #include <iostream>
 
-const unsigned int TEXTURE_ATLAS_WIDTH_IN_BLOCKS = 16;
-const unsigned int TEXTURE_ATLAS_HEIGHT_IN_BLOCKS = 16;
-
 enum BlockID {
     // NONE mesh
     AIR,

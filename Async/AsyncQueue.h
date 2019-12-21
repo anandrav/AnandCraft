@@ -3,8 +3,6 @@
 #include <queue>
 #include <functional>
 #include <mutex>
-#include <iostream>
-#include <chrono>
 
 // send small tasks to be run on main thread in game loop
 // used by the ThreadQueue to send messages/results
