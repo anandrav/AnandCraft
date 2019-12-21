@@ -1,316 +1,259 @@
 #include "Block.h"
 
+#include <iostream>
+#include <cassert>
+
 using namespace std;
 
 const unsigned int TEXTURE_ATLAS_WIDTH_IN_BLOCKS = 16;
 const unsigned int TEXTURE_ATLAS_HEIGHT_IN_BLOCKS = 16;
 
 /*
-Lexicographical naming convention and right-hand rule used as naming convention for cube's vertices' positions.
-(0,0,0) is the 0th coordinate (000 in binary)
-(0,0,1) is the 1st coordinate (001 in binary)
-(0,1,0) is the 2nd coordinate (010 in binary)
-etc.
-This means that the cube is centered at (0.5,0.5,0.5).
+Lexicographical naming convention and right-hand rule used as naming convention for cube vertex positions.
+(0,0,0) is the 0th coordinate (000 in binary == 0 in decimal)
+(0,0,1) is the 1st coordinate (001 in binary == 1 in decimal)
+(0,1,0) is the 2nd coordinate (010 in binary == 2 in decimal)
+(0,1,1) is the 3rd coordinate (011 in binary == 3 in decimal)
+and so on.
+
+This means that the cube is centered at (0.5,0.5,0.5),
+with its "back bottom left" corner at (0,0,0)
+and its "front top right" corner at (1,1,1).
 */
 vector<Vertex> get_block_face_vertices(BlockID id, BlockFace face) {
-    vector<Vertex> vertices;
-    std::pair<int, int> location = 
-        get_texture_atlas_location(id, face);
-    float origin_x = (float)location.first / TEXTURE_ATLAS_WIDTH_IN_BLOCKS;
-    float origin_y = (float)location.second / TEXTURE_ATLAS_HEIGHT_IN_BLOCKS;
-    float unit_x = 1.f / TEXTURE_ATLAS_WIDTH_IN_BLOCKS;
-    float unit_y = 1.f / TEXTURE_ATLAS_HEIGHT_IN_BLOCKS;
+    std::pair<int, int> origin = get_texture_atlas_location(id, face);
 
-    // images use coordinate system with origin located in top left corner
-    // flip y-axis coordinates to compensate
-    origin_y = origin_y * -1;
-    unit_y = unit_y * -1;
+    float tex_left = float(origin.first) / TEXTURE_ATLAS_WIDTH_IN_BLOCKS;
+    float tex_right = float(origin.first + 1) / TEXTURE_ATLAS_WIDTH_IN_BLOCKS;
+    //images use coordinate system with origin located in top left corner
+    //  so y_start and y_end are negated.
+    float tex_bottom = -float(origin.second) / TEXTURE_ATLAS_HEIGHT_IN_BLOCKS;
+    float tex_top = -float(origin.second + 1) / TEXTURE_ATLAS_HEIGHT_IN_BLOCKS;
 
     switch (get_block_mesh_type(id)) {
     case BlockMesh::CUBE:
         switch (face) {
         case BlockFace::XNEG: {
+            // bottom left back
             Vertex v000{
                 glm::vec3(0.f,0.f,0.f),
                 glm::vec3(-1.f,0.f,0.f),
-                glm::vec2(origin_x,origin_y) // bottom left
+                glm::vec2(tex_left,tex_bottom) // bottom left
             };
+            // bottom left front
             Vertex v001{
                 glm::vec3(0.f,0.f,1.f),
                 glm::vec3(-1.f,0.f,0.f),
-                glm::vec2(origin_x + unit_x,origin_y) // bottom right
+                glm::vec2(tex_right,tex_bottom) // bottom right
             };
+            // top left back
             Vertex v010{
                 glm::vec3(0.f,1.f,0.f),
                 glm::vec3(-1.f,0.f,0.f),
-                glm::vec2(origin_x,origin_y + unit_y) // top left
+                glm::vec2(tex_left,tex_top) // top left
             };
+            // top left front
             Vertex v011{
                 glm::vec3(0.f,1.f,1.f),
                 glm::vec3(-1.f,0.f,0.f),
-                glm::vec2(origin_x + unit_x,origin_y + unit_y) // top right
+                glm::vec2(tex_right,tex_top) // top right
             };
-            vertices.push_back(v000);
-            vertices.push_back(v001);
-            vertices.push_back(v010);
-            vertices.push_back(v011);
-            return vertices;
+            return { v000, v001, v010, v011 };
         }
         case BlockFace::XPOS: {
             Vertex v100{
                 glm::vec3(1.f,0.f,0.f),
                 glm::vec3(1.f,0.f,0.f),
-                glm::vec2(origin_x + unit_x,origin_y) // bottom right
+                glm::vec2(tex_right,tex_bottom) // bottom right
             };
             Vertex v101{
                 glm::vec3(1.f,0.f,1.f),
                 glm::vec3(1.f,0.f,0.f),
-                glm::vec2(origin_x,origin_y) // bottom left
+                glm::vec2(tex_left,tex_bottom) // bottom left
             };
             Vertex v110{
                 glm::vec3(1.f,1.f,0.f),
                 glm::vec3(1.f,0.f,0.f),
-                glm::vec2(origin_x + unit_x,origin_y + unit_y) // top right
+                glm::vec2(tex_right,tex_top) // top right
             };
             Vertex v111{
                 glm::vec3(1.f,1.f,1.f),
                 glm::vec3(1.f,0.f,0.f),
-                glm::vec2(origin_x,origin_y + unit_y) // top left
+                glm::vec2(tex_left,tex_top) // top left
             };
-            vertices.push_back(v100);
-            vertices.push_back(v101);
-            vertices.push_back(v110);
-            vertices.push_back(v111);
-            return vertices;
+            return { v100, v101, v110, v111 };
         }
         case BlockFace::YNEG: {
             Vertex v000{
                 glm::vec3(0.f,0.f,0.f),
                 glm::vec3(0.f,-1.f,0.f),
-                glm::vec2(origin_x,origin_y) // bottom left
+                glm::vec2(tex_left,tex_bottom) // bottom left
             };
             Vertex v001{
                 glm::vec3(0.f,0.f,1.f),
                 glm::vec3(0.f,-1.f,0.f),
-                glm::vec2(origin_x,origin_y + unit_y) // top left
+                glm::vec2(tex_left,tex_top) // top left
             };
             Vertex v100{
                 glm::vec3(1.f,0.f,0.f),
                 glm::vec3(0.f,-1.f,0.f),
-                glm::vec2(origin_x + unit_x,origin_y) // bottom right
+                glm::vec2(tex_right,tex_bottom) // bottom right
             };
             Vertex v101{
                 glm::vec3(1.f,0.f,1.f),
                 glm::vec3(0.f,-1.f,0.f),
-                glm::vec2(origin_x + unit_x,origin_y + unit_y) // top right
+                glm::vec2(tex_right,tex_top) // top right
             };
-            vertices.push_back(v000);
-            vertices.push_back(v001);
-            vertices.push_back(v100);
-            vertices.push_back(v101);
-            return vertices;
+            return { v000, v001, v100, v101 };
         }
         case BlockFace::YPOS: {
             Vertex v010{
                 glm::vec3(0.f,1.f,0.f),
                 glm::vec3(0.f,1.f,0.f),
-                glm::vec2(origin_x,origin_y + unit_y) // top left
+                glm::vec2(tex_left,tex_top) // top left
             };
             Vertex v011{
                 glm::vec3(0.f,1.f,1.f),
                 glm::vec3(0.f,1.f,0.f),
-                glm::vec2(origin_x,origin_y) // bottom left
+                glm::vec2(tex_left,tex_bottom) // bottom left
             };
             Vertex v110{
                 glm::vec3(1.f,1.f,0.f),
                 glm::vec3(0.f,1.f,0.f),
-                glm::vec2(origin_x + unit_x,origin_y + unit_y) // top right
+                glm::vec2(tex_right,tex_top) // top right
             };
             Vertex v111{
                 glm::vec3(1.f,1.f,1.f),
                 glm::vec3(0.f,1.f,0.f),
-                glm::vec2(origin_x + unit_x,origin_y) // bottom right
+                glm::vec2(tex_right,tex_bottom) // bottom right
             };
-            vertices.push_back(v010);
-            vertices.push_back(v011);
-            vertices.push_back(v110);
-            vertices.push_back(v111);
-            return vertices;
+            return { v010, v011, v110, v111 };
         }
         case BlockFace::ZNEG: {
             Vertex v000{
                 glm::vec3(0.f,0.f,0.f),
                 glm::vec3(0.f,0.f,-1.f),
-                glm::vec2(origin_x + unit_x,origin_y) // bottom right
+                glm::vec2(tex_right,tex_bottom) // bottom right
             };
             Vertex v010{
                 glm::vec3(0.f,1.f,0.f),
                 glm::vec3(0.f,0.f,-1.f),
-                glm::vec2(origin_x + unit_x,origin_y + unit_y) // top right
+                glm::vec2(tex_right,tex_top) // top right
             };
             Vertex v100{
                 glm::vec3(1.f,0.f,0.f),
                 glm::vec3(0.f,0.f,-1.f),
-                glm::vec2(origin_x,origin_y) // bottom left
+                glm::vec2(tex_left,tex_bottom) // bottom left
             };
             Vertex v110{
                 glm::vec3(1.f,1.f,0.f),
                 glm::vec3(0.f,0.f,-1.f),
-                glm::vec2(origin_x,origin_y + unit_y) // top left
+                glm::vec2(tex_left,tex_top) // top left
             };
-            vertices.push_back(v000);
-            vertices.push_back(v010);
-            vertices.push_back(v100);
-            vertices.push_back(v110);
-            return vertices;
+            return { v000, v010, v100, v110 };
         }
         case BlockFace::ZPOS: {
             Vertex v001{
                 glm::vec3(0.f,0.f,1.f),
                 glm::vec3(0.f,0.f,1.f),
-                glm::vec2(origin_x,origin_y) // bottom left
+                glm::vec2(tex_left,tex_bottom) // bottom left
             };
             Vertex v011{
                 glm::vec3(0.f,1.f,1.f),
                 glm::vec3(0.f,0.f,1.f),
-                glm::vec2(origin_x,origin_y + unit_y) // top left
+                glm::vec2(tex_left,tex_top) // top left
             };
             Vertex v101{
                 glm::vec3(1.f,0.f,1.f),
                 glm::vec3(0.f,0.f,1.f),
-                glm::vec2(origin_x + unit_x,origin_y) // bottom right
+                glm::vec2(tex_right,tex_bottom) // bottom right
             };
             Vertex v111{
                 glm::vec3(1.f,1.f,1.f),
                 glm::vec3(0.f,0.f,1.f),
-                glm::vec2(origin_x + unit_x,origin_y + unit_y) // top right
+                glm::vec2(tex_right,tex_top) // top right
             };
-            vertices.push_back(v001);
-            vertices.push_back(v011);
-            vertices.push_back(v101);
-            vertices.push_back(v111);
-            return vertices;
+            return { v001, v011, v101, v111 };
         }
         }
     default:
+        assert(false);
         // prevent compiler error
-        std::cout << "Block face vertices not found!" << std::endl;
-        return vertices;
+        return {};
     }
 
 }
 
 vector<unsigned int> get_block_face_indices(BlockID id, BlockFace face) {
-    vector<unsigned int> indices;
+    // counter-clockwise triangle winding
     switch (get_block_mesh_type(id)) {
     case BlockMesh::CUBE: {
         switch (face) {
         case BlockFace::XNEG:
         case BlockFace::ZNEG:
         case BlockFace::YPOS:
-            indices.push_back(0);
-            indices.push_back(1);
-            indices.push_back(2);
+            return { 
+                0, 1, 2, 
+                2, 1, 3 
+            };
 
-            indices.push_back(2);
-            indices.push_back(1);
-            indices.push_back(3);
-            return indices;
         default:
-            indices.push_back(2);
-            indices.push_back(1);
-            indices.push_back(0);
-
-            indices.push_back(3);
-            indices.push_back(1);
-            indices.push_back(2);
-            return indices;
+            return {
+                2, 1, 0,
+                3, 1, 2
+            };
         }
 
     }
     default:
+        assert(false);
         // prevent compiler error
-        std::cout << "Block face indices not found!" << std::endl;
-        return indices;
+        return {};
     }
 }
 
 // return bottom left corner of texture in atlas
 // coordinate system uses origin located at bottom left of image
 std::pair<int, int> get_texture_atlas_location(BlockID id, BlockFace face) {
-    int x, y;
-
     switch (id) {
     case BlockID::DIRT:
-        x = 2;
-        y = 15;
-        return std::make_pair(x, y);
+        return { 2, 15 };
     case BlockID::GRASS:
         switch (face) {
         case BlockFace::YPOS:
-            x = 0;
-            y = 15;
-            return std::make_pair(x, y);
+            return { 0, 15 };
         case BlockFace::YNEG:
-            x = 2;
-            y = 15;
-            return std::make_pair(x, y);
+            return { 2, 15 };
         default:
-            x = 3;
-            y = 15;
-            return std::make_pair(x, y);
-            break;
+            return { 3, 15 };
         }
     case BlockID::STONE:
-        x = 1;
-        y = 15;
-        return std::make_pair(x, y);
+        return { 1, 15 };
     case BlockID::COBBLESTONE:
-        x = 0;
-        y = 14;
-        return std::make_pair(x, y);
+        return { 0, 14 };
     case BlockID::SAND:
-        x = 2;
-        y = 14;
-        return std::make_pair(x, y);
+        return { 2, 14 };
     case BlockID::PLANK:
-        x = 4;
-        y = 15;
-        return std::make_pair(x, y);
+        return { 4, 15 };
     case BlockID::LOG:
         switch (face) {
         case BlockFace::YPOS:
         case BlockFace::YNEG:
-            x = 5;
-            y = 14;
-            return std::make_pair(x, y);
+            return { 5, 14 };
         default:
-            x = 4;
-            y = 14;
-            return std::make_pair(x, y);
+            return { 4, 14 };
         }
     case BlockID::LEAF:
-        x = 4;
-        y = 12;
-        return std::make_pair(x, y);
+        return { 4, 12 };
     case BlockID::BRICK:
-        x = 7;
-        y = 15;
-        return std::make_pair(x, y);
+        return { 7, 15 };
     case BlockID::GLASS:
-        x = 7;
-        y = 7;
-        return std::make_pair(x, y);
+        return { 7, 7 };
     case BlockID::BOOKSHELF:
-        x = 3;
-        y = 13;
-        return std::make_pair(x, y);
+        return { 3, 13 };
     default:
-        // purple texture for debug purposes
-        x = 10;
-        y = 0;
-        return std::make_pair(x, y);
+        // purple debug texture
+        return { 10, 0 };
     }
 }
 
@@ -318,17 +261,21 @@ BlockMesh get_block_mesh_type(BlockID id) {
     switch (id) {
     case BlockID::AIR:
         return BlockMesh::NONE;
+
     case BlockID::COBBLESTONE_SLAB:
     case BlockID::PLANK_SLAB:
     case BlockID::BRICK_SLAB:
         return BlockMesh::SLAB;
+
     case BlockID::COBBLESTONE_STAIR:
     case BlockID::PLANK_STAIR:
     case BlockID::BRICK_STAIR:
         return BlockMesh::STAIR;
+
     case BlockID::ROSE:
     case BlockID::DAISY:
         return BlockMesh::X;
+
     default:
         return BlockMesh::CUBE;
     }
@@ -392,8 +339,9 @@ string get_block_name(BlockID id) {
         return "Rose";
     case BlockID::DAISY:
         return "Daisy";
-
     default:
-        return string("no name found");
+        assert(false);
+        // prevent compiler warning
+        return "";
     }
 }

@@ -2,9 +2,10 @@
 
 #include "Graphics/Mesh.h"
 #include <vector>
-#include <iostream>
+#include <iosfwd>
+#include <string>
 
-enum BlockID {
+enum class BlockID : uint8_t {
     // NONE mesh
     AIR,
 
@@ -36,7 +37,7 @@ enum BlockID {
     DAISY,
 };
 
-enum class BlockMesh {
+enum class BlockMesh : uint8_t {
     NONE,
     CUBE,
     SLAB,
@@ -44,14 +45,14 @@ enum class BlockMesh {
     X,
 };
 
-enum class BlockSpin {
+enum class BlockSpin : uint8_t {
     NORTH,
     EAST,
     SOUTH,
     WEST
 };
 
-enum class BlockFace {
+enum class BlockFace : uint8_t {
     XPOS,
     XNEG,
     YPOS,
@@ -66,6 +67,7 @@ struct BlockData {
 public:
     BlockData(BlockID id, BlockSpin spin = BlockSpin::NORTH, BlockFace top_face = BlockFace::YPOS) :
         id(id), spin(spin), top_face(top_face) { }
+
     BlockID id;
     BlockSpin spin;
     BlockFace top_face;
