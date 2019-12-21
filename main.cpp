@@ -1,11 +1,14 @@
 #include <iostream>
 #include "Game.h"
 
-int main(int argc, char** argv) {
-    std::cout << "AnandCraft 1.0\n";
+using namespace std;
 
-    Game game;
-    game.run_loop();
+int main(int argc, char** argv) {
+    cout << "AnandCraft" << endl;
+
+    Game::instance().run_loop();
+
+    cout << "Done" << endl;
 
     return 0;
 }

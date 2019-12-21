@@ -18,9 +18,17 @@
 
 class Game {
 public:
-    Game();
+    // singleton pattern
+    static Game& instance() {
+        static Game singleton;
+        return singleton;
+    }
 
-    ~Game();
+    // disallow copying and moving singleton
+    Game(Game&) = delete;
+    Game& operator=(Game&) = delete;
+    Game(Game&&) = delete;
+    Game& operator=(Game&&) = delete;
 
     void run_loop();
 
@@ -28,6 +36,10 @@ public:
     static const unsigned int HEIGHT = 720;
 
 private:
+    // disallow construction/destruction of singleton
+    Game();
+    ~Game();
+
     void init();
 
     Camera camera;
@@ -35,9 +47,6 @@ private:
     glm::vec3 camera_rot;
     unsigned int texture;
     World* world;
-
-    const int MINECRAFT_TICKRATE = 20;
-    const int MS_PER_UPDATE = 1000 / MINECRAFT_TICKRATE;
 
     bool is_running;
     SDL_Window* main_window;

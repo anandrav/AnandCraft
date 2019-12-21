@@ -1,5 +1,8 @@
 #include "Game.h"
 
+const int k_tickrate = 20;
+const int k_ms_per_update = 1000 / k_tickrate;
+
 Game::Game() : is_running(true), camera(Camera((float)WIDTH / (float)HEIGHT)) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::cout << "Failed to init SDL\n";
@@ -69,9 +72,9 @@ void Game::run_loop() {
 
         process_input();
 
-        while (lag >= MS_PER_UPDATE) {
+        while (lag >= k_ms_per_update) {
             update();
-            lag -= MS_PER_UPDATE;
+            lag -= k_ms_per_update;
         }
 
         render();

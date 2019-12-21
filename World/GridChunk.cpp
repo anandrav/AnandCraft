@@ -4,14 +4,14 @@ GridChunk::GridChunk(int x_index, int y_index, int z_index,
     const std::vector<std::vector<std::vector<BlockData>>>&& data, BlockGrid& grid) : x_index(x_index)
     , y_index(y_index)
     , z_index(z_index)
-    , data(std::move(data)), grid(grid) {
-    glm::vec3 location = glm::vec3(x_index * WIDTH,
-        y_index * HEIGHT,
-        z_index * DEPTH);
+    , data(std::move(data)), grid(grid)
+{
+    glm::vec3 location = glm::vec3(x_index * WIDTH, y_index * HEIGHT, z_index * DEPTH);
     transform.set_pos(location);
 }
 
-void GridChunk::draw_opaque(Camera& camera, Shader& shader) {
+void GridChunk::draw_opaque(Camera& camera, Shader& shader)
+{
     shader.bind();
     glm::mat4 clip_transform = camera.get_view_projection() * transform.get_model();
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, &clip_transform[0][0]);
@@ -25,7 +25,8 @@ void GridChunk::draw_opaque(Camera& camera, Shader& shader) {
     opaque_mesh.draw();
 }
 
-void GridChunk::draw_transparent(Camera& camera, Shader& shader) {
+void GridChunk::draw_transparent(Camera& camera, Shader& shader)
+{
     shader.bind();
     glm::mat4 clip_transform = camera.get_view_projection() * transform.get_model();
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, &clip_transform[0][0]);
@@ -41,40 +42,48 @@ void GridChunk::draw_transparent(Camera& camera, Shader& shader) {
     transparent_mesh.draw();
 }
 
-void GridChunk::update_opaque_mesh(Mesh&& mesh) {
+void GridChunk::update_opaque_mesh(Mesh&& mesh)
+{
     opaque_mesh = std::move(mesh);
 }
 
-void GridChunk::update_transparent_mesh(Mesh&& mesh) {
+void GridChunk::update_transparent_mesh(Mesh&& mesh)
+{
     transparent_mesh = std::move(mesh);
 }
 
-BlockData GridChunk::get_block_at(int x, int y, int z) {
+BlockData GridChunk::get_block_at(int x, int y, int z)
+{
     std::lock_guard<std::mutex> lock(mutex);
 
     return data[x][y][z];
 }
 
-void GridChunk::set_block_at(int x, int y, int z, BlockData new_state) {
+void GridChunk::set_block_at(int x, int y, int z, BlockData new_state)
+{
     std::lock_guard<std::mutex> lock(mutex);
 
     data[x][y][z] = new_state;
 }
 
-int GridChunk::get_x_index() {
+int GridChunk::get_x_index()
+{
     return x_index;
 }
 
-int GridChunk::get_y_index() {
+int GridChunk::get_y_index()
+{
     return y_index;
 }
 
-int GridChunk::get_z_index() {
+int GridChunk::get_z_index()
+{
     return z_index;
 }
 
 void GridChunk::append_block_face(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, BlockData state,
-    BlockFace face, int x, int y, int z) {
+    BlockFace face, int x, int y, int z)
+{
     std::vector<unsigned int> face_indices = get_block_face_indices(state.id, face);
     // adjust face_indices to point to the vertices we are about to add
     increment_face_indices(face_indices, (int)vertices.size());
@@ -86,13 +95,15 @@ void GridChunk::append_block_face(std::vector<Vertex>& vertices, std::vector<uns
     vertices.insert(vertices.end(), face_vertices.begin(), face_vertices.end());
 }
 
-void GridChunk::increment_face_indices(std::vector<unsigned int>& vec, int num) {
+void GridChunk::increment_face_indices(std::vector<unsigned int>& vec, int num)
+{
     for (int i = 0; i < vec.size(); ++i) {
         vec[i] += num;
     }
 }
 
-void GridChunk::translate_vertices_in_vector(std::vector<Vertex>& vec, int x, int y, int z) {
+void GridChunk::translate_vertices_in_vector(std::vector<Vertex>& vec, int x, int y, int z)
+{
     for (int i = 0; i < vec.size(); ++i) {
         vec[i].position[0] += x;
         vec[i].position[1] += y;
@@ -100,7 +111,8 @@ void GridChunk::translate_vertices_in_vector(std::vector<Vertex>& vec, int x, in
     }
 }
 
-bool GridChunk::check_if_opaque_at(int x, int y, int z) {
+bool GridChunk::check_if_opaque_at(int x, int y, int z)
+{
     if (x < 0 || x >= WIDTH ||
         y < 0 || y >= HEIGHT ||
         z < 0 || z >= DEPTH) {
@@ -118,7 +130,8 @@ bool GridChunk::check_if_opaque_at(int x, int y, int z) {
     return get_block_opacity(data[x][y][z].id);
 }
 
-bool GridChunk::check_if_same_material_at(int x, int y, int z, BlockData current) {
+bool GridChunk::check_if_same_material_at(int x, int y, int z, BlockData current)
+{
     if (x < 0 || x >= WIDTH ||
         y < 0 || y >= HEIGHT ||
         z < 0 || z >= DEPTH) {
