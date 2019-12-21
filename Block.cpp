@@ -17,8 +17,9 @@ Lexicographical naming convention and right-hand rule used as naming convention 
 and so on.
 
 This means that the cube is centered at (0.5,0.5,0.5),
-with its "back bottom left" corner at (0,0,0)
-and its "front top right" corner at (1,1,1).
+with its "bottom left back" corner at (0,0,0)
+and its "top right front" corner at (1,1,1),
+using the right-hand rule.
 */
 vector<Vertex> get_block_face_vertices(BlockID id, BlockFace face) {
     std::pair<int, int> origin = get_texture_atlas_location(id, face);
@@ -34,143 +35,169 @@ vector<Vertex> get_block_face_vertices(BlockID id, BlockFace face) {
     case BlockMesh::CUBE:
         switch (face) {
         case BlockFace::XNEG: {
+            glm::vec3 normal(-1.f, 0.f, 0.f); // pointing in the negative x direction
             // bottom left back
             Vertex v000{
                 glm::vec3(0.f,0.f,0.f),
-                glm::vec3(-1.f,0.f,0.f),
+                normal,
                 glm::vec2(tex_left,tex_bottom) // bottom left
             };
             // bottom left front
             Vertex v001{
                 glm::vec3(0.f,0.f,1.f),
-                glm::vec3(-1.f,0.f,0.f),
+                normal,
                 glm::vec2(tex_right,tex_bottom) // bottom right
             };
             // top left back
             Vertex v010{
                 glm::vec3(0.f,1.f,0.f),
-                glm::vec3(-1.f,0.f,0.f),
+                normal,
                 glm::vec2(tex_left,tex_top) // top left
             };
             // top left front
             Vertex v011{
                 glm::vec3(0.f,1.f,1.f),
-                glm::vec3(-1.f,0.f,0.f),
+                normal,
                 glm::vec2(tex_right,tex_top) // top right
             };
             return { v000, v001, v010, v011 };
         }
         case BlockFace::XPOS: {
+            glm::vec3 normal(1.f, 0.f, 0.f); // pointing in the positive x direction
+            // bottom right back
             Vertex v100{
                 glm::vec3(1.f,0.f,0.f),
-                glm::vec3(1.f,0.f,0.f),
+                normal,
                 glm::vec2(tex_right,tex_bottom) // bottom right
             };
+            // bottom right front
             Vertex v101{
                 glm::vec3(1.f,0.f,1.f),
-                glm::vec3(1.f,0.f,0.f),
+                normal,
                 glm::vec2(tex_left,tex_bottom) // bottom left
             };
+            // top right back
             Vertex v110{
                 glm::vec3(1.f,1.f,0.f),
-                glm::vec3(1.f,0.f,0.f),
+                normal,
                 glm::vec2(tex_right,tex_top) // top right
             };
+            // top right front
             Vertex v111{
                 glm::vec3(1.f,1.f,1.f),
-                glm::vec3(1.f,0.f,0.f),
+                normal,
                 glm::vec2(tex_left,tex_top) // top left
             };
             return { v100, v101, v110, v111 };
         }
         case BlockFace::YNEG: {
+            glm::vec3 normal(0.f, -1.f, 0.f); // pointing in the negative y direction
+            // bottom left back
             Vertex v000{
                 glm::vec3(0.f,0.f,0.f),
-                glm::vec3(0.f,-1.f,0.f),
+                normal,
                 glm::vec2(tex_left,tex_bottom) // bottom left
             };
+            // bottom left front
             Vertex v001{
                 glm::vec3(0.f,0.f,1.f),
-                glm::vec3(0.f,-1.f,0.f),
+                normal,
                 glm::vec2(tex_left,tex_top) // top left
             };
+            // bottom right back
             Vertex v100{
                 glm::vec3(1.f,0.f,0.f),
-                glm::vec3(0.f,-1.f,0.f),
+                normal,
                 glm::vec2(tex_right,tex_bottom) // bottom right
             };
+            // bottom right front
             Vertex v101{
                 glm::vec3(1.f,0.f,1.f),
-                glm::vec3(0.f,-1.f,0.f),
+                normal,
                 glm::vec2(tex_right,tex_top) // top right
             };
             return { v000, v001, v100, v101 };
         }
         case BlockFace::YPOS: {
+            glm::vec3 normal(0.f, 1.f, 0.f); // pointing in the positive y direction
+            // top left back
             Vertex v010{
                 glm::vec3(0.f,1.f,0.f),
-                glm::vec3(0.f,1.f,0.f),
+                normal,
                 glm::vec2(tex_left,tex_top) // top left
             };
+            // top left front
             Vertex v011{
                 glm::vec3(0.f,1.f,1.f),
-                glm::vec3(0.f,1.f,0.f),
+                normal,
                 glm::vec2(tex_left,tex_bottom) // bottom left
             };
+            // top right back
             Vertex v110{
                 glm::vec3(1.f,1.f,0.f),
-                glm::vec3(0.f,1.f,0.f),
+                normal,
                 glm::vec2(tex_right,tex_top) // top right
             };
+            // top right front
             Vertex v111{
                 glm::vec3(1.f,1.f,1.f),
-                glm::vec3(0.f,1.f,0.f),
+                normal,
                 glm::vec2(tex_right,tex_bottom) // bottom right
             };
             return { v010, v011, v110, v111 };
         }
         case BlockFace::ZNEG: {
+            glm::vec3 normal(0.f, 0.f, -1.f); // pointing in the negative z direction
+            // bottom left back
             Vertex v000{
                 glm::vec3(0.f,0.f,0.f),
-                glm::vec3(0.f,0.f,-1.f),
+                normal,
                 glm::vec2(tex_right,tex_bottom) // bottom right
             };
+            // top left back
             Vertex v010{
                 glm::vec3(0.f,1.f,0.f),
-                glm::vec3(0.f,0.f,-1.f),
+                normal,
                 glm::vec2(tex_right,tex_top) // top right
             };
+            // bottom right back
             Vertex v100{
                 glm::vec3(1.f,0.f,0.f),
-                glm::vec3(0.f,0.f,-1.f),
+                normal,
                 glm::vec2(tex_left,tex_bottom) // bottom left
             };
+            // top right back
             Vertex v110{
                 glm::vec3(1.f,1.f,0.f),
-                glm::vec3(0.f,0.f,-1.f),
+                normal,
                 glm::vec2(tex_left,tex_top) // top left
             };
             return { v000, v010, v100, v110 };
         }
         case BlockFace::ZPOS: {
+            glm::vec3 normal(0.f, 0.f, 1.f); // pointing in the positive z direction
+            // bottom left front
             Vertex v001{
                 glm::vec3(0.f,0.f,1.f),
-                glm::vec3(0.f,0.f,1.f),
+                normal,
                 glm::vec2(tex_left,tex_bottom) // bottom left
             };
+            // top left front
             Vertex v011{
                 glm::vec3(0.f,1.f,1.f),
-                glm::vec3(0.f,0.f,1.f),
+                normal,
                 glm::vec2(tex_left,tex_top) // top left
             };
+            // bottom right front
             Vertex v101{
                 glm::vec3(1.f,0.f,1.f),
-                glm::vec3(0.f,0.f,1.f),
+                normal,
                 glm::vec2(tex_right,tex_bottom) // bottom right
             };
+            // top right front
             Vertex v111{
                 glm::vec3(1.f,1.f,1.f),
-                glm::vec3(0.f,0.f,1.f),
+                normal,
                 glm::vec2(tex_right,tex_top) // top right
             };
             return { v001, v011, v101, v111 };
