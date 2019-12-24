@@ -36,7 +36,7 @@ public:
     static const unsigned int HEIGHT = 720;
 
 private:
-    // disallow construction/destruction of singleton
+    // disallow construction or accidental deletion of singleton
     Game();
     ~Game();
 
