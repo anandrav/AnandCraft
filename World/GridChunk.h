@@ -9,9 +9,9 @@ public:
     GridChunk(int x_index, int y_index, int z_index,
         const std::vector<std::vector<std::vector<BlockData>>>&& data, BlockGrid& grid);
 
-    void draw_opaque(Camera& camera, Shader& shader);
+    void draw_opaque(const Camera& camera, Shader& shader);
 
-    void draw_transparent(Camera& camera, Shader& shader);
+    void draw_transparent(const Camera& camera, Shader& shader);
 
     void update_opaque_mesh(Mesh&& mesh);
 

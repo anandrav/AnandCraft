@@ -11,16 +11,13 @@
 
 class World {
 public:
-    // render distance not including the chunk the character is standing on
-    const static int RENDER_DIST_IN_CHUNKS = 3;
-
     World();
 
     ~World();
 
-    void render_opaque(Camera& camera);
+    void render_opaque(const Camera& camera);
 
-    void render_transparent(Camera& camera);
+    void render_transparent(const Camera& camera);
 
     bool has_block_at(int x, int y, int z);
 

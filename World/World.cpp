@@ -2,45 +2,58 @@
 
 using namespace std;
 
-World::World() : 
+// render distance not including the chunk the character is standing on
+const int RENDER_DIST_IN_CHUNKS = 3;
+
+World::World() :
     grid_chunk_manager_thread(&World::grid_chunk_manager_thread_routine, this),
-    is_terminating(false) {
+    is_terminating(false)
+{
 }
 
-World::~World() {
+World::~World()
+{
     is_terminating = true;
+    grid_chunk_manager_thread.join();
 }
 
-void World::render_opaque(Camera& camera) {
+void World::render_opaque(const Camera& camera)
+{
     grid.render_opaque(camera);
 }
 
-void World::render_transparent(Camera& camera) {
+void World::render_transparent(const Camera& camera)
+{
     grid.render_transparent(camera);
 }
 
-bool World::has_block_at(int x, int y, int z) {
+bool World::has_block_at(int x, int y, int z)
+{
     return grid.has_block(x, y, z);
 }
 
-BlockData World::get_block_at(int x, int y, int z) {
+BlockData World::get_block_at(int x, int y, int z)
+{
     return grid.get_block(x, y, z);
 }
 
-void World::modify_block_at(int x, int y, int z, BlockData new_state) {
+void World::modify_block_at(int x, int y, int z, BlockData new_state)
+{
     return grid.modify_block(x, y, z, new_state);
 }
 
 // update the blocks in the world in close proximity to the player
 // ensure that chunks within render dist are loaded and that chunks
 //      outside render dist are unloaded
-void World::update(glm::vec3 player_location) {
+void World::update(glm::vec3 player_location)
+{
     last_player_location = player_location;
 }
 
 // FIXME calling add_chunk and remove_chunk is not working, it fails sometimes.
 // you need to make these operations thread safe or something!
-void World::grid_chunk_manager_thread_routine() {
+void World::grid_chunk_manager_thread_routine()
+{
     auto data = vector<vector<vector<BlockData>>>(
         BlockGrid::CHUNK_WIDTH, vector<vector<BlockData>>(
             BlockGrid::CHUNK_HEIGHT, vector<BlockData>(
@@ -91,14 +104,17 @@ void World::grid_chunk_manager_thread_routine() {
                     if (chunk_states.find(indices) == chunk_states.end()) {
                         chunk_states[indices] = ChunkState{ false };
                         if (indices.y == 0) {
-                            AsyncQueue::get_instance().push([grid_ptr, indices, data]() {
-                                grid_ptr->add_chunk(indices, data);
+                            AsyncQueue::get_instance().push(
+                                [grid_ptr, indices, data]()
+                                {
+                                    grid_ptr->add_chunk(indices, data);
                                 }
                             );
-                        }
-                        else {
-                            AsyncQueue::get_instance().push([grid_ptr, indices, data_air]() {
-                                grid_ptr->add_chunk(indices, data_air);
+                        } else {
+                            AsyncQueue::get_instance().push(
+                                [grid_ptr, indices, data_air]()
+                                {
+                                    grid_ptr->add_chunk(indices, data_air);
                                 }
                             );
                         }
@@ -122,7 +138,8 @@ void World::grid_chunk_manager_thread_routine() {
             // todo use chunk info here
             BlockGrid* grid_ptr = &grid;
             chunk_states.erase(indices);
-            AsyncQueue::get_instance().push([grid_ptr, indices]() {
+            AsyncQueue::get_instance().push([grid_ptr, indices]()
+                {
                     grid_ptr->remove_chunk(indices);
                 }
             );

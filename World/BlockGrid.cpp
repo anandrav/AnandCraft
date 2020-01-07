@@ -7,7 +7,7 @@ BlockGrid::BlockGrid() {
     shader = Shader("res/basic_vert.glsl", "res/basic_frag.glsl");
 }
 
-void BlockGrid::render_opaque(Camera& camera) {
+void BlockGrid::render_opaque(const Camera& camera) {
     for (auto& chunk : chunks) {
         if (chunk.second) {
             chunk.second->draw_opaque(camera, shader);
@@ -15,7 +15,7 @@ void BlockGrid::render_opaque(Camera& camera) {
     }
 }
 
-void BlockGrid::render_transparent(Camera& camera) {
+void BlockGrid::render_transparent(const Camera& camera) {
     for (auto& chunk : chunks) {
         if (chunk.second) {
             chunk.second->draw_transparent(camera, shader);

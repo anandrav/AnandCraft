@@ -10,7 +10,8 @@
 #include "util.h"
 #include "Graphics/Shader.h"
 #include "Graphics/Transform.h"
-#include "Graphics/Camera.h"
+#include "Player.h"
+#include "PlayerController.h"
 #include "Async/AsyncQueue.h"
 #include "World/World.h"
 
@@ -18,47 +19,26 @@
 
 class Game {
 public:
-    // singleton pattern
-    static Game& instance() {
-        static Game singleton;
-        return singleton;
-    }
-
-    // disallow copying and moving singleton
-    Game(Game&) = delete;
-    Game& operator=(Game&) = delete;
-    Game(Game&&) = delete;
-    Game& operator=(Game&&) = delete;
+    Game(SDL_Window* window);
 
     void run_loop();
 
-    static const unsigned int WIDTH = 1280;
-    static const unsigned int HEIGHT = 720;
-
 private:
-    // disallow construction or accidental deletion of singleton
-    Game();
-    ~Game();
-
-    void init();
-
-    Camera camera;
-    glm::vec3 camera_vel;
-    glm::vec3 camera_rot;
     unsigned int texture;
-    World* world;
+
+    World world;
+    Player player;
+    PlayerController player_controller;
 
     bool is_running;
-    SDL_Window* main_window;
-    SDL_GLContext main_context;
+
+    SDL_Window* window;
 
     void process_input();
 
     void update();
 
     void render();
-
-    void set_OpenGL_attributes();
 
     void handle_click(SDL_Event& event);
 };

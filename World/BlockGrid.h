@@ -27,9 +27,9 @@ public:
     BlockGrid(BlockGrid&) = delete;
     void operator=(const BlockGrid&) = delete;
 
-    void render_opaque(Camera& camera);
+    void render_opaque(const Camera& camera);
 
-    void render_transparent(Camera& camera);
+    void render_transparent(const Camera& camera);
 
     void add_chunk(BlockGrid::ChunkIndices indices,
         std::vector<std::vector<std::vector<BlockData>>> data);

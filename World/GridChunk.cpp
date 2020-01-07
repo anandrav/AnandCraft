@@ -10,7 +10,7 @@ GridChunk::GridChunk(int x_index, int y_index, int z_index,
     transform.set_pos(location);
 }
 
-void GridChunk::draw_opaque(Camera& camera, Shader& shader)
+void GridChunk::draw_opaque(const Camera& camera, Shader& shader)
 {
     shader.bind();
     glm::mat4 clip_transform = camera.get_view_projection() * transform.get_model();
@@ -25,7 +25,7 @@ void GridChunk::draw_opaque(Camera& camera, Shader& shader)
     opaque_mesh.draw();
 }
 
-void GridChunk::draw_transparent(Camera& camera, Shader& shader)
+void GridChunk::draw_transparent(const Camera& camera, Shader& shader)
 {
     shader.bind();
     glm::mat4 clip_transform = camera.get_view_projection() * transform.get_model();

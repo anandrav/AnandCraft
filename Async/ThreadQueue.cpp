@@ -1,5 +1,7 @@
 #include "ThreadQueue.h"
 
+const int THREAD_COUNT = 2;
+
 ThreadQueue& ThreadQueue::get_instance() {
     static ThreadQueue instance;
     return instance;

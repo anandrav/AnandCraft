@@ -14,7 +14,7 @@ public:
     {
     }
 
-    inline glm::mat4 get_view_projection()
+    inline glm::mat4 get_view_projection() const
     {
         return get_perspective() * get_view();
     }
@@ -99,13 +99,13 @@ private:
     }
 
     /* view projection functions */
-    inline glm::mat4 get_view()
+    inline glm::mat4 get_view() const
     {
         return glm::lookAt(transform.get_pos(), transform.get_pos() + get_forward(),
             get_up());
     }
 
-    inline glm::mat4 get_perspective()
+    inline glm::mat4 get_perspective() const
     {
         return glm::perspective(fov, aspect, zNear, zFar);
     }

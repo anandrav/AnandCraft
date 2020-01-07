@@ -1,281 +1,9 @@
 #include "Game.h"
 
-const int k_tickrate = 20;
-const int k_ms_per_update = 1000 / k_tickrate;
+const int TICKRATE = 20;
+const int MS_PER_UPDATE = 1000 / TICKRATE;
 
-Game::Game() : is_running(true), camera(Camera((float)WIDTH / (float)HEIGHT)) {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        std::cout << "Failed to init SDL\n";
-        //return false;
-    }
-    SDL_SetRelativeMouseMode(SDL_TRUE);
-
-    set_OpenGL_attributes();
-
-    // Create our window centered at 800x600 resolution
-    main_window = SDL_CreateWindow(
-        "AnandCraft",
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
-        WIDTH,
-        HEIGHT,
-        SDL_WINDOW_OPENGL
-    );
-    if (!main_window) {
-        std::cout << "Unable to create window\n";
-        util::check_SDL_error(__LINE__);
-        //return false;
-    }
-    
-    main_context = SDL_GL_CreateContext(main_window);
-    if (!main_context) {
-        util::check_SDL_error(__LINE__);
-    }
-    
-    // vertical sync
-    SDL_GL_SetSwapInterval(1);
-    
-    // init GLEW
-    glewExperimental = GL_TRUE;
-    glewInit();
-
-    init();
-}
-
-void Game::set_OpenGL_attributes() {
-    // SDL_GL_CONTEXT_CORE gives us only the newer version, deprecated functions are disabled
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-
-    // Use version 3.2 (modern OpenGL)
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-}
-
-Game::~Game() {
-    SDL_GL_DeleteContext(main_context);
-    SDL_DestroyWindow(main_window);
-    SDL_Quit();
-}
-
-void Game::run_loop() {
-    // fixed update time, variable rendering
-    // TODO: incorporate interpolation for animation/shaders
-    double previous = SDL_GetTicks();
-    double lag = 0.0;
-    while (is_running) {
-        double current = SDL_GetTicks();
-        double elapsed = current - previous;
-        previous = current;
-        lag += elapsed;
-
-        process_input();
-
-        while (lag >= k_ms_per_update) {
-            update();
-            lag -= k_ms_per_update;
-        }
-
-        render();
-
-        AsyncQueue::get_instance().process_all_tasks();
-    }
-}
-
-void Game::handle_click(SDL_Event& e) {
-    const float MAX_DISTANCE = 12.0f;
-    const float STEP_DISTANCE = 0.1f;
-
-    int prev_x_coord = (int)camera.get_position()[0];
-    int prev_y_coord = (int)camera.get_position()[1];
-    int prev_z_coord = (int)camera.get_position()[2];
-    std::cout << "RAYCAST\n";
-    // find the first block that isn't air and do something
-    for (Ray ray(camera.get_position(), camera.get_forward());
-        ray.get_length() < MAX_DISTANCE; ray.step(STEP_DISTANCE)) {
-
-        // round positive and negative coordinates "toward zero"
-        int x_coord = (int)ray.get_end()[0] - (ray.get_end()[0] < 0);
-        int y_coord = (int)ray.get_end()[1] - (ray.get_end()[1] < 0);
-        int z_coord = (int)ray.get_end()[2] - (ray.get_end()[2] < 0);
-
-        // don't check the same block twice
-        if (x_coord == prev_x_coord && y_coord == prev_y_coord && z_coord == prev_z_coord) {
-            continue;
-        }
-
-        if (world->has_block_at(x_coord, y_coord, z_coord)) {
-            BlockData block = world->get_block_at(x_coord, y_coord, z_coord);
-            std::cout << "Block: " << get_block_name(block.id) << '\n';
-            if (block.id != BlockID::AIR) {
-                if (e.button.button == SDL_BUTTON_LEFT) {
-                    // break block
-                    BlockData new_data = BlockData(BlockID::AIR);
-                    world->modify_block_at(x_coord, y_coord, z_coord, new_data);
-                }
-                if (e.button.button == SDL_BUTTON_RIGHT) {
-                    // place block
-                    BlockData new_data = BlockData(BlockID::COBBLESTONE);
-                    if (world->has_block_at(prev_x_coord, prev_y_coord, prev_z_coord)) {
-                        world->modify_block_at(prev_x_coord, prev_y_coord, prev_z_coord, new_data);
-                    }
-                }
-                break;
-            }
-        }
-        prev_x_coord = x_coord;
-        prev_y_coord = y_coord;
-        prev_z_coord = z_coord;
-    }
-    std::cout << std::endl;
-}
-
-void Game::process_input() {
-    SDL_Event e;
-
-    //#define VEL 1.1f/5.f
-    #define VEL 3.1f/5.f
-    // 50 updates per second times 1.1/5 is 11 units/second
-
-    while (SDL_PollEvent(&e)) {
-        if (e.type == SDL_QUIT) {
-            is_running = false;
-        }
-        if (e.type == SDL_KEYDOWN) {
-            switch (e.key.keysym.sym) {
-            case SDLK_w:
-                if (camera_vel.z > 0.f) {
-                    camera_vel.z = 0.f;
-                }
-                else {
-                    camera_vel.z = -VEL;
-                }
-                break;
-            case SDLK_a:
-                if (camera_vel.x > 0.f) {
-                    camera_vel.x = 0.f;
-                }
-                else {
-                    camera_vel.x = -VEL;
-                }
-                break;
-            case SDLK_s:
-                if (camera_vel.z < 0.f) {
-                    camera_vel.z = 0.f;
-                }
-                else {
-                    camera_vel.z = VEL;
-                }
-                break;
-            case SDLK_d:
-                if (camera_vel.x < 0.f) {
-                    camera_vel.x = 0.f;
-                }
-                else {
-                    camera_vel.x = VEL;
-                }
-                break;
-            case SDLK_SPACE:
-                if (camera_vel.y < 0.f) {
-                    camera_vel.y = 0.f;
-                }
-                else {
-                    camera_vel.y = VEL;
-                }
-                break;
-            case SDLK_LSHIFT:
-                if (camera_vel.y > 0.f) {
-                    camera_vel.y = 0.f;
-                }
-                else {
-                    camera_vel.y = -VEL;
-                }
-                break;
-            default:
-                break;
-            }
-        }
-        if (e.type == SDL_KEYUP) {
-            switch (e.key.keysym.sym) {
-            case SDLK_w:
-                if (camera_vel.z < 0.f) {
-                    camera_vel.z = 0.f;
-                }
-                else {
-                    camera_vel.z = VEL;
-                }
-                break;
-            case SDLK_a:
-                if (camera_vel.x < 0.f) {
-                    camera_vel.x = 0.f;
-                }
-                else {
-                    camera_vel.x = VEL;
-                }
-                break;
-            case SDLK_s:
-                if (camera_vel.z > 0.f) {
-                    camera_vel.z = 0.f;
-                }
-                else {
-                    camera_vel.z = -VEL;
-                }
-                break;
-            case SDLK_d:
-                if (camera_vel.x > 0.f) {
-                    camera_vel.x = 0.f;
-                }
-                else {
-                    camera_vel.x = -VEL;
-                }
-                break;
-            case SDLK_SPACE:
-                if (camera_vel.y > 0.f) {
-                    camera_vel.y = 0.f;
-                }
-                else {
-                    camera_vel.y = -VEL;
-                }
-                break;
-            case SDLK_LSHIFT:
-                if (camera_vel.y < 0.f) {
-                    camera_vel.y = 0.f;
-                }
-                else {
-                    camera_vel.y = VEL;
-                }
-                break;
-            default:
-                break;
-            }
-        }
-        if (e.type == SDL_MOUSEMOTION) {
-            camera_rot.y = (float)e.motion.xrel;
-            camera_rot.x = -(float)e.motion.yrel;
-        }
-        if (e.type == SDL_MOUSEBUTTONUP) {
-            handle_click(e);
-        }
-    }
-}
-
-void Game::update() {
-    world->update(camera.get_position());
-    // TODO pack this behavior inside a Player class + Controller class
-    camera.move_forward(-camera_vel.z);
-    camera.move_left(-camera_vel.x);
-    camera.move_up(camera_vel.y);
-    camera.pitch(glm::radians(camera_rot.x / 2.f));
-    camera.yaw(glm::radians(camera_rot.y) / 2.f);
-    camera_rot.y = 0;
-    camera_rot.x = 0;
-}
-
-void Game::init() {
-    camera.move_forward(-2.f);
-    camera.move_up(8.f);
-
+Game::Game(SDL_Window* window_in) : player_controller(&player, &world), is_running(true), window(window_in) {
     // Create texture from image
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
@@ -288,13 +16,51 @@ void Game::init() {
     if (data) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else {
+    } else {
         std::cout << "Failed to load texture" << std::endl;
     }
     stbi_image_free(data);
+}
 
-    world = new World();
+void Game::run_loop() {
+    double previous = SDL_GetTicks();
+    double lag = 0.0;
+    while (is_running) {
+        double current = SDL_GetTicks();
+        double elapsed = current - previous;
+        previous = current;
+        lag += elapsed;
+
+        while (lag >= MS_PER_UPDATE) {
+            process_input();
+            update();
+            lag -= MS_PER_UPDATE;
+        }
+
+        const double interpolate = lag / MS_PER_UPDATE;
+        render();
+    }
+}
+
+void Game::process_input() {
+    SDL_Event e;
+
+    while (SDL_PollEvent(&e)) {
+        if (e.type == SDL_QUIT) {
+            is_running = false;
+        } else {
+            player_controller.process_event(e);
+        }
+    }
+}
+
+void Game::update() {
+    // TODO pack this behavior inside a Player class + Controller class
+
+    player.update();
+    world.update(player.get_position());
+
+    AsyncQueue::get_instance().process_all_tasks();
 }
 
 void Game::render() {
@@ -305,11 +71,11 @@ void Game::render() {
 
     // render world
     glBindTexture(GL_TEXTURE_2D, texture);
-    world->render_opaque(camera);
-    world->render_transparent(camera);
+    world.render_opaque(player.get_camera());
+    world.render_transparent(player.get_camera());
 
     // render UI/HUD
 
     // update display
-    SDL_GL_SwapWindow(main_window);
+    SDL_GL_SwapWindow(window);
 }
