@@ -20,9 +20,9 @@ public:
 
     bool has_block_at(int x, int y, int z);
 
-    BlockData get_block_at(int x, int y, int z);
+    BlockState get_block_at(int x, int y, int z);
 
-    void modify_block_at(int x, int y, int z, BlockData new_state);
+    void modify_block_at(int x, int y, int z, BlockState new_state);
 
     void update(glm::vec3 player_location);
 

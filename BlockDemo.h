@@ -5,7 +5,7 @@
 
 class SingleBlockDemo {
 public:
-    SingleBlockDemo(BlockData state = BlockData(BlockID::GRASS)) : state(state) {
+    SingleBlockDemo(BlockState state = BlockState(BlockID::GRASS)) : state(state) {
         setup();
     }
 
@@ -13,7 +13,7 @@ public:
         model.render(camera);
     }
 
-    void set_block(BlockData state) {
+    void set_block(BlockState state) {
         this->state = state;
 
         setup();
@@ -25,7 +25,7 @@ public:
     }
 
 private:
-    BlockData state;
+    BlockState state;
     Transform transform;
     Model model;
 

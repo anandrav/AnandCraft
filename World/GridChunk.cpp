@@ -1,7 +1,7 @@
 #include "GridChunk.h"
 
 GridChunk::GridChunk(int x_index, int y_index, int z_index,
-    const std::vector<std::vector<std::vector<BlockData>>>&& data, BlockGrid& grid) : x_index(x_index)
+    const std::vector<std::vector<std::vector<BlockState>>>&& data, BlockGrid& grid) : x_index(x_index)
     , y_index(y_index)
     , z_index(z_index)
     , data(std::move(data)), grid(grid)
@@ -52,14 +52,14 @@ void GridChunk::update_transparent_mesh(Mesh&& mesh)
     transparent_mesh = std::move(mesh);
 }
 
-BlockData GridChunk::get_block_at(int x, int y, int z)
+BlockState GridChunk::get_block_at(int x, int y, int z)
 {
     std::lock_guard<std::mutex> lock(mutex);
 
     return data[x][y][z];
 }
 
-void GridChunk::set_block_at(int x, int y, int z, BlockData new_state)
+void GridChunk::set_block_at(int x, int y, int z, BlockState new_state)
 {
     std::lock_guard<std::mutex> lock(mutex);
 
@@ -81,7 +81,7 @@ int GridChunk::get_z_index()
     return z_index;
 }
 
-void GridChunk::append_block_face(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, BlockData state,
+void GridChunk::append_block_face(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, BlockState state,
     BlockFace face, int x, int y, int z)
 {
     std::vector<unsigned int> face_indices = get_block_face_indices(state.id, face);
@@ -130,7 +130,7 @@ bool GridChunk::check_if_opaque_at(int x, int y, int z)
     return get_block_opacity(data[x][y][z].id);
 }
 
-bool GridChunk::check_if_same_material_at(int x, int y, int z, BlockData current)
+bool GridChunk::check_if_same_material_at(int x, int y, int z, BlockState current)
 {
     if (x < 0 || x >= WIDTH ||
         y < 0 || y >= HEIGHT ||

@@ -24,7 +24,7 @@ void BlockGrid::render_transparent(const Camera& camera) {
 }
 
 void BlockGrid::add_chunk(BlockGrid::ChunkIndices indices,
-    vector<vector<vector<BlockData>>> data) {
+    vector<vector<vector<BlockState>>> data) {
     //add a dummy chunk pointer to the chunks map as a placeholder to be
     //      updated later
     {
@@ -57,7 +57,7 @@ void BlockGrid::remove_chunk(BlockGrid::ChunkIndices indices) {
     chunks.erase(indices);
 }
 
-BlockData BlockGrid::get_block(int x, int y, int z) {
+BlockState BlockGrid::get_block(int x, int y, int z) {
     GridChunk* chunk = get_chunk_at(x,y,z);
     if (chunk) {
         int block_coord_x = util::positive_modulo(x, CHUNK_WIDTH);
@@ -68,7 +68,7 @@ BlockData BlockGrid::get_block(int x, int y, int z) {
     throw std::range_error("block does not exist");
 }
 
-void BlockGrid::modify_block(int x, int y, int z, BlockData new_state) {
+void BlockGrid::modify_block(int x, int y, int z, BlockState new_state) {
     // fixme this is all very redundant, remove code duplication
     GridChunk* chunk = get_chunk_at(x, y, z);
     ChunkIndices indices = get_chunk_indices(x, y, z);
@@ -108,23 +108,23 @@ BlockGrid::~BlockGrid() {
 }
 
 GridChunk* BlockGrid::generate_chunk(int x_index, int y_index, int z_index) {
-    auto data = vector<vector<vector<BlockData>>>(CHUNK_WIDTH,
-                       vector<vector<BlockData>>(CHUNK_HEIGHT,
-                              vector<BlockData>(CHUNK_WIDTH,
-                                     BlockData(BlockID::AIR))));
+    auto data = vector<vector<vector<BlockState>>>(CHUNK_WIDTH,
+                       vector<vector<BlockState>>(CHUNK_HEIGHT,
+                              vector<BlockState>(CHUNK_WIDTH,
+                                     BlockState(BlockID::AIR))));
 
     for (int x = 0; x < CHUNK_WIDTH; ++x) {
         for (int z = 0; z < CHUNK_WIDTH; ++z) {
             // bottom 5 layers stone
             for (int y = 0; y < 5 && y < CHUNK_HEIGHT; ++y) {
-                data[x][y][z] = BlockData(BlockID::STONE);
+                data[x][y][z] = BlockState(BlockID::STONE);
             }
             // 2 layers of dirt under grass
             for (int y = 5; y < 7 && y < CHUNK_HEIGHT; ++y) {
-                data[x][y][z] = BlockData(BlockID::DIRT);
+                data[x][y][z] = BlockState(BlockID::DIRT);
             }
             // one layer of grass on top
-            data[x][7][z] = BlockData(BlockID::GRASS);
+            data[x][7][z] = BlockState(BlockID::GRASS);
         }
     }
 
@@ -152,10 +152,10 @@ void BlockGrid::UpdateChunkMeshJob::init_data_copy(GridChunk* chunk) {
     //data copy has extra 2 blocks for each dimension to hold data
     //     from adjacent chunks to determine whether to expose faces
     //     on the outside
-    chunk_data_copy = vector<vector<vector<BlockData>>>(
-        CHUNK_WIDTH + 2, vector<vector<BlockData>>(
-        CHUNK_HEIGHT + 2, vector<BlockData>(
-        CHUNK_WIDTH + 2, BlockData{ BlockID::AIR })));
+    chunk_data_copy = vector<vector<vector<BlockState>>>(
+        CHUNK_WIDTH + 2, vector<vector<BlockState>>(
+        CHUNK_HEIGHT + 2, vector<BlockState>(
+        CHUNK_WIDTH + 2, BlockState{ BlockID::AIR })));
 
     for (int x = 0; x < CHUNK_WIDTH + 2; ++x) {
         for (int y = 0; y < CHUNK_HEIGHT + 2; ++y) {
@@ -211,7 +211,7 @@ void BlockGrid::UpdateChunkMeshJob::operator()() {
     for (size_t x = 1; x < CHUNK_WIDTH + 1; ++x) {
         for (size_t y = 1; y < CHUNK_HEIGHT + 1; ++y) {
             for (size_t z = 1; z < CHUNK_DEPTH + 1; ++z) {
-                BlockData& current = chunk_data_copy[x][y][z];
+                BlockState& current = chunk_data_copy[x][y][z];
 
                 // only render opaque blocks
                 if (!get_block_opacity(current.id)) {
@@ -262,7 +262,7 @@ void BlockGrid::UpdateChunkMeshJob::operator()() {
     for (size_t x = 1; x < CHUNK_WIDTH + 1; ++x) {
         for (size_t y = 1; y < CHUNK_HEIGHT + 1; ++y) {
             for (size_t z = 1; z < CHUNK_DEPTH + 1; ++z) {
-                BlockData& current = chunk_data_copy[x][y][z];
+                BlockState& current = chunk_data_copy[x][y][z];
 
                 // only render transparent blocks
                 if (get_block_opacity(current.id)) {
@@ -327,7 +327,7 @@ void BlockGrid::UpdateChunkMeshJob::operator()() {
     );
 }
 
-BlockGrid::GenerateChunkJob::GenerateChunkJob(BlockGrid& grid, vector<vector<vector<BlockData>>>&& data,
+BlockGrid::GenerateChunkJob::GenerateChunkJob(BlockGrid& grid, vector<vector<vector<BlockState>>>&& data,
     ChunkIndices indices) :
     grid(grid),
     data(std::move(data)),

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Player.h"
-#include "World/World.h"
+#include "World/OldWorld.h"
 #include "SDL2/SDL_events.h"
 
 class PlayerController {

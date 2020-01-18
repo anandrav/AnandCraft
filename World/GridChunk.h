@@ -7,7 +7,7 @@ class GridChunk {
 public:
 
     GridChunk(int x_index, int y_index, int z_index,
-        const std::vector<std::vector<std::vector<BlockData>>>&& data, BlockGrid& grid);
+        const std::vector<std::vector<std::vector<BlockState>>>&& data, BlockGrid& grid);
 
     void draw_opaque(const Camera& camera, Shader& shader);
 
@@ -17,9 +17,9 @@ public:
 
     void update_transparent_mesh(Mesh&& mesh);
 
-    BlockData get_block_at(int x, int y, int z);
+    BlockState get_block_at(int x, int y, int z);
 
-    void set_block_at(int x, int y, int z, BlockData new_state);
+    void set_block_at(int x, int y, int z, BlockState new_state);
 
     int get_x_index();
 
@@ -27,7 +27,7 @@ public:
 
     int get_z_index();
 
-    static void append_block_face(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, BlockData state,
+    static void append_block_face(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, BlockState state,
         BlockFace face, int x, int y, int z);
 
     static void increment_face_indices(std::vector<unsigned int>& vec, int num);
@@ -50,7 +50,7 @@ private:
 
     // data for blocks in chunk, indexed by [x][y][z]
     //      x, y, and z are position within chunk
-    std::vector<std::vector<std::vector<BlockData>>> data;
+    std::vector<std::vector<std::vector<BlockState>>> data;
     std::mutex mutex;
 
     Mesh opaque_mesh;
@@ -60,5 +60,5 @@ private:
 
     bool check_if_opaque_at(int x, int y, int z);
 
-    bool check_if_same_material_at(int x, int y, int z, BlockData current);
+    bool check_if_same_material_at(int x, int y, int z, BlockState current);
 };

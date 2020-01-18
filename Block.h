@@ -63,9 +63,9 @@ enum class BlockFace : uint8_t {
 
 /* struct to store state of a block in world */
 
-struct BlockData {
+struct BlockState {
 public:
-    BlockData(BlockID id, BlockSpin spin = BlockSpin::NORTH, BlockFace top_face = BlockFace::YPOS) :
+    BlockState(BlockID id, BlockSpin spin = BlockSpin::NORTH, BlockFace top_face = BlockFace::YPOS) :
         id(id), spin(spin), top_face(top_face) { }
 
     BlockID id;
