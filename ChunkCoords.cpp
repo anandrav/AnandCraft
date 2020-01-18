@@ -12,7 +12,7 @@ constexpr int block_to_chunk_coord(int element) {
     if (element >= 0) {
         return element / CHUNK_SIZE;
     }
-    // negative number case
+    // negative number rounding case
     return ((element + 1) / CHUNK_SIZE) - 1;
 }
 

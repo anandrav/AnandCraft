@@ -1,13 +1,7 @@
 /*
 ChunkSystem maintains the chunks used by a World, and provides an interface for managing them.
 
-An entity-component-system pattern is utilized to help decouple the logic for chunks, making multithreading simpler.
-A chunk's coordinates are used to identify its components.
-Components are laid out contiguously in memory in dynamic arrays.
-This resembles data-oriented design and may boost performance by limiting cache misses, but this is not a priority.
-The primary purpose of using an entity-component-system pattern is to hopefully make the logic more elegant.
-All a chunk's components share the same index in their respective dynamic arrays.
-The mapping of a chunk's ID to the index of its components is maintained in a std::unordered_map for fast lookup.
+Chunks are stored and accessed using their coordinates.
 */
 
 #pragma once
@@ -21,11 +15,7 @@ The mapping of a chunk's ID to the index of its components is maintained in a st
 #include "Graphics/Mesh.h"
 
 // chunk data is a simple 3D array of blocks
-using ChunkState = std::array<std::array<std::array<BlockState, CHUNK_SIZE>, CHUNK_SIZE>, CHUNK_SIZE>;
-
-struct ChunkCoordsHash {
-    std::size_t operator() (const ChunkCoords& coords) const;
-};
+using ChunkBlocks = std::array<std::array<std::array<BlockState, CHUNK_SIZE>, CHUNK_SIZE>, CHUNK_SIZE>;
 
 class ChunkSystem {
 public:
@@ -34,14 +24,30 @@ public:
     void remove_chunk(ChunkCoords coords);
 
     // return the number of chunks in the ChunkSystem
-    size_t num_chunks();
+    size_t num_chunks() const;
 
 private:
-    // mapping from chunk coords to index in the component vectors below
-    std::unordered_map<ChunkCoords, size_t, ChunkCoordsHash> indices;
+    struct ChunkComponents {
+        // even an uninitialized chunk must have coordinates
+        ChunkComponents(ChunkCoords coords_)
+            : blocks_initialized(false), coords(coords_)
+        {
+        }
+        
+        // flag indicating whether blocks been initialized
+        bool blocks_initialized;
+        ChunkBlocks blocks;
+        Mesh opaque_mesh;
+        Mesh transparent_mesh;
+        /* Even though we have a map from coords to components below, it is useful to
+        keep track of coords within the struct as well. */
+        ChunkCoords coords;
+    };
 
-    // component vectors
-    std::vector<ChunkState> chunk_states;
-    std::vector<Mesh> chunk_meshes;
-    std::vector<ChunkCoords> chunk_coords;  //mapping from index to chunk coords
+    struct ChunkCoordsHash {
+        std::size_t operator() (const ChunkCoords& coords) const;
+    };
+
+    // mapping from chunk coords to chunk components
+    std::unordered_map<ChunkCoords, ChunkComponents, ChunkCoordsHash> chunks;
 };
