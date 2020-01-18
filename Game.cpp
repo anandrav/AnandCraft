@@ -1,5 +1,13 @@
 #include "Game.h"
 
+#include <SDL2/SDL.h>
+#include <GL/glew.h>
+#include <glm/glm.hpp>
+
+#include "util.h"
+#include "stb_image.h"
+#include "Async/AsyncQueue.h"
+
 const int TICKRATE = 20;
 const int MS_PER_UPDATE = 1000 / TICKRATE;
 
@@ -32,7 +40,6 @@ void Game::run_loop() {
         lag += elapsed;
 
         while (lag >= MS_PER_UPDATE) {
-            process_input();
             update();
             lag -= MS_PER_UPDATE;
         }
@@ -55,7 +62,7 @@ void Game::process_input() {
 }
 
 void Game::update() {
-    // TODO pack this behavior inside a Player class + Controller class
+    process_input();
 
     player.update();
     world.update(player.get_position());

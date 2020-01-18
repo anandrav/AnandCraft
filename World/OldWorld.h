@@ -8,12 +8,11 @@
 #include "glm/glm.hpp"
 #include "BlockGrid.h"
 
-
-class World {
+class OldWorld {
 public:
-    World();
+    OldWorld();
 
-    ~World();
+    ~OldWorld();
 
     void render_opaque(const Camera& camera);
 

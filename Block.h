@@ -69,6 +69,7 @@ public:
         id(id), spin(spin), top_face(top_face) { }
 
     BlockID id;
+    // orientation fields
     BlockSpin spin;
     BlockFace top_face;
 };
