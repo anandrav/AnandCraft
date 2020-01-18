@@ -1,43 +1,43 @@
-#include "World.h"
+#include "OldWorld.h"
 
 using namespace std;
 
 // render distance not including the chunk the character is standing on
 const int RENDER_DIST_IN_CHUNKS = 3;
 
-World::World() :
-    grid_chunk_manager_thread(&World::grid_chunk_manager_thread_routine, this),
+OldWorld::OldWorld() :
+    grid_chunk_manager_thread(&OldWorld::grid_chunk_manager_thread_routine, this),
     is_terminating(false)
 {
 }
 
-World::~World()
+OldWorld::~OldWorld()
 {
     is_terminating = true;
     grid_chunk_manager_thread.join();
 }
 
-void World::render_opaque(const Camera& camera)
+void OldWorld::render_opaque(const Camera& camera)
 {
     grid.render_opaque(camera);
 }
 
-void World::render_transparent(const Camera& camera)
+void OldWorld::render_transparent(const Camera& camera)
 {
     grid.render_transparent(camera);
 }
 
-bool World::has_block_at(int x, int y, int z)
+bool OldWorld::has_block_at(int x, int y, int z)
 {
     return grid.has_block(x, y, z);
 }
 
-BlockData World::get_block_at(int x, int y, int z)
+BlockData OldWorld::get_block_at(int x, int y, int z)
 {
     return grid.get_block(x, y, z);
 }
 
-void World::modify_block_at(int x, int y, int z, BlockData new_state)
+void OldWorld::modify_block_at(int x, int y, int z, BlockData new_state)
 {
     return grid.modify_block(x, y, z, new_state);
 }
@@ -45,14 +45,14 @@ void World::modify_block_at(int x, int y, int z, BlockData new_state)
 // update the blocks in the world in close proximity to the player
 // ensure that chunks within render dist are loaded and that chunks
 //      outside render dist are unloaded
-void World::update(glm::vec3 player_location)
+void OldWorld::update(glm::vec3 player_location)
 {
     last_player_location = player_location;
 }
 
 // FIXME calling add_chunk and remove_chunk is not working, it fails sometimes.
 // you need to make these operations thread safe or something!
-void World::grid_chunk_manager_thread_routine()
+void OldWorld::grid_chunk_manager_thread_routine()
 {
     auto data = vector<vector<vector<BlockData>>>(
         BlockGrid::CHUNK_WIDTH, vector<vector<BlockData>>(

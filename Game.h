@@ -20,7 +20,7 @@ public:
 private:
     unsigned int texture;
 
-    World world;
+    OldWorld world;
     Player player;
     PlayerController player_controller;
 
