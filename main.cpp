@@ -57,8 +57,8 @@ int main(int argc, char** argv)
         SDL_DestroyWindow(main_window);
         SDL_Quit();
 
-    } catch (exception & error) {
-        cout << "Other exception caught: " << error.what() << endl;
+    } catch (exception& error) {
+        cout << "std::exception caught: " << error.what() << endl;
     } catch (...) {
         cout << "Unknown exception caught!" << endl;
     }

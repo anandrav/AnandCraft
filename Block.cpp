@@ -278,7 +278,11 @@ std::pair<int, int> get_texture_atlas_location(BlockID id, BlockFace face) {
         return { 7, 7 };
     case BlockID::BOOKSHELF:
         return { 3, 13 };
+    case BlockID::DEBUG:
+        // purple debug texture
+        return { 10, 0 };
     default:
+        assert(false);
         // purple debug texture
         return { 10, 0 };
     }
@@ -347,6 +351,8 @@ string get_block_name(BlockID id) {
         return "Glass";
     case BlockID::BOOKSHELF:
         return "Bookshelf";
+    case BlockID::DEBUG:
+        return "Debug";
 
     case BlockID::COBBLESTONE_SLAB:
         return "Cobblestone Slab";

@@ -5,7 +5,7 @@ Used for identifying blocks by location.
 
 #pragma once
 
-struct BlockCoordinate {
+struct BlockCoords {
     int x;
     int y;
     int z;

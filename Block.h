@@ -21,6 +21,7 @@ enum class BlockID : uint8_t {
     BRICK,
     GLASS,
     BOOKSHELF,
+    DEBUG,
 
     // SLAB mesh
     COBBLESTONE_SLAB,
@@ -65,8 +66,10 @@ enum class BlockFace : uint8_t {
 
 struct BlockState {
 public:
-    BlockState(BlockID id, BlockSpin spin = BlockSpin::NORTH, BlockFace top_face = BlockFace::YPOS) :
-        id(id), spin(spin), top_face(top_face) { }
+    BlockState(BlockID id = BlockID::DEBUG, BlockSpin spin = BlockSpin::NORTH, BlockFace top_face = BlockFace::YPOS) :
+        id(id), spin(spin), top_face(top_face)
+    {
+    }
 
     BlockID id;
     // orientation fields
