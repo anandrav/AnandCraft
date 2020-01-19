@@ -1,17 +1,17 @@
-#include "AsyncQueue.h"
+#include "SyncQueue.h"
 #include "SDL2/SDL.h"
 
-AsyncQueue& AsyncQueue::get_instance() {
-    static AsyncQueue instance;
+SyncQueue& SyncQueue::get_instance() {
+    static SyncQueue instance;
     return instance;
 }
 
-void AsyncQueue::push(std::function<void(void)> func) {
+void SyncQueue::push(std::function<void(void)> func) {
     std::lock_guard<std::mutex> lock(mutex);
     queue.push(func);
 }
 
-void AsyncQueue::process_all_tasks() {
+void SyncQueue::process_all_tasks() {
     // avoid acquiring the lock if possible
     if (queue.empty()) { return; }
 
@@ -23,7 +23,7 @@ void AsyncQueue::process_all_tasks() {
     }
 }
 
-void AsyncQueue::process_tasks_for(int duration) {
+void SyncQueue::process_tasks_for(int duration) {
     typedef std::chrono::high_resolution_clock Time;
     typedef std::chrono::milliseconds ms;
 

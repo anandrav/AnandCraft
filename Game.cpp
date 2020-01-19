@@ -6,7 +6,7 @@
 
 #include "util.h"
 #include "stb_image.h"
-#include "Async/AsyncQueue.h"
+#include "Async/SyncQueue.h"
 
 const int TICKRATE = 20;
 const int MS_PER_UPDATE = 1000 / TICKRATE;
@@ -67,7 +67,7 @@ void Game::update() {
     player.update();
     world.update(player.get_position());
 
-    AsyncQueue::get_instance().process_all_tasks();
+    SyncQueue::get_instance().process_all_tasks();
 }
 
 void Game::render() {

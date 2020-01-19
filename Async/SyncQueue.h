@@ -6,11 +6,11 @@
 
 // send small tasks to be run on main thread in game loop
 // used by the ThreadQueue to send messages/results
-class AsyncQueue {
+class SyncQueue {
 public:
 
     // singleton
-    static AsyncQueue& get_instance();
+    static SyncQueue& get_instance();
 
     // this can be done from any thread
     void push(std::function<void(void)> func);
@@ -23,10 +23,10 @@ public:
     void process_tasks_for(int duration);
 
 private:
-    AsyncQueue() = default;
+    SyncQueue() = default;
 
-    AsyncQueue(const AsyncQueue&) = delete;
-    void operator=(const AsyncQueue&) = delete;
+    SyncQueue(const SyncQueue&) = delete;
+    void operator=(const SyncQueue&) = delete;
 
     std::queue<std::function<void(void)>> queue;
 

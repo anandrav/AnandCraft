@@ -58,5 +58,5 @@ ChunkData ChunkSystem::generate_chunk_data(ChunkCoords coords)
         }
     }
 
-    return data;
+    
 }
