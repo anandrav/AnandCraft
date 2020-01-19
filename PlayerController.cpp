@@ -141,16 +141,16 @@ void PlayerController::handle_click(SDL_Event& e)
         }
 
         if (world->has_block_at(x_coord, y_coord, z_coord)) {
-            BlockState block = world->get_block_at(x_coord, y_coord, z_coord);
+            BlockData block = world->get_block_at(x_coord, y_coord, z_coord);
             if (block.id != BlockID::AIR) {
                 if (e.button.button == SDL_BUTTON_LEFT) {
                     // break block
-                    BlockState new_data = BlockState(BlockID::AIR);
+                    BlockData new_data = BlockData(BlockID::AIR);
                     world->modify_block_at(x_coord, y_coord, z_coord, new_data);
                 }
                 if (e.button.button == SDL_BUTTON_RIGHT) {
                     // place block
-                    BlockState new_data = BlockState(BlockID::PLANK);
+                    BlockData new_data = BlockData(BlockID::PLANK);
                     if (world->has_block_at(prev_x_coord, prev_y_coord, prev_z_coord)) {
                         world->modify_block_at(prev_x_coord, prev_y_coord, prev_z_coord, new_data);
                     }

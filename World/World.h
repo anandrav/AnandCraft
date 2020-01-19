@@ -11,7 +11,7 @@ Terrain is procedurally generated/loaded in chunks.
 
 class World : public Renderable {
 public:
-    BlockState get_block(int x, int y, int z) const;
+    BlockData get_block(int x, int y, int z) const;
 
     void modify_block(int x, int y, int z);
     

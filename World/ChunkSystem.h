@@ -16,13 +16,17 @@ Chunks are stored and accessed using their coordinates.
 #include "../Graphics/Renderable.h"
 
 // chunk data is a simple 3D array of blocks
-using ChunkBlocks = std::array<std::array<std::array<BlockState, CHUNK_SIZE>, CHUNK_SIZE>, CHUNK_SIZE>;
+using ChunkData = std::array<std::array<std::array<BlockData, CHUNK_SIZE>, CHUNK_SIZE>, CHUNK_SIZE>;
 
 class ChunkSystem : public Renderable {
 public:
     void create_chunk(ChunkCoords coords);
 
     void remove_chunk(ChunkCoords coords);
+
+    void set_block_data(BlockCoords coords, BlockData data);
+
+    BlockData get_block_data(BlockCoords coords);
 
     // return the number of chunks in the ChunkSystem
     size_t num_chunks() const;
@@ -32,23 +36,30 @@ public:
     void render_transparent() const override;
 
 private:
+    // Generate chunk data
+    // Can be run off the main thread
+    void generate_chunk_data(ChunkCoords coords);
+
+    // Update a chunk's meshes, opaque and transparent.
+    // Can be run off the main thread
+    void update_chunk_meshes(ChunkCoords coords);
+
+    // All the information about a chunk is stored in ChunkComponents
     struct ChunkComponents {
         // even an uninitialized chunk must have coordinates
         ChunkComponents(ChunkCoords coords_)
-            : blocks_initialized(false), coords(coords_)
+            : loaded(false), coords(coords_)
         {
         }
-        
-        // flag indicating whether blocks been initialized
-        bool blocks_initialized;
-        ChunkBlocks blocks;
+
+        bool loaded;
+        ChunkData data;
         Mesh opaque_mesh;
         Mesh transparent_mesh;
-        /* Even though we have a map from coords to components below, it is useful to
-        keep track of coords within the struct as well. */
         ChunkCoords coords;
     };
 
+    // Hash Function
     struct ChunkCoordsHash {
         std::size_t operator() (const ChunkCoords& coords) const;
     };
