@@ -6,7 +6,7 @@ Terrain is procedurally generated/loaded in chunks.
 
 #pragma once
 
-#include "Block.h"
+#include "../Block.h"
 #include "ChunkSystem.h"
 
 class World : public Renderable {

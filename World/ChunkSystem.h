@@ -11,9 +11,9 @@ Chunks are stored and accessed using their coordinates.
 #include <array>
 #include "WorldConfig.h"
 #include "ChunkCoords.h"
-#include "Block.h"
-#include "Graphics/Mesh.h"
-#include "Renderable.h"
+#include "../Block.h"
+#include "../Graphics/Mesh.h"
+#include "../Graphics/Renderable.h"
 
 // chunk data is a simple 3D array of blocks
 using ChunkBlocks = std::array<std::array<std::array<BlockState, CHUNK_SIZE>, CHUNK_SIZE>, CHUNK_SIZE>;
