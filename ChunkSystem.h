@@ -13,11 +13,12 @@ Chunks are stored and accessed using their coordinates.
 #include "ChunkCoords.h"
 #include "Block.h"
 #include "Graphics/Mesh.h"
+#include "Renderable.h"
 
 // chunk data is a simple 3D array of blocks
 using ChunkBlocks = std::array<std::array<std::array<BlockState, CHUNK_SIZE>, CHUNK_SIZE>, CHUNK_SIZE>;
 
-class ChunkSystem {
+class ChunkSystem : public Renderable {
 public:
     void create_chunk(ChunkCoords coords);
 
@@ -25,6 +26,10 @@ public:
 
     // return the number of chunks in the ChunkSystem
     size_t num_chunks() const;
+
+    void render_opaque() const override;
+
+    void render_transparent() const override;
 
 private:
     struct ChunkComponents {

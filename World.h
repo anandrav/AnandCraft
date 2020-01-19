@@ -9,13 +9,16 @@ Terrain is procedurally generated/loaded in chunks.
 #include "Block.h"
 #include "ChunkSystem.h"
 
-class World {
+class World : public Renderable {
 public:
     BlockState get_block(int x, int y, int z) const;
 
     void modify_block(int x, int y, int z);
+    
+    void render_opaque() const override;
+
+    void render_transparent() const override;
 
 private:
     ChunkSystem chunk_system;
 };
-

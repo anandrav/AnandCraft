@@ -1,9 +1,11 @@
 #include "ChunkSystem.h"
 
-#include <functional>   // for std::hash
+#include <functional>
 #include <cassert>
 
 using namespace std;
+
+
 
 size_t ChunkSystem::ChunkCoordsHash::operator() (const ChunkCoords& coords) const
 {
@@ -17,6 +19,8 @@ size_t ChunkSystem::ChunkCoordsHash::operator() (const ChunkCoords& coords) cons
 void ChunkSystem::create_chunk(ChunkCoords coords)
 {
     chunks.insert({ coords, ChunkComponents{coords} });
+
+    // todo generate block data, generate mesh
 }
 
 void ChunkSystem::remove_chunk(ChunkCoords coords)
@@ -26,5 +30,5 @@ void ChunkSystem::remove_chunk(ChunkCoords coords)
 
 size_t ChunkSystem::num_chunks() const
 {
-    chunks.size();
+    return chunks.size();
 }
