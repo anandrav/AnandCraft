@@ -38,11 +38,11 @@ public:
 private:
     // Generate chunk data
     // Can be run off the main thread
-    void generate_chunk_data(ChunkCoords coords);
+    ChunkData generate_chunk_data(ChunkCoords coords);
 
     // Update a chunk's meshes, opaque and transparent.
     // Can be run off the main thread
-    void update_chunk_meshes(ChunkCoords coords);
+    std::pair<Mesh, Mesh> generate_chunk_meshes(ChunkCoords coords);
 
     // All the information about a chunk is stored in ChunkComponents
     struct ChunkComponents {

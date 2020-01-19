@@ -14,8 +14,6 @@ enum class ChunkFace {
     ZNEG
 };
 
-void fill_padded_chunk_data_with_adjacent_chunk(ChunkFace face, const ChunkSystem* chunk_system, ChunkCoords coords, PaddedChunkData& data);
-
 size_t ChunkSystem::ChunkCoordsHash::operator() (const ChunkCoords& coords) const
 {
     size_t h1 = hash<int>()(coords.x);
@@ -42,7 +40,7 @@ size_t ChunkSystem::num_chunks() const
     return chunks.size();
 }
 
-void ChunkSystem::GenerateChunkJob::operator()()
+ChunkData ChunkSystem::generate_chunk_data(ChunkCoords coords)
 {
     ChunkData data;
     // half dirt, 1 layer of grass, the rest is air
@@ -60,24 +58,5 @@ void ChunkSystem::GenerateChunkJob::operator()()
         }
     }
 
-    /* todo ensure everything below is on the main thread, even if Job is on another thread */
-
-    auto lookup = chunk_system->chunks.find(chunk_coords);
-    if (lookup == chunk_system->chunks.end()) {
-        // chunk no longer exists
-        return;
-    }
-
-    lookup->second.data = data;
-}
-
-ChunkSystem::UpdateChunkMeshesJob::UpdateChunkMeshesJob(ChunkSystem* chunk_system_, ChunkCoords chunk_coords_)
-    : chunk_system(chunk_system_), chunk_coords(chunk_coords_)
-{
-    fill_padded_chunk_data_with_adjacent_chunk(ChunkFace::XNEG, chunk_system, chunk_coords, padded_chunk_data);
-}
-
-void ChunkSystem::UpdateChunkMeshesJob::operator()()
-{
-
+    return data;
 }
