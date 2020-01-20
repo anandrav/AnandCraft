@@ -44,32 +44,32 @@ size_t ChunkSystem::num_chunks() const
 
 void ChunkSystem::generate_chunk_data(ChunkCoords coords)
 {
-    ChunkData data;
+    auto data = make_unique<ChunkData>();
     // half dirt, 1 layer of grass, the rest is air
     for (int x = 0; x < CHUNK_WIDTH; ++x) {
         for (int z = 0; z < CHUNK_WIDTH; ++z) {
             int y = 0;
             for (; y < CHUNK_WIDTH / 2; ++y) {
-                data[x][y][z] = BlockData(BlockID::DIRT);
+                 (*data)[x][y][z] = BlockData(BlockID::DIRT);
             }
-            data[x][y][z] = BlockData(BlockID::GRASS);
+            (*data)[x][y][z] = BlockData(BlockID::GRASS);
             ++y;
             for (; y < CHUNK_WIDTH; ++y) {
-                data[x][y][z] = BlockData(BlockID::AIR);
+                (*data)[x][y][z] = BlockData(BlockID::AIR);
             }
         }
     }
 
     SyncQueue::get_instance().push(
-        [=]()
+        // chunk data is captured by move to prevent unnecessary copying
+        [this, coords, moved_data{ move(data) }]() mutable
         {
             auto lookup = chunks.find(coords);
             if (lookup == chunks.end()) {
                 // chunk doesn't exist anymore
                 return;
             }
-            lookup->second.loaded = true;
-            lookup->second.data = data;
+            lookup->second.chunk_data = move(moved_data);
 
             // TODO YOU WERE HERE
             PaddedChunkData padded_data;
@@ -81,4 +81,9 @@ void ChunkSystem::generate_chunk_data(ChunkCoords coords)
             );
         }
     );
+}
+
+void ChunkSystem::generate_chunk_meshes(ChunkCoords coords, PaddedChunkData data)
+{
+
 }

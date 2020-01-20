@@ -11,7 +11,11 @@
 const int TICKRATE = 20;
 const int MS_PER_UPDATE = 1000 / TICKRATE;
 
-Game::Game(SDL_Window* window_in) : player_controller(&player, &world), is_running(true), window(window_in) {
+Game::Game(SDL_Window* window_in)
+    : player_controller(&player, &world)
+    , is_running(true)
+    , window(window_in)
+{
     // Create texture from image
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
@@ -30,7 +34,8 @@ Game::Game(SDL_Window* window_in) : player_controller(&player, &world), is_runni
     stbi_image_free(data);
 }
 
-void Game::run_loop() {
+void Game::run_loop()
+{
     double previous = SDL_GetTicks();
     double lag = 0.0;
     while (is_running) {
@@ -49,7 +54,8 @@ void Game::run_loop() {
     }
 }
 
-void Game::process_input() {
+void Game::process_input()
+{
     SDL_Event e;
 
     while (SDL_PollEvent(&e)) {
@@ -61,16 +67,20 @@ void Game::process_input() {
     }
 }
 
-void Game::update() {
+void Game::update()
+{
     process_input();
 
     player.update();
     world.update(player.get_position());
 
+    // fixme put this in a while loop
+    // while (!deterministic_job_queue.empty()) or something
     SyncQueue::get_instance().process_all_tasks();
 }
 
-void Game::render() {
+void Game::render()
+{
     // clear
     glDepthMask(GL_TRUE);
     glClearColor(.60f, .70f, .95f, 1.0f);

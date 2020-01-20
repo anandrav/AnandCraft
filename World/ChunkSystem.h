@@ -7,13 +7,18 @@ Chunks are stored and accessed using their coordinates.
 #pragma once
 
 #include <unordered_map>
-#include <vector>
 #include <array>
+#include <memory>
 #include "WorldConfig.h"
 #include "ChunkCoords.h"
 #include "../Block.h"
 #include "../Graphics/Mesh.h"
 #include "../Graphics/Renderable.h"
+
+//using ChunkData = BlockData[CHUNK_WIDTH][CHUNK_WIDTH][CHUNK_WIDTH];
+//using PaddedChunkData = BlockData[CHUNK_WIDTH+2][CHUNK_WIDTH+2][CHUNK_WIDTH+2];
+using ChunkData = std::array<std::array<std::array<BlockData, CHUNK_WIDTH>, CHUNK_WIDTH>, CHUNK_WIDTH>;
+using PaddedChunkData = std::array<std::array<std::array<BlockData, CHUNK_WIDTH + 2>, CHUNK_WIDTH + 2>, CHUNK_WIDTH + 2>;
 
 class ChunkSystem : public Renderable {
 public:
@@ -49,12 +54,11 @@ private:
     struct ChunkComponents {
         // even an uninitialized chunk must have coordinates
         ChunkComponents(ChunkCoords coords_)
-            : loaded(false), coords(coords_)
+            : coords(coords_)
         {
         }
 
-        bool loaded;
-        ChunkData data;
+        std::unique_ptr<ChunkData> chunk_data;
         Mesh opaque_mesh;
         Mesh transparent_mesh;
         ChunkCoords coords;
