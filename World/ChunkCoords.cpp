@@ -10,10 +10,10 @@
 // must account for rounding of negative numbers!
 constexpr int block_to_chunk_coord(int element) { 
     if (element >= 0) {
-        return element / CHUNK_SIZE;
+        return element / CHUNK_WIDTH;
     }
     // negative number rounding case
-    return ((element + 1) / CHUNK_SIZE) - 1;
+    return ((element + 1) / CHUNK_WIDTH) - 1;
 }
 
 ChunkCoords::ChunkCoords(int x_, int y_, int z_)

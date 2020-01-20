@@ -2,6 +2,8 @@
 
 #include <functional>
 #include <cassert>
+#include "../Async/SyncQueue.h"
+#include "../Async/ThreadQueue.h"
 
 using namespace std;
 
@@ -40,23 +42,43 @@ size_t ChunkSystem::num_chunks() const
     return chunks.size();
 }
 
-ChunkData ChunkSystem::generate_chunk_data(ChunkCoords coords)
+void ChunkSystem::generate_chunk_data(ChunkCoords coords)
 {
     ChunkData data;
     // half dirt, 1 layer of grass, the rest is air
-    for (int x = 0; x < CHUNK_SIZE; ++x) {
-        for (int z = 0; z < CHUNK_SIZE; ++z) {
+    for (int x = 0; x < CHUNK_WIDTH; ++x) {
+        for (int z = 0; z < CHUNK_WIDTH; ++z) {
             int y = 0;
-            for (; y < CHUNK_SIZE / 2; ++y) {
+            for (; y < CHUNK_WIDTH / 2; ++y) {
                 data[x][y][z] = BlockData(BlockID::DIRT);
             }
             data[x][y][z] = BlockData(BlockID::GRASS);
             ++y;
-            for (; y < CHUNK_SIZE; ++y) {
+            for (; y < CHUNK_WIDTH; ++y) {
                 data[x][y][z] = BlockData(BlockID::AIR);
             }
         }
     }
 
-    
+    SyncQueue::get_instance().push(
+        [=]()
+        {
+            auto lookup = chunks.find(coords);
+            if (lookup == chunks.end()) {
+                // chunk doesn't exist anymore
+                return;
+            }
+            lookup->second.loaded = true;
+            lookup->second.data = data;
+
+            // TODO YOU WERE HERE
+            PaddedChunkData padded_data;
+
+            using namespace placeholders;
+            ThreadQueue::get_instance().push(
+                bind(&ChunkSystem::generate_chunk_meshes, this, coords, padded_data),
+                ThreadQueue::Priority::NORMAL
+            );
+        }
+    );
 }

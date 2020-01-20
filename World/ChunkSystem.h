@@ -15,9 +15,6 @@ Chunks are stored and accessed using their coordinates.
 #include "../Graphics/Mesh.h"
 #include "../Graphics/Renderable.h"
 
-// chunk data is a simple 3D array of blocks
-using ChunkData = std::array<std::array<std::array<BlockData, CHUNK_SIZE>, CHUNK_SIZE>, CHUNK_SIZE>;
-
 class ChunkSystem : public Renderable {
 public:
     void create_chunk(ChunkCoords coords);
@@ -38,11 +35,15 @@ public:
 private:
     // Generate chunk data
     // Can be run off the main thread
-    ChunkData generate_chunk_data(ChunkCoords coords);
+    void generate_chunk_data(ChunkCoords coords);
+
+    // generating chunk meshes requires knowledge of adjacent blocks
+    // so we pad by one block on either side
+    using PaddedChunkData = std::vector<std::vector<std::vector<BlockData>>>;
 
     // Update a chunk's meshes, opaque and transparent.
     // Can be run off the main thread
-    std::pair<Mesh, Mesh> generate_chunk_meshes(ChunkCoords coords);
+    void generate_chunk_meshes(ChunkCoords coords, PaddedChunkData);
 
     // All the information about a chunk is stored in ChunkComponents
     struct ChunkComponents {
