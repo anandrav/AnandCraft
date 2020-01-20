@@ -38,18 +38,6 @@ public:
     void render_transparent() const override;
 
 private:
-    // Generate chunk data
-    // Can be run off the main thread
-    void generate_chunk_data(ChunkCoords coords);
-
-    // generating chunk meshes requires knowledge of adjacent blocks
-    // so we pad by one block on either side
-    using PaddedChunkData = std::vector<std::vector<std::vector<BlockData>>>;
-
-    // Update a chunk's meshes, opaque and transparent.
-    // Can be run off the main thread
-    void generate_chunk_meshes(ChunkCoords coords, PaddedChunkData);
-
     // All the information about a chunk is stored in ChunkComponents
     struct ChunkComponents {
         // even an uninitialized chunk must have coordinates
@@ -64,7 +52,23 @@ private:
         ChunkCoords coords;
     };
 
-    // Hash Function
+    // Generate chunk data
+    // Can be run off the main thread
+    void generate_chunk_data(ChunkCoords coords);
+
+    // Make padded chunk data using chunk located at coords and its adjacent chunks.
+    // If no adjacent chunk can be found for a certain face, fill data with BlockID::AIR.
+    // PaddedChunkData is used to generate chunk meshes on another thread, because generating
+    // chunk mehses requires knowledge of adjacent chunks.
+    PaddedChunkData make_padded_chunk_data(const ChunkComponents& components) const;
+
+    void copy_data_from_adjacent_chunk(PaddedChunkData& padded, ChunkCoords coords, CubeFace face) const;
+
+    // Update a chunk's meshes, opaque and transparent.
+    // Can be run off the main thread
+    void generate_chunk_meshes(ChunkCoords coords, const PaddedChunkData);
+
+    // Hash function for ChunkCoords
     struct ChunkCoordsHash {
         std::size_t operator() (const ChunkCoords& coords) const;
     };

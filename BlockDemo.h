@@ -33,35 +33,35 @@ private:
         std::vector<Vertex> vertices_vec;
         std::vector<unsigned int> indices_vec;
 
-        std::vector<Vertex> face1 = get_block_face_vertices(state.id, BlockFace::XNEG);
+        std::vector<Vertex> face1 = get_block_face_vertices(state.id, CubeFace::XNEG);
         vertices_vec.insert(vertices_vec.end(), face1.begin(), face1.end());
-        face1 = get_block_face_vertices(state.id, BlockFace::XPOS);
+        face1 = get_block_face_vertices(state.id, CubeFace::XPOS);
         vertices_vec.insert(vertices_vec.end(), face1.begin(), face1.end());
-        face1 = get_block_face_vertices(state.id, BlockFace::YNEG);
+        face1 = get_block_face_vertices(state.id, CubeFace::YNEG);
         vertices_vec.insert(vertices_vec.end(), face1.begin(), face1.end());
-        face1 = get_block_face_vertices(state.id, BlockFace::YPOS);
+        face1 = get_block_face_vertices(state.id, CubeFace::YPOS);
         vertices_vec.insert(vertices_vec.end(), face1.begin(), face1.end());
-        face1 = get_block_face_vertices(state.id, BlockFace::ZNEG);
+        face1 = get_block_face_vertices(state.id, CubeFace::ZNEG);
         vertices_vec.insert(vertices_vec.end(), face1.begin(), face1.end());
-        face1 = get_block_face_vertices(state.id, BlockFace::ZPOS);
+        face1 = get_block_face_vertices(state.id, CubeFace::ZPOS);
         vertices_vec.insert(vertices_vec.end(), face1.begin(), face1.end());
 
-        std::vector<unsigned int> indices1 = get_block_face_indices(state.id, BlockFace::XNEG);
+        std::vector<unsigned int> indices1 = get_block_face_indices(state.id, CubeFace::XNEG);
         increment_vector(indices1, 0);
         indices_vec.insert(indices_vec.end(), indices1.begin(), indices1.end());
-        indices1 = get_block_face_indices(state.id, BlockFace::XPOS);
+        indices1 = get_block_face_indices(state.id, CubeFace::XPOS);
         increment_vector(indices1, 4);
         indices_vec.insert(indices_vec.end(), indices1.begin(), indices1.end());
-        indices1 = get_block_face_indices(state.id, BlockFace::YNEG);
+        indices1 = get_block_face_indices(state.id, CubeFace::YNEG);
         increment_vector(indices1, 8);
         indices_vec.insert(indices_vec.end(), indices1.begin(), indices1.end());
-        indices1 = get_block_face_indices(state.id, BlockFace::YPOS);
+        indices1 = get_block_face_indices(state.id, CubeFace::YPOS);
         increment_vector(indices1, 12);
         indices_vec.insert(indices_vec.end(), indices1.begin(), indices1.end());
-        indices1 = get_block_face_indices(state.id, BlockFace::ZNEG);
+        indices1 = get_block_face_indices(state.id, CubeFace::ZNEG);
         increment_vector(indices1, 16);
         indices_vec.insert(indices_vec.end(), indices1.begin(), indices1.end());
-        indices1 = get_block_face_indices(state.id, BlockFace::ZPOS);
+        indices1 = get_block_face_indices(state.id, CubeFace::ZPOS);
         increment_vector(indices1, 20);
         indices_vec.insert(indices_vec.end(), indices1.begin(), indices1.end());
 

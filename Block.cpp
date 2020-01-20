@@ -21,7 +21,7 @@ with its "bottom left back" corner at (0,0,0)
 and its "top right front" corner at (1,1,1),
 using the right-hand rule.
 */
-vector<Vertex> get_block_face_vertices(BlockID id, BlockFace face) {
+vector<Vertex> get_block_face_vertices(BlockID id, CubeFace face) {
     std::pair<int, int> origin = get_texture_atlas_location(id, face);
 
     float tex_left = float(origin.first) / TEXTURE_ATLAS_WIDTH_IN_BLOCKS;
@@ -34,7 +34,7 @@ vector<Vertex> get_block_face_vertices(BlockID id, BlockFace face) {
     switch (get_block_mesh_type(id)) {
     case BlockMesh::CUBE:
         switch (face) {
-        case BlockFace::XNEG: {
+        case CubeFace::XNEG: {
             glm::vec3 normal(-1.f, 0.f, 0.f); // pointing in the negative x direction
             // bottom left back
             Vertex v000{
@@ -62,7 +62,7 @@ vector<Vertex> get_block_face_vertices(BlockID id, BlockFace face) {
             };
             return { v000, v001, v010, v011 };
         }
-        case BlockFace::XPOS: {
+        case CubeFace::XPOS: {
             glm::vec3 normal(1.f, 0.f, 0.f); // pointing in the positive x direction
             // bottom right back
             Vertex v100{
@@ -90,7 +90,7 @@ vector<Vertex> get_block_face_vertices(BlockID id, BlockFace face) {
             };
             return { v100, v101, v110, v111 };
         }
-        case BlockFace::YNEG: {
+        case CubeFace::YNEG: {
             glm::vec3 normal(0.f, -1.f, 0.f); // pointing in the negative y direction
             // bottom left back
             Vertex v000{
@@ -118,7 +118,7 @@ vector<Vertex> get_block_face_vertices(BlockID id, BlockFace face) {
             };
             return { v000, v001, v100, v101 };
         }
-        case BlockFace::YPOS: {
+        case CubeFace::YPOS: {
             glm::vec3 normal(0.f, 1.f, 0.f); // pointing in the positive y direction
             // top left back
             Vertex v010{
@@ -146,7 +146,7 @@ vector<Vertex> get_block_face_vertices(BlockID id, BlockFace face) {
             };
             return { v010, v011, v110, v111 };
         }
-        case BlockFace::ZNEG: {
+        case CubeFace::ZNEG: {
             glm::vec3 normal(0.f, 0.f, -1.f); // pointing in the negative z direction
             // bottom left back
             Vertex v000{
@@ -174,7 +174,7 @@ vector<Vertex> get_block_face_vertices(BlockID id, BlockFace face) {
             };
             return { v000, v010, v100, v110 };
         }
-        case BlockFace::ZPOS: {
+        case CubeFace::ZPOS: {
             glm::vec3 normal(0.f, 0.f, 1.f); // pointing in the positive z direction
             // bottom left front
             Vertex v001{
@@ -211,14 +211,14 @@ vector<Vertex> get_block_face_vertices(BlockID id, BlockFace face) {
 
 }
 
-vector<unsigned int> get_block_face_indices(BlockID id, BlockFace face) {
+vector<unsigned int> get_block_face_indices(BlockID id, CubeFace face) {
     // counter-clockwise triangle winding
     switch (get_block_mesh_type(id)) {
     case BlockMesh::CUBE: {
         switch (face) {
-        case BlockFace::XNEG:
-        case BlockFace::ZNEG:
-        case BlockFace::YPOS:
+        case CubeFace::XNEG:
+        case CubeFace::ZNEG:
+        case CubeFace::YPOS:
             return { 
                 0, 1, 2, 
                 2, 1, 3 
@@ -241,15 +241,15 @@ vector<unsigned int> get_block_face_indices(BlockID id, BlockFace face) {
 
 // return bottom left corner of texture in atlas
 // coordinate system uses origin located at bottom left of image
-std::pair<int, int> get_texture_atlas_location(BlockID id, BlockFace face) {
+std::pair<int, int> get_texture_atlas_location(BlockID id, CubeFace face) {
     switch (id) {
     case BlockID::DIRT:
         return { 2, 15 };
     case BlockID::GRASS:
         switch (face) {
-        case BlockFace::YPOS:
+        case CubeFace::YPOS:
             return { 0, 15 };
-        case BlockFace::YNEG:
+        case CubeFace::YNEG:
             return { 2, 15 };
         default:
             return { 3, 15 };
@@ -264,8 +264,8 @@ std::pair<int, int> get_texture_atlas_location(BlockID id, BlockFace face) {
         return { 4, 15 };
     case BlockID::LOG:
         switch (face) {
-        case BlockFace::YPOS:
-        case BlockFace::YNEG:
+        case CubeFace::YPOS:
+        case CubeFace::YNEG:
             return { 5, 14 };
         default:
             return { 4, 14 };

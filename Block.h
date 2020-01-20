@@ -46,14 +46,14 @@ enum class BlockMesh : uint8_t {
     X,
 };
 
-enum class BlockSpin : uint8_t {
+enum class CubeSpin : uint8_t {
     NORTH,
     EAST,
     SOUTH,
     WEST
 };
 
-enum class BlockFace : uint8_t {
+enum class CubeFace : uint8_t {
     XPOS,
     XNEG,
     YPOS,
@@ -66,24 +66,24 @@ enum class BlockFace : uint8_t {
 
 struct BlockData {
 public:
-    BlockData(BlockID id = BlockID::DEBUG, BlockSpin spin = BlockSpin::NORTH, BlockFace top_face = BlockFace::YPOS) :
+    BlockData(BlockID id = BlockID::AIR, CubeSpin spin = CubeSpin::NORTH, CubeFace top_face = CubeFace::YPOS) :
         id(id), spin(spin), top_face(top_face)
     {
     }
 
     BlockID id;
     // orientation fields
-    BlockSpin spin;
-    BlockFace top_face;
+    CubeSpin spin;
+    CubeFace top_face;
 };
 
 /* functions for constructing meshes with block faces */
 
-std::vector<Vertex> get_block_face_vertices(BlockID id, BlockFace face);
+std::vector<Vertex> get_block_face_vertices(BlockID id, CubeFace face);
 
-std::vector<unsigned int> get_block_face_indices(BlockID id, BlockFace face);
+std::vector<unsigned int> get_block_face_indices(BlockID id, CubeFace face);
 
-std::pair<int, int> get_texture_atlas_location(BlockID id, BlockFace face);
+std::pair<int, int> get_texture_atlas_location(BlockID id, CubeFace face);
 
 /* functions for getting block specs */
 
