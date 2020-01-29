@@ -1,7 +1,7 @@
 # AnandCraft
 A Minecraft clone made by Anand Dukkipati
 
-NOTE: I plan to add dependency management for all major platforms in the near future.
+NOTE: I will add build support soon!
 
 ## Feature Todo List
 - [x] blocks w/ textures

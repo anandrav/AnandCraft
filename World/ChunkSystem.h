@@ -42,11 +42,11 @@ private:
     struct ChunkComponents {
         // even an uninitialized chunk must have coordinates
         ChunkComponents(ChunkCoords coords_)
-            : coords(coords_)
+            : chunk_data(nullptr), coords(coords_)
         {
         }
 
-        std::unique_ptr<ChunkData> chunk_data;
+        ChunkData* chunk_data;
         Mesh opaque_mesh;
         Mesh transparent_mesh;
         ChunkCoords coords;
@@ -60,13 +60,13 @@ private:
     // If no adjacent chunk can be found for a certain face, fill data with BlockID::AIR.
     // PaddedChunkData is used to generate chunk meshes on another thread, because generating
     // chunk mehses requires knowledge of adjacent chunks.
-    PaddedChunkData make_padded_chunk_data(const ChunkComponents& components) const;
+    PaddedChunkData* make_padded_chunk_data(const ChunkComponents& components) const;
 
-    void copy_data_from_adjacent_chunk(PaddedChunkData& padded, ChunkCoords coords, CubeFace face) const;
+    void copy_data_from_adjacent_chunk(PaddedChunkData* padded, ChunkCoords coords, CubeFace face) const;
 
     // Update a chunk's meshes, opaque and transparent.
     // Can be run off the main thread
-    void generate_chunk_meshes(ChunkCoords coords, const PaddedChunkData);
+    void generate_chunk_meshes(ChunkCoords coords, const PaddedChunkData* const padded_data);
 
     // Hash function for ChunkCoords
     struct ChunkCoordsHash {

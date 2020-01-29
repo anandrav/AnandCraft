@@ -36,7 +36,7 @@ size_t ChunkSystem::num_chunks() const
 
 void ChunkSystem::generate_chunk_data(ChunkCoords coords)
 {
-    auto data = make_unique<ChunkData>();
+    auto data = new ChunkData;
     // half dirt, 1 layer of grass, the rest is air
     for (int x = 0; x < CHUNK_WIDTH; ++x) {
         for (int z = 0; z < CHUNK_WIDTH; ++z) {
@@ -54,17 +54,18 @@ void ChunkSystem::generate_chunk_data(ChunkCoords coords)
 
     SyncQueue::get_instance().push(
         // chunk data is captured by move to prevent unnecessary copying
-        [this, coords, moved_data{ move(data) }]() mutable
+        [this, coords, data ]() mutable
         {
             auto lookup = chunks.find(coords);
             if (lookup == chunks.end()) {
                 // chunk doesn't exist anymore
+                delete data;
                 return;
             }
             ChunkComponents& components = lookup->second;
-            components.chunk_data = move(moved_data);
+            components.chunk_data = data;
 
-            PaddedChunkData padded_data = make_padded_chunk_data(components);
+            PaddedChunkData* padded_data = make_padded_chunk_data(components);
 
             using namespace placeholders;
             ThreadQueue::get_instance().push(
@@ -75,16 +76,16 @@ void ChunkSystem::generate_chunk_data(ChunkCoords coords)
     );
 }
 
-PaddedChunkData ChunkSystem::make_padded_chunk_data(const ChunkComponents& components) const
+PaddedChunkData* ChunkSystem::make_padded_chunk_data(const ChunkComponents& components) const
 {
-    PaddedChunkData padded;
+    PaddedChunkData* padded = new PaddedChunkData;
 
-    // copy data from current chunk to padded data
-    for (int x = 0; x < CHUNK_WIDTH; ++x) {
-        for (int y = 0; y < CHUNK_WIDTH; ++y) {
-            for (int z = 0; z < CHUNK_WIDTH; ++z) {
+    // copy data from current chunk to padded datas
+    for (size_t x = 0; x < CHUNK_WIDTH; ++x) {
+        for (size_t y = 0; y < CHUNK_WIDTH; ++y) {
+            for (size_t z = 0; z < CHUNK_WIDTH; ++z) {
                 // increment each coordinate by 1 to account for padding
-                padded[x + 1][y + 1][z + 1] = (*components.chunk_data)[x][y][z];
+                (*padded)[x + 1][y + 1][z + 1] = (*components.chunk_data)[x][y][z];
             }
         }
     }
@@ -105,9 +106,11 @@ PaddedChunkData ChunkSystem::make_padded_chunk_data(const ChunkComponents& compo
     return padded;
 }
 
-void ChunkSystem::copy_data_from_adjacent_chunk(PaddedChunkData& padded, ChunkCoords coords, CubeFace face) const
+void ChunkSystem::copy_data_from_adjacent_chunk(PaddedChunkData* padded, ChunkCoords coords, CubeFace face) const
 {
     // parameters for looping through appropriate chunk data
+    // depending on which face is passed, we set the parameters to iterate over a slice
+    //      of one of the adjacent chunks.
     // this helps us avoid hard-coding a case for each CubeFace!
     int x_start, x_end, y_start, y_end, z_start, z_end, x_adj_sign, y_adj_sign, z_adj_sign;
     // by default, we assume that block data from 0 to CHUNK_WIDTH is copied for each axis
@@ -184,13 +187,13 @@ void ChunkSystem::copy_data_from_adjacent_chunk(PaddedChunkData& padded, ChunkCo
                 int z_adj = util::positive_modulo(z * z_adj_sign, CHUNK_WIDTH);
 
                 // increment each coordinate by 1 to account for padding
-                padded[x + 1][y + 1][z + 1] = (*adjacent.chunk_data)[x_adj][y_adj][z_adj];
+                (*padded)[x + 1][y + 1][z + 1] = (*adjacent.chunk_data)[x_adj][y_adj][z_adj];
             }
         }
     }
 }
 
-void ChunkSystem::generate_chunk_meshes(ChunkCoords coords, const PaddedChunkData data)
+void ChunkSystem::generate_chunk_meshes(ChunkCoords coords, const PaddedChunkData* const data)
 {
 
 }
