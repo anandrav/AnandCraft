@@ -5,7 +5,7 @@
 
 const float VELOCITY = 0.6f;
 
-PlayerController::PlayerController(Player* player_in, OldWorld* world_in) :
+PlayerController::PlayerController(Player* player_in, World* world_in) :
     player(player_in), world(world_in)
 {
 }
@@ -140,24 +140,24 @@ void PlayerController::handle_click(SDL_Event& e)
             continue;
         }
 
-        if (world->has_block_at(x_coord, y_coord, z_coord)) {
-            BlockData block = world->get_block_at(x_coord, y_coord, z_coord);
-            if (block.id != BlockID::AIR) {
-                if (e.button.button == SDL_BUTTON_LEFT) {
-                    // break block
-                    BlockData new_data = BlockData(BlockID::AIR);
-                    world->modify_block_at(x_coord, y_coord, z_coord, new_data);
-                }
-                if (e.button.button == SDL_BUTTON_RIGHT) {
-                    // place block
-                    BlockData new_data = BlockData(BlockID::PLANK);
-                    if (world->has_block_at(prev_x_coord, prev_y_coord, prev_z_coord)) {
-                        world->modify_block_at(prev_x_coord, prev_y_coord, prev_z_coord, new_data);
-                    }
-                }
-                break;
-            }
-        }
+        // if (world->has_block_at(x_coord, y_coord, z_coord)) {
+        //     BlockData block = world->get_block_at(x_coord, y_coord, z_coord);
+        //     if (block.id != BlockID::AIR) {
+        //         if (e.button.button == SDL_BUTTON_LEFT) {
+        //             // break block
+        //             BlockData new_data = BlockData(BlockID::AIR);
+        //             world->modify_block_at(x_coord, y_coord, z_coord, new_data);
+        //         }
+        //         if (e.button.button == SDL_BUTTON_RIGHT) {
+        //             // place block
+        //             BlockData new_data = BlockData(BlockID::PLANK);
+        //             if (world->has_block_at(prev_x_coord, prev_y_coord, prev_z_coord)) {
+        //                 world->modify_block_at(prev_x_coord, prev_y_coord, prev_z_coord, new_data);
+        //             }
+        //         }
+        //         break;
+        //     }
+        // }
 
         prev_x_coord = x_coord;
         prev_y_coord = y_coord;

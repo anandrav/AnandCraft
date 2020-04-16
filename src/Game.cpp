@@ -5,8 +5,10 @@
 #include <glm/glm.hpp>
 
 #include "util.h"
-#include "stb_image.h"
 #include "Async/SyncQueue.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 const int TICKRATE = 20;
 const int MS_PER_UPDATE = 1000 / TICKRATE;
@@ -71,8 +73,8 @@ void Game::update()
 {
     process_input();
 
-    player.update();
-    world.update(player.get_position());
+    // player.update();
+    // world.update(player.get_position());
 
     // fixme put this in a while loop
     // while (!deterministic_job_queue.empty()) or something

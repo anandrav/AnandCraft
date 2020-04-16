@@ -6,8 +6,10 @@ Then, all objects' transparent components should be rendered in another pass.
 
 #pragma once
 
+#include "Camera.h"
+
 class Renderable {
 public:
-    virtual void render_opaque() const = 0;
-    virtual void render_transparent() const = 0;
+    virtual void render_opaque(const Camera& camera) const = 0;
+    virtual void render_transparent(const Camera& camera) const = 0;
 };

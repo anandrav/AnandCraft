@@ -7,7 +7,7 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>&
 }
 
 // copy constructor
-Mesh::Mesh(Mesh& other) {
+Mesh::Mesh(const Mesh& other) {
     num_vertices = other.num_vertices;
     num_indices = other.num_indices;
 
@@ -44,7 +44,7 @@ Mesh::Mesh(Mesh& other) {
 }
 
 // copy assignment operator
-Mesh& Mesh::operator=(Mesh& other) {
+Mesh& Mesh::operator=(const Mesh& other) {
     // copy-swap
     Mesh temp(other);
     std::swap(num_vertices, temp.num_vertices);

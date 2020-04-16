@@ -4,7 +4,7 @@
 
 #include "Player.h"
 #include "PlayerController.h"
-#include "World/OldWorld.h"
+#include "World/World.h"
 
 #include "Ray.h"
 
@@ -20,7 +20,7 @@ public:
 private:
     unsigned int texture;
 
-    OldWorld world;
+    World world;
     Player player;
     PlayerController player_controller;
 

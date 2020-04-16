@@ -33,20 +33,22 @@ public:
     // return the number of chunks in the ChunkSystem
     size_t num_chunks() const;
 
-    void render_opaque() const override;
+    void render_opaque(const Camera& camera) const override;
 
-    void render_transparent() const override;
+    void render_transparent(const Camera& camera) const override;
 
 private:
     // All the information about a chunk is stored in ChunkComponents
     struct ChunkComponents {
         // even an uninitialized chunk must have coordinates
         ChunkComponents(ChunkCoords coords_)
-            : chunk_data(nullptr), coords(coords_)
+            : coords(coords_)
         {
         }
 
-        ChunkData* chunk_data;
+        ChunkComponents(const ChunkComponents&) = default;
+
+        // ChunkData* chunk_data;
         Mesh opaque_mesh;
         Mesh transparent_mesh;
         ChunkCoords coords;

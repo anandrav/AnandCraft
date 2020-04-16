@@ -1,6 +1,9 @@
 #include <iostream>
 #include "Game.h"
 #include "globals.h"
+#include "util.h"
+#include <GL/glew.h>
+#include <SDL2/SDL.h>
 
 using namespace std;
 

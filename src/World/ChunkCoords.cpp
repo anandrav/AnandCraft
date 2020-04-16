@@ -36,5 +36,5 @@ bool ChunkCoords::operator== (const ChunkCoords& coords) const
         x == coords.x &&
         y == coords.y &&
         z == coords.z
-        );
+    );
 }

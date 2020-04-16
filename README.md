@@ -14,7 +14,7 @@ NOTE: I will add build support soon!
 - [ ] "greedy meshing"
 
 ## Some pictures:
-![Grass Block](/readme-images/grass-block.jpg)
-![Glass and Cobblestone](/readme-images/glass-and-cobble-chunk.jpg)
-![Castle](/readme-images/castle.jpg)
+![Grass Block](/screenshots/grass-block.jpg)
+![Glass and Cobblestone](/screenshots/glass-and-cobble-chunk.jpg)
+![Castle](/screenshots/castle.jpg)
 

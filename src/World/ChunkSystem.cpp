@@ -53,25 +53,25 @@ void ChunkSystem::generate_chunk_data(ChunkCoords coords)
     }
 
     SyncQueue::get_instance().push(
-        // chunk data is captured by move to prevent unnecessary copying
+        // // chunk data is captured by move to prevent unnecessary copying
         [this, coords, data ]() mutable
         {
-            auto lookup = chunks.find(coords);
-            if (lookup == chunks.end()) {
-                // chunk doesn't exist anymore
-                delete data;
-                return;
-            }
-            ChunkComponents& components = lookup->second;
-            components.chunk_data = data;
+            // auto lookup = chunks.find(coords);
+            // if (lookup == chunks.end()) {
+            //     // chunk doesn't exist anymore
+            //     delete data;
+            //     return;
+            // }
+            // ChunkComponents& components = lookup->second;
+            // components.chunk_data = data;
 
-            PaddedChunkData* padded_data = make_padded_chunk_data(components);
+            // PaddedChunkData* padded_data = make_padded_chunk_data(components);
 
-            using namespace placeholders;
-            ThreadQueue::get_instance().push(
-                bind(&ChunkSystem::generate_chunk_meshes, this, coords, padded_data),
-                ThreadQueue::Priority::NORMAL
-            );
+            // using namespace placeholders;
+            // ThreadQueue::get_instance().push(
+            //     bind(&ChunkSystem::generate_chunk_meshes, this, coords, padded_data),
+            //     ThreadQueue::Priority::NORMAL
+            // );
         }
     );
 }
@@ -80,28 +80,28 @@ PaddedChunkData* ChunkSystem::make_padded_chunk_data(const ChunkComponents& comp
 {
     PaddedChunkData* padded = new PaddedChunkData;
 
-    // copy data from current chunk to padded datas
-    for (size_t x = 0; x < CHUNK_WIDTH; ++x) {
-        for (size_t y = 0; y < CHUNK_WIDTH; ++y) {
-            for (size_t z = 0; z < CHUNK_WIDTH; ++z) {
-                // increment each coordinate by 1 to account for padding
-                (*padded)[x + 1][y + 1][z + 1] = (*components.chunk_data)[x][y][z];
-            }
-        }
-    }
+    // // copy data from current chunk to padded datas
+    // for (size_t x = 0; x < CHUNK_WIDTH; ++x) {
+    //     for (size_t y = 0; y < CHUNK_WIDTH; ++y) {
+    //         for (size_t z = 0; z < CHUNK_WIDTH; ++z) {
+    //             // increment each coordinate by 1 to account for padding
+    //             (*padded)[x + 1][y + 1][z + 1] = (*components.chunk_data)[x][y][z];
+    //         }
+    //     }
+    // }
 
-    // copy data from adjacent chunks, if it exists
-    static const CubeFace faces[] = {
-        CubeFace::XNEG,
-        CubeFace::XPOS,
-        CubeFace::YNEG,
-        CubeFace::YPOS,
-        CubeFace::ZNEG,
-        CubeFace::ZPOS
-    };
-    for (auto face : faces) {
-        copy_data_from_adjacent_chunk(padded, components.coords, face);
-    }
+    // // copy data from adjacent chunks, if it exists
+    // static const CubeFace faces[] = {
+    //     CubeFace::XNEG,
+    //     CubeFace::XPOS,
+    //     CubeFace::YNEG,
+    //     CubeFace::YPOS,
+    //     CubeFace::ZNEG,
+    //     CubeFace::ZPOS
+    // };
+    // for (auto face : faces) {
+    //     copy_data_from_adjacent_chunk(padded, components.coords, face);
+    // }
 
     return padded;
 }
@@ -176,24 +176,32 @@ void ChunkSystem::copy_data_from_adjacent_chunk(PaddedChunkData* padded, ChunkCo
 
     const ChunkComponents& adjacent = lookup->second;
     // this acts like a double-nested for loop, since one of the for loops will only have one iteration.
-    for (int x = x_start; x < x_end; ++x) {
-        for (int y = y_start; y < y_end; ++y) {
-            for (int z = z_start; z < z_end; ++z) {
-                // one of the coordinates from adjacent chunk must be flipped across its axis
-                // for instance, if we are reading blocks from the XNEG chunk, x must be flipped
-                //      must be flipped
-                int x_adj = util::positive_modulo(x * x_adj_sign, CHUNK_WIDTH);
-                int y_adj = util::positive_modulo(y * y_adj_sign, CHUNK_WIDTH);
-                int z_adj = util::positive_modulo(z * z_adj_sign, CHUNK_WIDTH);
+    // for (int x = x_start; x < x_end; ++x) {
+    //     for (int y = y_start; y < y_end; ++y) {
+    //         for (int z = z_start; z < z_end; ++z) {
+    //             // one of the coordinates from adjacent chunk must be flipped across its axis
+    //             // for instance, if we are reading blocks from the XNEG chunk, x must be flipped
+    //             //      must be flipped
+    //             int x_adj = util::positive_modulo(x * x_adj_sign, CHUNK_WIDTH);
+    //             int y_adj = util::positive_modulo(y * y_adj_sign, CHUNK_WIDTH);
+    //             int z_adj = util::positive_modulo(z * z_adj_sign, CHUNK_WIDTH);
 
-                // increment each coordinate by 1 to account for padding
-                (*padded)[x + 1][y + 1][z + 1] = (*adjacent.chunk_data)[x_adj][y_adj][z_adj];
-            }
-        }
-    }
+    //             // increment each coordinate by 1 to account for padding
+    //             (*padded)[x + 1][y + 1][z + 1] = (*adjacent.chunk_data)[x_adj][y_adj][z_adj];
+    //         }
+    //     }
+    // }
 }
 
 void ChunkSystem::generate_chunk_meshes(ChunkCoords coords, const PaddedChunkData* const data)
 {
+
+}
+
+void ChunkSystem::render_opaque(const Camera& camera) const {
+
+}
+
+void ChunkSystem::render_transparent(const Camera& camera) const {
 
 }

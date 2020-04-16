@@ -7,6 +7,7 @@ Terrain is procedurally generated/loaded in chunks.
 #pragma once
 
 #include "../Block.h"
+#include "../Graphics/Camera.h"
 #include "ChunkSystem.h"
 
 class World : public Renderable {
@@ -15,9 +16,9 @@ public:
 
     void modify_block(int x, int y, int z);
     
-    void render_opaque() const override;
+    void render_opaque(const Camera& camera) const override;
 
-    void render_transparent() const override;
+    void render_transparent(const Camera& camera) const override;
 
 private:
     ChunkSystem chunk_system;

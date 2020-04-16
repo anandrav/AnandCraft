@@ -20,7 +20,7 @@ public:
         return velocity;
     }
 
-    const glm::vec3& get_forward() const
+    glm::vec3 get_forward() const
     {
         return camera.get_forward();
     }

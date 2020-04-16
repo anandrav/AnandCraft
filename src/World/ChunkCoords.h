@@ -13,6 +13,8 @@ struct ChunkCoords {
     // convenient conversion from BlockCoordinates to ChunkCoordinates
     ChunkCoords(BlockCoords block_coord);
 
+    ChunkCoords(const ChunkCoords& other) = default;
+
     bool operator== (const ChunkCoords& coords) const;
 
     int x;
