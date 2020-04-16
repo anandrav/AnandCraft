@@ -1,8 +1,6 @@
 # AnandCraft
 A Minecraft clone made by Anand Dukkipati
 
-NOTE: I will add build support soon!
-
 ## Feature Todo List
 - [x] blocks w/ textures
 - [x] chunks
