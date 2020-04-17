@@ -1,7 +1,8 @@
+#build
 AnandCraft
+Release/
+Debug/
 *.o
-
-.vscode
 
 # cmake
 CMakeCache.txt
@@ -10,3 +11,7 @@ Makefile
 cmake_install.cmake
 install_manifest.txt
 build
+
+# vscode
+.vscode
+AnandCraft.code-workspace

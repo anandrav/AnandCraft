@@ -1,7 +1,7 @@
 /*
-Coordinate in World space in units of Chunks.
-Used for identifying chunks by location.
-*/
+ * Coordinate in World space in units of Chunks.
+ * Used for identifying chunks by location.
+ */
 
 #pragma once
 

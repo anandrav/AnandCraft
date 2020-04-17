@@ -6,20 +6,22 @@ Terrain is procedurally generated/loaded in chunks.
 
 #pragma once
 
-#include "../Block.h"
+#include "Chunk.h"
 #include "../Graphics/Camera.h"
-#include "ChunkSystem.h"
+#include "../Graphics/Renderable.h"
 
-class World : public Renderable {
+#include <unordered_map>
+
+class Terrain : public Renderable {
 public:
-    BlockData get_block(int x, int y, int z) const;
+    // BlockData get_block(int x, int y, int z) const;
 
-    void modify_block(int x, int y, int z);
+    // void modify_block(int x, int y, int z);
     
     void render_opaque(const Camera& camera) const override;
 
     void render_transparent(const Camera& camera) const override;
 
 private:
-    ChunkSystem chunk_system;
+    std::unordered_map<ChunkCoords, ChunkPtr> chunks;
 };

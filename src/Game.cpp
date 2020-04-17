@@ -1,20 +1,23 @@
 #include "Game.h"
 
+#include "util.h"
+#include "Async/SyncQueue.h"
+#include "globals.h"
+
 #include <SDL2/SDL.h>
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
-#include "util.h"
-#include "Async/SyncQueue.h"
-
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+
+using namespace std;
 
 const int TICKRATE = 20;
 const int MS_PER_UPDATE = 1000 / TICKRATE;
 
 Game::Game(SDL_Window* window_in)
-    : player_controller(&player, &world)
+    : player_controller(&player)
     , is_running(true)
     , window(window_in)
 {
@@ -31,7 +34,7 @@ Game::Game(SDL_Window* window_in)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
-        std::cout << "Failed to load texture" << std::endl;
+        cout << "Failed to load texture" << endl;
     }
     stbi_image_free(data);
 }
@@ -75,10 +78,11 @@ void Game::update()
 
     // player.update();
     // world.update(player.get_position());
+    demo.transform.rotate(0.03, {0,1,0});
 
     // fixme put this in a while loop
     // while (!deterministic_job_queue.empty()) or something
-    SyncQueue::get_instance().process_all_tasks();
+    // SyncQueue::get_instance().process_all_tasks();
 }
 
 void Game::render()
@@ -90,8 +94,10 @@ void Game::render()
 
     // render world
     glBindTexture(GL_TEXTURE_2D, texture);
-    world.render_opaque(player.get_camera());
-    world.render_transparent(player.get_camera());
+    Camera camera(float(WIDTH) / HEIGHT);
+    demo.render(camera);
+    // world.render_opaque(player.get_camera());
+    // world.render_transparent(player.get_camera());
 
     // render UI/HUD
 

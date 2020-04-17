@@ -7,78 +7,44 @@
 
 #include "GL/glew.h"
 
-// Thin wrapper class around OpenGL shaders
+// Thin RAII wrapper class around OpenGL shader
 class Shader {
 public:
     // the program ID
     GLuint ID;
 
-    Shader() {
+    Shader()
+    {
         ID = 0;
     }
 
     // constructor reads and builds the shader
-    Shader(const std::string vertex_path, const std::string fragment_path) {
-        this->vertex_path = vertex_path;
-        this->fragment_path = fragment_path;
-
-        setup_program();
+    Shader(const std::string& vertex_path, const std::string& fragment_path) 
+    {
+        setup_program(vertex_path, fragment_path);
     }
 
-    Shader(Shader& other) {
-        vertex_path = other.vertex_path;
-        fragment_path = other.fragment_path;
-
-        setup_program();
+    Shader(Shader&& other) noexcept 
+    {
+        ID = other.ID;
+        // prevent destructor from destroying program
+        other.ID = 0;
     }
 
-    Shader& operator=(Shader& other) {
-        Shader temp(other);
-        std::swap(vertex_path, temp.vertex_path);
-        std::swap(fragment_path, temp.fragment_path);
-        std::swap(ID, temp.ID);
+    Shader& operator=(Shader&& other) noexcept 
+    {
+        std::swap(ID, other.ID);
         return *this;
     }
 
-    Shader(Shader&& other) noexcept {
-        vertex_path = std::move(other.vertex_path);
-        fragment_path = std::move(other.fragment_path);
-        setup_program();
-    }
-
-    Shader& operator=(Shader&& other) noexcept {
-        Shader temp(std::move(other));
-        std::swap(vertex_path, temp.vertex_path);
-        std::swap(fragment_path, temp.fragment_path);
-        std::swap(ID, temp.ID);
-        return *this;
-    }
-
-    ~Shader() {
+    ~Shader() 
+    {
         glDeleteProgram(ID);
     }
 
-    // use/activate the shader
-    void bind() {
-        glUseProgram(ID);
-    }
-
-    // set uniform values
-    //void setBool(const std::string& name, bool value) const {
-    //    glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
-    //}
-    //void setInt(const std::string& name, int value) const {
-    //    glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
-    //}
-    //void setFloat(const std::string& name, float value) const {
-    //    glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
-    //}
-
 private:
-    std::string vertex_path;
-    std::string fragment_path;
-
-    void setup_program() {
+    void setup_program(const std::string& vertex_path, const std::string& fragment_path) 
+    {
         std::string vertex_code;
         std::string fragment_code;
         std::ifstream v_shader_file;
@@ -129,7 +95,8 @@ private:
         glDeleteShader(fragment);
     }
 
-    void check_compile_errors(unsigned int shader, const std::string& type) {
+    void check_compile_errors(unsigned int shader, const std::string& type) 
+    {
         int success;
         char info_log[1024];
         if (type != "PROGRAM") {

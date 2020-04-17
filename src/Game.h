@@ -1,12 +1,9 @@
 #pragma once
 
-#include <iostream>
-
 #include "Player.h"
 #include "PlayerController.h"
-#include "World/World.h"
-
 #include "Ray.h"
+#include "BlockDemo.h"
 
 // forward declarations
 struct SDL_Window;
@@ -18,9 +15,9 @@ public:
     void run_loop();
 
 private:
-    unsigned int texture;
+    SingleBlockDemo demo;
+    unsigned int texture; // FIXME move this to the Terrain class or the World folder or something.
 
-    World world;
     Player player;
     PlayerController player_controller;
 

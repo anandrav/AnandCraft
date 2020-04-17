@@ -5,8 +5,8 @@
 
 const float VELOCITY = 0.6f;
 
-PlayerController::PlayerController(Player* player_in, World* world_in) :
-    player(player_in), world(world_in)
+PlayerController::PlayerController(Player* player_in) :
+    player(player_in)
 {
 }
 
