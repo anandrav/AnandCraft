@@ -16,3 +16,9 @@ A Minecraft clone made by Anand Dukkipati
 ![Glass and Cobblestone](/screenshots/glass-and-cobble-chunk.jpg)
 ![Castle](/screenshots/castle.jpg)
 
+## Mac OS X building
+```
+brew install cmake sdl2 glew glm
+cmake .
+make
+```
