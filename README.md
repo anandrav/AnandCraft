@@ -3,22 +3,22 @@ A Minecraft clone made by Anand Dukkipati
 
 ## Feature Todo List
 - [x] blocks w/ textures
-- [x] chunks
-- [x] breaking and placing of blocks
-- [x] multi-threaded terrain loading/generation
-- [ ] basic UI/Menu system
-- [ ] lighting
+- [ ] chunks
+- [ ] multi-threaded terrain loading/generation
+- [ ] breaking and placing of blocks
 - [ ] collision detection
-- [ ] "greedy meshing"
+- [ ] saving and loading worlds
+- [ ] lighting
+- [ ] basic UI/Menu system
 
-## Some pictures:
-![Grass Block](/screenshots/grass-block.jpg)
-![Glass and Cobblestone](/screenshots/glass-and-cobble-chunk.jpg)
-![Castle](/screenshots/castle.jpg)
-
-## Mac OS X building
+## Build on Mac OS X
 ```
 brew install cmake sdl2 glew glm
 cmake .
 make
 ```
+
+## Screenshots:
+<img src="screenshots/grass-block.jpg" width="500">
+<img src="screenshots/glass-and-cobble-chunk.jpg" width="500">
+<img src="screenshots/castle.jpg" width="500">
