@@ -16,6 +16,7 @@ A Minecraft clone made by Anand Dukkipati
 brew install cmake sdl2 glew glm
 cmake .
 make
+./AnandCraft
 ```
 
 ## Screenshots:
