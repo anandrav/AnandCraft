@@ -36,6 +36,8 @@ enum class BlockID : uint8_t {
     // X mesh
     ROSE,
     DAISY,
+
+    COUNT
 };
 
 enum class BlockMesh : uint8_t {

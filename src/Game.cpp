@@ -78,7 +78,7 @@ void Game::update()
 
     // player.update();
     // world.update(player.get_position());
-    demo.transform.rotate(0.03, {0,1,0});
+    demo.update();
 
     // fixme put this in a while loop
     // while (!deterministic_job_queue.empty()) or something

@@ -4,17 +4,21 @@
 #include "Graphics/Transform.h"
 #include "Graphics/Shader.h"
 #include "Graphics/Camera.h"
+
+#include <SDL2/SDL.h>
+
 #include <iostream>
 #include <memory>
 
 class SingleBlockDemo {
 public:
-    Transform transform;
-
     SingleBlockDemo(BlockData state = BlockData(BlockID::GRASS)) : state(state) {
         shader = Shader("res/basic_vert.glsl", "res/basic_frag.glsl");
         setup_mesh();
         transform.set_pos({0,0,-2});
+        previous = SDL_GetTicks();
+        lag = 0;
+        id_index = 0;
     }
 
     void render(const Camera& camera) const {
@@ -29,16 +33,32 @@ public:
         mesh.draw();
     }
 
-    void set_block(BlockData state) {
-        this->state = state;
-
-        setup_mesh();
+    void update()
+    {
+        transform.rotate(0.03, {0,1,0});
+        // change BlockID periodically
+        double current = SDL_GetTicks();
+        double elapsed = current - previous;
+        previous = current;
+        lag += elapsed;
+        const int PERIOD = 950;
+        static std::vector<BlockID> ids{BlockID::GRASS, BlockID::STONE, BlockID::COBBLESTONE, BlockID::SAND, BlockID::PLANK, BlockID::LOG, BlockID::LEAF, BlockID::BRICK, BlockID::GLASS, BlockID::BOOKSHELF, BlockID::DEBUG};
+        if (lag > PERIOD) {
+            lag -= PERIOD;
+            id_index = (id_index + 1) % ids.size();
+            state.id = ids[id_index];
+            setup_mesh();
+        }
     }
 
 private:
     BlockData state;
     Shader shader;
     Mesh mesh;
+    Transform transform;
+    double previous;
+    double lag;
+    int id_index;
 
     void setup_mesh() {
         std::vector<Vertex> vertices_vec;
