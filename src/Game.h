@@ -13,17 +13,16 @@ public:
     Game(SDL_Window* window);
 
     void run_loop();
+    // char if_I_delete_this_bug_but_why;
 
 private:
-    SingleBlockDemo demo;
-    unsigned int texture; // FIXME move this to the Terrain class or the World folder or something.
+    SDL_Window* window;
 
     Player player;
     PlayerController player_controller;
-
     bool is_running;
 
-    SDL_Window* window;
+    SingleBlockDemo demo;
 
     void process_input();
 

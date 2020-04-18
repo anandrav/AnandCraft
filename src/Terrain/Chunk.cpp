@@ -2,6 +2,7 @@
 
 #include "WorldConfig.h"
 #include "TerrainShader.h"
+#include "TerrainTexture.h"
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 #include <vector>
@@ -16,6 +17,7 @@ Chunk::Chunk(ChunkCoords coords)
 
 void Chunk::render_opaque(const Camera& camera) const
 {
+    glBindTexture(GL_TEXTURE_2D, TerrainTexture::get());
     glUseProgram(TerrainShader::ID());
     glm::mat4 clip_transform = camera.get_view_projection() * translation;
     glUniformMatrix4fv(glGetUniformLocation(TerrainShader::ID(), "transform"), 1, GL_FALSE, &clip_transform[0][0]);
@@ -30,6 +32,7 @@ void Chunk::render_opaque(const Camera& camera) const
 
 void Chunk::render_transparent(const Camera& camera) const 
 {
+    glBindTexture(GL_TEXTURE_2D, TerrainTexture::get());
     glUseProgram(TerrainShader::ID());
     glm::mat4 clip_transform = camera.get_view_projection() * translation;
     glUniformMatrix4fv(glGetUniformLocation(TerrainShader::ID(), "transform"), 1, GL_FALSE, &clip_transform[0][0]);

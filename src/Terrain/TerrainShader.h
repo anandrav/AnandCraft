@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Graphics/Shader.h"
+#include <iostream>
 
 class TerrainShader {
 public:
