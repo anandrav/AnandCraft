@@ -3,11 +3,11 @@ A Minecraft clone made by Anand Dukkipati
 
 ## Feature Todo List
 - [x] blocks w/ textures
-- [ ] chunks
-- [ ] multi-threaded terrain loading/generation
+- [x] chunks
 - [ ] breaking and placing of blocks
 - [ ] collision detection
-- [ ] saving and loading worlds
+- [ ] saving, loading, and generating terrain
+- [ ] multi-threaded terrain (generation, loading/saving, mesh building)
 - [ ] lighting
 - [ ] basic UI/Menu system
 
