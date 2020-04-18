@@ -12,24 +12,37 @@
 #include "../Graphics/Renderable.h"
 #include "../Graphics/Mesh.h"
 
-#include <memory>
 #include <shared_mutex>
 
-struct Chunk;
-using ChunkPtr = std::shared_ptr<Chunk>;
+class Chunk : public Renderable {
+public:
+    Chunk(ChunkCoords coords);
 
-struct Chunk : public Renderable {
-    Chunk(ChunkCoords coords_)
-        : coords(coords_)
-    {
-    }
+    Chunk(Chunk&)=delete;
+    Chunk& operator=(Chunk&)=delete;
+    Chunk(Chunk&&)=delete;
+    Chunk& operator=(Chunk&&)=delete;
 
     void render_opaque(const Camera& camera) const override;
     void render_transparent(const Camera& camera) const override;
 
+    void update_meshes();
+
+private:
+    void update_opaque_mesh();
+    void update_transparent_mesh();
+
+    void append_block_face(std::vector<Vertex>& vertices, 
+                           std::vector<unsigned int>& indices, 
+                           int x, int y, int z, const BlockData& block, 
+                           CubeFace face) const;
+
+    bool is_transparent_at(int x, int y, int z) const;
+
     std::shared_mutex mutex;
     ChunkCoords coords;
-    ChunkData data;
+    ChunkBlocks blocks;
     Mesh opaque_mesh;
     Mesh transparent_mesh;
+    glm::mat4 translation;
 };

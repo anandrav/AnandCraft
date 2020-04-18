@@ -67,30 +67,27 @@ enum class CubeFace : uint8_t {
 /* struct to store state of a block in world */
 
 struct BlockData {
-public:
-    BlockData(BlockID id = BlockID::AIR, CubeSpin spin = CubeSpin::NORTH, CubeFace top_face = CubeFace::YPOS) :
+    BlockData(BlockID id = BlockID::DEBUG, CubeSpin spin = CubeSpin::NORTH, CubeFace top_face = CubeFace::YPOS) :
         id(id), spin(spin), top_face(top_face)
     {
     }
 
+    std::string get_name() const;
+
+    /* functions for constructing meshes with block faces */
+
+    bool is_transparent() const;
+
+    BlockMesh get_mesh_type() const;
+
+    std::vector<Vertex> get_face_vertices(CubeFace face) const;
+
+    std::vector<unsigned int> get_face_indices(CubeFace face) const;
+
+    std::pair<int, int> get_texture_atlas_location(CubeFace face) const;
+
     BlockID id;
-    // orientation fields
+    // orientation
     CubeSpin spin;
     CubeFace top_face;
 };
-
-/* functions for constructing meshes with block faces */
-
-std::vector<Vertex> get_block_face_vertices(BlockID id, CubeFace face);
-
-std::vector<unsigned int> get_block_face_indices(BlockID id, CubeFace face);
-
-std::pair<int, int> get_texture_atlas_location(BlockID id, CubeFace face);
-
-/* functions for getting block specs */
-
-BlockMesh get_block_mesh_type(BlockID id);
-
-bool get_block_opacity(BlockID id);
-
-std::string get_block_name(BlockID id);

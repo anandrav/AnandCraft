@@ -12,7 +12,8 @@ public:
         , const glm::vec3& scale = glm::vec3(1.f,1.f,1.f)) :
         position(pos), orientation(rot), m_scale(scale) {}
 
-    inline glm::mat4 get_model() const {
+    inline glm::mat4 get_model() const 
+    {
         glm::mat4 position_matrix = glm::translate(position);
         glm::mat4 rotation_matrix = glm::mat4_cast(orientation);
         glm::mat4 scale_matrix = glm::scale(m_scale);
@@ -20,32 +21,45 @@ public:
         return position_matrix * rotation_matrix * scale_matrix;
     }
 
-    const glm::vec3& get_pos() const {
+    const glm::vec3& get_pos() const 
+    {
         return position;
     }
-    const glm::quat& get_orientation() const {
+    
+    const glm::quat& get_orientation() const 
+    {
         return orientation;
     }
-    const glm::vec3& get_scale() const {
+
+    const glm::vec3& get_scale() const 
+    {
         return m_scale;
     }
 
-    void set_pos(glm::vec3 pos) {
+    void set_pos(glm::vec3 pos) 
+    {
         position = pos;
     }
-    void set_scale(glm::vec3 scale) {
+
+    void set_scale(glm::vec3 scale) 
+    {
         m_scale = scale;
     }
 
-    void translate(glm::vec3 translation) {
+    void translate(glm::vec3 translation) 
+    {
         position += translation;
     }
-    void rotate(float angle, glm::vec3 axis) {
+
+    void rotate(float angle, glm::vec3 axis) 
+    {
         glm::quat rotation = glm::angleAxis(angle, axis);
         orientation = rotation * orientation;
         glm::normalize(orientation);
     }
-    void scale(glm::vec3 scale) {
+
+    void scale(glm::vec3 scale) 
+    {
         m_scale += scale;
     }
 

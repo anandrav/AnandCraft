@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Block.h"
+#include "Terrain/Terrain.h"
 #include "Graphics/Transform.h"
 #include "Graphics/Shader.h"
 #include "Graphics/Camera.h"
@@ -31,6 +32,8 @@ public:
         glEnable(GL_CULL_FACE);
 
         mesh.draw();
+
+        // terrain.render_opaque(camera);
     }
 
     void update()
@@ -41,7 +44,7 @@ public:
         double elapsed = current - previous;
         previous = current;
         lag += elapsed;
-        const int PERIOD = 950;
+        const int PERIOD = 1000;
         static std::vector<BlockID> ids{BlockID::GRASS, BlockID::STONE, BlockID::COBBLESTONE, BlockID::SAND, BlockID::PLANK, BlockID::LOG, BlockID::LEAF, BlockID::BRICK, BlockID::GLASS, BlockID::BOOKSHELF, BlockID::DEBUG};
         if (lag > PERIOD) {
             lag -= PERIOD;
@@ -52,6 +55,7 @@ public:
     }
 
 private:
+    Terrain terrain;
     BlockData state;
     Shader shader;
     Mesh mesh;
@@ -64,17 +68,17 @@ private:
         std::vector<Vertex> vertices_vec;
         std::vector<unsigned int> indices_vec;
 
-        std::vector<Vertex> face1 = get_block_face_vertices(state.id, CubeFace::XNEG);
+        std::vector<Vertex> face1 = state.get_face_vertices(CubeFace::XNEG);
         vertices_vec.insert(vertices_vec.end(), face1.begin(), face1.end());
-        face1 = get_block_face_vertices(state.id, CubeFace::XPOS);
+        face1 = state.get_face_vertices(CubeFace::XPOS);
         vertices_vec.insert(vertices_vec.end(), face1.begin(), face1.end());
-        face1 = get_block_face_vertices(state.id, CubeFace::YNEG);
+        face1 = state.get_face_vertices(CubeFace::YNEG);
         vertices_vec.insert(vertices_vec.end(), face1.begin(), face1.end());
-        face1 = get_block_face_vertices(state.id, CubeFace::YPOS);
+        face1 = state.get_face_vertices(CubeFace::YPOS);
         vertices_vec.insert(vertices_vec.end(), face1.begin(), face1.end());
-        face1 = get_block_face_vertices(state.id, CubeFace::ZNEG);
+        face1 = state.get_face_vertices(CubeFace::ZNEG);
         vertices_vec.insert(vertices_vec.end(), face1.begin(), face1.end());
-        face1 = get_block_face_vertices(state.id, CubeFace::ZPOS);
+        face1 = state.get_face_vertices(CubeFace::ZPOS);
         vertices_vec.insert(vertices_vec.end(), face1.begin(), face1.end());
         // block center is its, well, center, instead of bottom-left-back corner
         std::for_each(vertices_vec.begin(), vertices_vec.end(),
@@ -85,22 +89,22 @@ private:
             }
         );
 
-        std::vector<unsigned int> indices1 = get_block_face_indices(state.id, CubeFace::XNEG);
+        std::vector<unsigned int> indices1 = state.get_face_indices(CubeFace::XNEG);
         increment_vector(indices1, 0);
         indices_vec.insert(indices_vec.end(), indices1.begin(), indices1.end());
-        indices1 = get_block_face_indices(state.id, CubeFace::XPOS);
+        indices1 = state.get_face_indices(CubeFace::XPOS);
         increment_vector(indices1, 4);
         indices_vec.insert(indices_vec.end(), indices1.begin(), indices1.end());
-        indices1 = get_block_face_indices(state.id, CubeFace::YNEG);
+        indices1 = state.get_face_indices(CubeFace::YNEG);
         increment_vector(indices1, 8);
         indices_vec.insert(indices_vec.end(), indices1.begin(), indices1.end());
-        indices1 = get_block_face_indices(state.id, CubeFace::YPOS);
+        indices1 = state.get_face_indices(CubeFace::YPOS);
         increment_vector(indices1, 12);
         indices_vec.insert(indices_vec.end(), indices1.begin(), indices1.end());
-        indices1 = get_block_face_indices(state.id, CubeFace::ZNEG);
+        indices1 = state.get_face_indices(CubeFace::ZNEG);
         increment_vector(indices1, 16);
         indices_vec.insert(indices_vec.end(), indices1.begin(), indices1.end());
-        indices1 = get_block_face_indices(state.id, CubeFace::ZPOS);
+        indices1 = state.get_face_indices(CubeFace::ZPOS);
         increment_vector(indices1, 20);
         indices_vec.insert(indices_vec.end(), indices1.begin(), indices1.end());
 
@@ -113,6 +117,3 @@ private:
         }
     }
 };
-
-
-

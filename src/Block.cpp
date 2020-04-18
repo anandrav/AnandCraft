@@ -21,8 +21,9 @@ with its "bottom left back" corner at (0,0,0)
 and its "top right front" corner at (1,1,1),
 using the right-hand rule.
 */
-vector<Vertex> get_block_face_vertices(BlockID id, CubeFace face) {
-    std::pair<int, int> origin = get_texture_atlas_location(id, face);
+vector<Vertex> BlockData::get_face_vertices(CubeFace face) const
+{
+    std::pair<int, int> origin = get_texture_atlas_location(face);
 
     float tex_left = float(origin.first) / TEXTURE_ATLAS_WIDTH_IN_BLOCKS;
     float tex_right = float(origin.first + 1) / TEXTURE_ATLAS_WIDTH_IN_BLOCKS;
@@ -31,7 +32,7 @@ vector<Vertex> get_block_face_vertices(BlockID id, CubeFace face) {
     float tex_bottom = -float(origin.second) / TEXTURE_ATLAS_HEIGHT_IN_BLOCKS;
     float tex_top = -float(origin.second + 1) / TEXTURE_ATLAS_HEIGHT_IN_BLOCKS;
 
-    switch (get_block_mesh_type(id)) {
+    switch (get_mesh_type()) {
     case BlockMesh::CUBE:
         switch (face) {
         case CubeFace::XNEG: {
@@ -211,9 +212,10 @@ vector<Vertex> get_block_face_vertices(BlockID id, CubeFace face) {
 
 }
 
-vector<unsigned int> get_block_face_indices(BlockID id, CubeFace face) {
+vector<unsigned int> BlockData::get_face_indices(CubeFace face) const
+{
     // counter-clockwise triangle winding
-    switch (get_block_mesh_type(id)) {
+    switch (get_mesh_type()) {
     case BlockMesh::CUBE: {
         switch (face) {
         case CubeFace::XNEG:
@@ -241,7 +243,8 @@ vector<unsigned int> get_block_face_indices(BlockID id, CubeFace face) {
 
 // return bottom left corner of texture in atlas
 // coordinate system uses origin located at bottom left of image
-std::pair<int, int> get_texture_atlas_location(BlockID id, CubeFace face) {
+std::pair<int, int> BlockData::get_texture_atlas_location(CubeFace face) const
+{
     switch (id) {
     case BlockID::DIRT:
         return { 2, 15 };
@@ -288,7 +291,8 @@ std::pair<int, int> get_texture_atlas_location(BlockID id, CubeFace face) {
     }
 }
 
-BlockMesh get_block_mesh_type(BlockID id) {
+BlockMesh BlockData::get_mesh_type() const
+{
     switch (id) {
     case BlockID::AIR:
         return BlockMesh::NONE;
@@ -312,20 +316,22 @@ BlockMesh get_block_mesh_type(BlockID id) {
     }
 }
 
-bool get_block_opacity(BlockID id) {
+bool BlockData::is_transparent() const
+{
     switch (id) {
     case BlockID::AIR:
     case BlockID::LEAF:
     case BlockID::GLASS:
     case BlockID::ROSE:
     case BlockID::DAISY:
-        return false;
-    default:
         return true;
+    default:
+        return false;
     }
 }
 
-string get_block_name(BlockID id) {
+string BlockData::get_name() const
+{
     switch (id) {
     case BlockID::AIR:
         return "Air";

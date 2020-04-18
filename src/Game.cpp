@@ -76,7 +76,7 @@ void Game::update()
 {
     process_input();
 
-    // player.update();
+    player.update();
     // world.update(player.get_position());
     demo.update();
 
@@ -94,8 +94,7 @@ void Game::render()
 
     // render world
     glBindTexture(GL_TEXTURE_2D, texture);
-    Camera camera(float(WIDTH) / HEIGHT);
-    demo.render(camera);
+    demo.render(player.get_camera());
     // world.render_opaque(player.get_camera());
     // world.render_transparent(player.get_camera());
 

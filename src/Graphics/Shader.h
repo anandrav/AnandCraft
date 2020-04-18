@@ -24,14 +24,14 @@ public:
         setup_program(vertex_path, fragment_path);
     }
 
-    Shader(Shader&& other) noexcept 
+    Shader(Shader&& other) noexcept
     {
         ID = other.ID;
         // prevent destructor from destroying program
         other.ID = 0;
     }
 
-    Shader& operator=(Shader&& other) noexcept 
+    Shader& operator=(Shader&& other) noexcept
     {
         std::swap(ID, other.ID);
         return *this;
