@@ -3,6 +3,8 @@ project(AnandCraft)
 
 set(CMAKE_CXX_STANDARD 17)
 
+set(CMAKE_CXX_FLAGS "-Werror -pedantic -Wall -Wextra")
+
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 find_package(SDL2 REQUIRED)
