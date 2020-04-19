@@ -7,10 +7,12 @@
 
 class Transform {
 public:
-    Transform(const glm::vec3& pos = glm::vec3()
-        , const glm::quat& rot = glm::quat(1.f,0.f,0.f,0.f)
-        , const glm::vec3& scale = glm::vec3(1.f,1.f,1.f)) :
-        position(pos), orientation(rot), m_scale(scale) {}
+    Transform(const glm::vec3& pos = glm::vec3(0.f,0.f,0.f)
+            , const glm::quat& rot = glm::quat(1.f,0.f,0.f,0.f)
+            , const glm::vec3& scale = glm::vec3(1.f,1.f,1.f)) 
+            : position(pos)
+            , orientation(rot)
+            , m_scale(scale) {}
 
     inline glm::mat4 get_model() const 
     {
@@ -71,4 +73,3 @@ private:
 };
 
 #endif // !TRANSFORM_H
-

@@ -14,6 +14,11 @@ public:
     {
     }
 
+    Transform& get_transform()
+    {
+        return transform;
+    }
+
     inline glm::mat4 get_view_projection() const
     {
         return get_perspective() * get_view();

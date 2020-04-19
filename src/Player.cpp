@@ -5,7 +5,8 @@
 const float ASPECT_RATIO = float(WIDTH) / HEIGHT;
 
 Player::Player() 
-    : camera(Camera(ASPECT_RATIO))
+    : velocity(glm::vec3(0.f,0.f,0.f))
+    , camera(Camera(ASPECT_RATIO))
 {
 }
 

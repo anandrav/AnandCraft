@@ -15,6 +15,11 @@ public:
         return camera.get_position();
     }
 
+    Transform& get_transform()
+    {
+        return camera.get_transform();
+    }
+
     const glm::vec3& get_velocity() const
     {
         return velocity;
@@ -59,7 +64,6 @@ public:
 
 private:
     glm::vec3 velocity;
-    glm::vec2 rotation;
     Camera camera;
 };
 
