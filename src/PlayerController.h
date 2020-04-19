@@ -5,7 +5,7 @@
 
 class PlayerController {
 public:
-    PlayerController(Player* player_in);
+    PlayerController(Player* player = nullptr);
 
     void process_event(SDL_Event &e);
 
