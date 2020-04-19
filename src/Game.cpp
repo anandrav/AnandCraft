@@ -1,7 +1,7 @@
 #include "Game.h"
 
 #include "util.h"
-#include "Async/SyncQueue.h"
+#include "Jobs/SyncQueue.h"
 #include "globals.h"
 #include "Terrain/TerrainTexture.h"
 
@@ -11,7 +11,7 @@
 
 using namespace std;
 
-Game* g_game = nullptr;
+Game* g_game;
 
 const int TICKRATE = 20;
 const int MS_PER_UPDATE = 1000 / TICKRATE;
@@ -57,7 +57,7 @@ Game::Game()
 
     player_controller = PlayerController(&player);
     demo = make_unique<SingleBlockDemo>();
-    run_loop();
+    loop();
 }
 
 Game::~Game() {
@@ -67,7 +67,7 @@ Game::~Game() {
     SDL_Quit();
 }
 
-void Game::run_loop()
+void Game::loop()
 {
     double previous = SDL_GetTicks();
     double lag = 0.0;
@@ -106,6 +106,7 @@ void Game::update()
     process_input();
     // update all game objects
     player.update();
+    for_each(begin(game_objects), end(game_objects), mem_fn(GameObject::update));
     // world.update(player.get_position());
     demo->update();
 

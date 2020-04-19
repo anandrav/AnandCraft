@@ -1,10 +1,13 @@
 #pragma once
 
+#include "GameObject.h"
 #include "Player.h"
 #include "PlayerController.h"
-#include "Ray.h"
 #include "BlockDemo.h"
+#include "Jobs/ThreadQueue.h"
+#include "Jobs/SyncQueue.h"
 
+#include <set>
 #include <memory>
 
 // forward declarations
@@ -20,6 +23,22 @@ public:
 
     ~Game();
 
+    ThreadQueue& get_thread_queue() {
+        return thread_queue;
+    }
+
+    SyncQueue& get_sync_queue() {
+        return sync_queue;
+    }
+
+    void register_game_object(GameObject* game_object) {
+        game_objects.insert(game_object);
+    }
+
+    void deregister_game_object(GameObject* game_object) {
+        game_objects.erase(game_object);
+    }
+
 private:
     // TODO: move these
     Player player;
@@ -31,15 +50,16 @@ private:
 
     std::unique_ptr<SingleBlockDemo> demo;
 
-    void run_loop();
+    ThreadQueue thread_queue;
+    SyncQueue sync_queue;
 
-    void process_input();
+    void loop();
 
     void update();
 
+    void process_input();
+
     void render();
 
-    // std::vector<weak_ptr<GameObject>>; // for_each(, , [](){update});
-    // std::vector<weak_ptr<Renderable>>; // for_each(, , [](){render});
+    std::set<GameObject*> game_objects;
 };
-

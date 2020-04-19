@@ -18,10 +18,8 @@ class Chunk : public Renderable {
 public:
     Chunk(ChunkCoords coords);
 
-    Chunk(Chunk&)=delete;
-    Chunk& operator=(Chunk&)=delete;
-    Chunk(Chunk&&)=delete;
-    Chunk& operator=(Chunk&&)=delete;
+    Chunk(Chunk&) = delete;
+    Chunk& operator=(Chunk&) = delete;
 
     void render_opaque(const Camera& camera) const override;
     void render_transparent(const Camera& camera) const override;
