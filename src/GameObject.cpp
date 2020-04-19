@@ -1,5 +1,7 @@
 #include "GameObject.h"
 
+#include "Game.h"
+
 GameObject::GameObject() {
     g_game->register_game_object(this);
 }

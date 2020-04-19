@@ -9,12 +9,12 @@
 #include "ChunkCoords.h"
 #include "ChunkData.h"
 #include "WorldConfig.h"
-#include "../Graphics/Renderable.h"
+#include "../GameObject.h"
 #include "../Graphics/Mesh.h"
 
 #include <shared_mutex>
 
-class Chunk : public Renderable {
+class Chunk : public GameObject {
 public:
     Chunk(ChunkCoords coords);
 

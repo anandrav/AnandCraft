@@ -7,12 +7,13 @@
 
 using namespace std;
 
-int main(int argc, char** argv)
+int main()
 {
     cout << "AnandCraft" << endl;
     try {
         // initialize Game
         g_game = new Game();
+        g_game->run();
         delete g_game;
     } catch (exception& error) {
         cout << "exception caught: " << error.what() << endl;

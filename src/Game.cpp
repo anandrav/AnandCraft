@@ -54,10 +54,6 @@ Game::Game()
     // init GLEW
     glewExperimental = GL_TRUE;
     glewInit();
-
-    player_controller = PlayerController(&player);
-    demo = make_unique<SingleBlockDemo>();
-    loop();
 }
 
 Game::~Game() {
@@ -67,8 +63,22 @@ Game::~Game() {
     SDL_Quit();
 }
 
-void Game::loop()
+void Game::register_game_object(GameObject* game_object) {
+    game_objects.insert(game_object);
+}
+
+void Game::deregister_game_object(GameObject* game_object) {
+    game_object = nullptr;
+    // game_objects.erase(game_object);
+}
+
+void Game::run()
 {
+    player = make_unique<Player>();
+    player->get_transform().translate({0,1,0});
+    player_controller = make_unique<PlayerController>(player.get());
+    demo = make_unique<SingleBlockDemo>();
+
     double previous = SDL_GetTicks();
     double lag = 0.0;
     while (is_running) {
@@ -82,9 +92,22 @@ void Game::loop()
             lag -= MS_PER_UPDATE;
         }
 
-        const double interpolate = lag / MS_PER_UPDATE;
+        // const double interpolate = lag / MS_PER_UPDATE;
         render();
     }
+}
+
+void Game::update()
+{
+    // pump out all the events/messages  (TODO use interface with .update(tick) method)
+    process_input();
+    // update all game objects
+    player->update();
+    for_each(begin(game_objects), end(game_objects), mem_fn(&GameObject::update));
+    // world.update(player.get_position());
+    demo->update();
+
+    // TODO process all events/messages in SyncQueue? Name it event queue?
 }
 
 void Game::process_input()
@@ -95,36 +118,27 @@ void Game::process_input()
         if (e.type == SDL_QUIT) {
             is_running = false;
         } else {
-            player_controller.process_event(e);
+            player_controller->process_event(e);
         }
     }
-}
-
-void Game::update()
-{
-    // pump out all the events/messages  (TODO use interface with .update(tick) method)
-    process_input();
-    // update all game objects
-    player.update();
-    for_each(begin(game_objects), end(game_objects), mem_fn(GameObject::update));
-    // world.update(player.get_position());
-    demo->update();
-
-    // TODO process all events/messages in SyncQueue? Name it event queue?
 }
 
 void Game::render()
 {
     // clear
-    glDepthMask(GL_TRUE);
     glClearColor(.60f, .70f, .95f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // render all game objects (polymorphism!)
     // glBindTexture(GL_TEXTURE_2D, texture);
-    demo->render(player.get_camera());
-    // world.render_opaque(player.get_camera());
-    // world.render_transparent(player.get_camera());
+    // Camera camera(float(WIDTH) / HEIGHT);
+    // camera.move_up(0.5);
+    // camera.move_forward(-0.5);
+    demo->render(player->get_camera());
+    cout << int(player->get_camera().get_position().x) << ' ';
+    cout << int(player->get_camera().get_position().y) << ' ';
+    cout << int(player->get_camera().get_position().z) << ' ';
+    cout << endl;
 
     // render UI/HUD
 

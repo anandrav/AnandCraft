@@ -23,6 +23,8 @@ public:
 
     ~Game();
 
+    void run();
+
     ThreadQueue& get_thread_queue() {
         return thread_queue;
     }
@@ -31,18 +33,14 @@ public:
         return sync_queue;
     }
 
-    void register_game_object(GameObject* game_object) {
-        game_objects.insert(game_object);
-    }
+    void register_game_object(GameObject* game_object);
 
-    void deregister_game_object(GameObject* game_object) {
-        game_objects.erase(game_object);
-    }
+    void deregister_game_object(GameObject* game_object);
 
 private:
     // TODO: move these
-    Player player;
-    PlayerController player_controller;
+    std::unique_ptr<Player> player;
+    std::unique_ptr<PlayerController> player_controller;
     bool is_running;
 
     SDL_Window* sdl_window;
@@ -52,8 +50,6 @@ private:
 
     ThreadQueue thread_queue;
     SyncQueue sync_queue;
-
-    void loop();
 
     void update();
 

@@ -8,12 +8,12 @@ Terrain is procedurally generated/loaded in chunks.
 
 #include "Chunk.h"
 #include "../Graphics/Camera.h"
-#include "../Graphics/Renderable.h"
+#include "../GameObject.h"
 
 #include <unordered_map>
 #include <memory>
 
-class Terrain : public Renderable {
+class Terrain : public GameObject {
 public:
     Terrain();
 

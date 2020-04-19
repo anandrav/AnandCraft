@@ -27,7 +27,7 @@ void ThreadQueue::worker_routine() {
         }
         if (is_terminating.load())
             break;
-            
+
         auto holder = queue.top();
         queue.pop();
         lock.unlock();
@@ -41,7 +41,7 @@ void ThreadQueue::worker_routine() {
 ThreadQueue::~ThreadQueue() {
     is_terminating.store(true);
     cv.notify_all();
-    for (int i = 0; i < workers.size(); ++i) {
+    for (size_t i = 0; i < workers.size(); ++i) {
         workers[i].join();
     }
 }

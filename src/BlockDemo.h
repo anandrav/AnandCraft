@@ -17,13 +17,14 @@ public:
     SingleBlockDemo(BlockData state = BlockData(BlockID::GRASS)) : state(state) {
         shader = Shader("res/basic_vert.glsl", "res/basic_frag.glsl");
         setup_mesh();
-        transform.set_pos({0,0,-2});
+        transform.set_pos({0,1,-2});
         previous = SDL_GetTicks();
         lag = 0;
         id_index = 0;
     }
 
     void render(const Camera& camera) const {
+        std::cout << "render" << std::endl;
         glBindTexture(GL_TEXTURE_2D, TerrainTexture::get());
         glUseProgram(shader.ID);
         glm::mat4 clip_transform = camera.get_view_projection() * transform.get_model();
@@ -35,7 +36,7 @@ public:
 
         mesh.draw();
 
-        // terrain.render_opaque(camera);
+        terrain.render_opaque(camera);
     }
 
     void update()
@@ -114,7 +115,7 @@ private:
     }
 
     void increment_vector(std::vector<unsigned int>& vec, int num) {
-        for (int i = 0; i < vec.size(); ++i) {
+        for (size_t i = 0; i < vec.size(); ++i) {
             vec[i] += num;
         }
     }

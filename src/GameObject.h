@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Game.h"
+#include "Graphics/Camera.h"
 
 class GameObject {
 public:
@@ -8,7 +8,10 @@ public:
     GameObject();
 
     // deregister from Game
-    ~GameObject();
+    virtual ~GameObject();
 
-    virtual void update() = 0;
+    // fat interface
+    virtual void update() {}
+    virtual void render_opaque(const Camera&) const {}
+    virtual void render_transparent(const Camera&) const {}
 };

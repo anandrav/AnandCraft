@@ -117,7 +117,7 @@ void PlayerController::process_event(SDL_Event& e)
     }
 }
 
-void PlayerController::handle_click(SDL_Event& e)
+void PlayerController::handle_click(SDL_Event&)
 {
     // const float MAX_DISTANCE = 12.0f;
     // const float STEP_DISTANCE = 0.1f;
