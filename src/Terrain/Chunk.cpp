@@ -52,9 +52,43 @@ void Chunk::render_transparent(const Camera& camera) const
     transparent_mesh.draw();
 }
 
+void Chunk::generate_data() {
+    unique_lock<shared_mutex> read_guard(mut);
+    if (coords.y >= 0) {
+        for (int x = 0; x < CHUNK_WIDTH; ++x) {
+            for (int y = 0; y < CHUNK_WIDTH; ++y) {
+                for (int z = 0; z < CHUNK_WIDTH; ++z) {
+                    blocks.at(x,y,z).id = BlockID::AIR;
+                }
+            }
+        }
+        return;
+    }
+    if (coords.y == -1) {
+        for (int x = 0; x < CHUNK_WIDTH; ++x) {
+            for (int z = 0; z < CHUNK_WIDTH; ++z) {
+                int y;
+                for (y = 0; y < CHUNK_WIDTH-1; ++y) {
+                    blocks.at(x,y,z).id = BlockID::DIRT;
+                }
+                blocks.at(x,y,z).id = BlockID::GRASS;
+            }
+        }
+        return;
+    }
+    for (int x = 0; x < CHUNK_WIDTH; ++x) {
+        for (int y = 0; y < CHUNK_WIDTH; ++y) {
+            for (int z = 0; z < CHUNK_WIDTH; ++z) {
+                blocks.at(x,y,z).id = BlockID::STONE;
+            }
+        }
+    }
+    return;
+}
+
 void Chunk::build_meshes()
 {
-    shared_lock<shared_mutex> read_guard(mut);
+    unique_lock<shared_mutex> read_guard(mut);
 
     update_opaque_mesh();
     update_transparent_mesh();

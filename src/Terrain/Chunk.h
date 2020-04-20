@@ -26,6 +26,12 @@ public:
     void render_opaque(const Camera& camera) const override;
     void render_transparent(const Camera& camera) const override;
 
+    // thread safe
+    // loads data from file or generates from seed
+    void generate_data();
+
+    // thread safe
+    // build meshes using chunk data
     void build_meshes();
 
 private:
