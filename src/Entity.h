@@ -1,3 +1,10 @@
+/*
+ * Entity is anything in the Game that can be updated and/or rendered.
+ * Prefer composition over inheritance for adding functionality.
+ * Entities do not have an explicit scene hierarchy, 
+ * but their components (transforms) may.
+ */
+
 #pragma once
 
 #include "Graphics/Camera.h"

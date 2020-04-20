@@ -67,7 +67,7 @@ enum class CubeFace : uint8_t {
 /* struct to store state of a block in world */
 
 struct BlockData {
-    BlockData(BlockID id = BlockID::GLASS, CubeSpin spin = CubeSpin::NORTH, CubeFace top_face = CubeFace::YPOS) :
+    BlockData(BlockID id = BlockID::GRASS, CubeSpin spin = CubeSpin::NORTH, CubeFace top_face = CubeFace::YPOS) :
         id(id), spin(spin), top_face(top_face)
     {
     }

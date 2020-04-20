@@ -38,11 +38,6 @@ public:
     void deregister_entity(Entity* entity);
 
 private:
-    // TODO: move these
-    std::unique_ptr<Terrain> terrain;
-    std::unique_ptr<SingleBlockDemo> demo;
-    std::unique_ptr<Player> player;
-    std::unique_ptr<PlayerController> player_controller;
     bool is_running;
 
     SDL_Window* sdl_window;
@@ -51,11 +46,17 @@ private:
     ThreadQueue thread_queue;
     SyncQueue sync_queue;
 
+    std::set<Entity*> entities;
+
+    // TODO: move these
+    std::unique_ptr<Terrain> terrain;
+    std::unique_ptr<SingleBlockDemo> demo;
+    std::unique_ptr<Player> player;
+    std::unique_ptr<PlayerController> player_controller;
+
     void update();
 
     void process_input();
 
     void render();
-
-    std::set<Entity*> entities;
 };

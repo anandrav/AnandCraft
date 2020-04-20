@@ -1,6 +1,6 @@
 #include "ChunkCoords.h"
 
-#include "WorldConfig.h"
+#include "ChunkWidth.h"
 
 // Conversion from coordinate in units of blocks to units in chunks
 // blocks 0 to 15 are in chunk 0
@@ -16,14 +16,14 @@ constexpr int block_to_chunk_coord(int element) {
     return ((element + 1) / CHUNK_WIDTH) - 1;
 }
 
-ChunkCoords::ChunkCoords(int x_, int y_, int z_)
-    : x(x_)
-    , y(y_)
-    , z(z_)
+ChunkCoords::ChunkCoords(int x, int y, int z)
+    : x(x)
+    , y(y)
+    , z(z)
 {
 }
 
-ChunkCoords::ChunkCoords(BlockCoords block_coord)
+ChunkCoords::ChunkCoords(const BlockCoords& block_coord)
     : x(block_to_chunk_coord(block_coord.x))
     , y(block_to_chunk_coord(block_coord.y))
     , z(block_to_chunk_coord(block_coord.z))

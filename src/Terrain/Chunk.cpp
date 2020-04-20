@@ -1,6 +1,5 @@
 #include "Chunk.h"
 
-#include "WorldConfig.h"
 #include "TerrainShader.h"
 #include "TerrainTexture.h"
 #include <glm/glm.hpp>
@@ -19,6 +18,8 @@ Chunk::Chunk(ChunkCoords coords)
 
 void Chunk::render_opaque(const Camera& camera) const
 {
+    shared_lock<shared_mutex> read_guard(mut);
+
     glBindTexture(GL_TEXTURE_2D, TerrainTexture::get());
     glUseProgram(TerrainShader::ID());
     glm::mat4 clip_transform = camera.get_view_projection() * translation;
@@ -34,12 +35,13 @@ void Chunk::render_opaque(const Camera& camera) const
 
 void Chunk::render_transparent(const Camera& camera) const 
 {
+    shared_lock<shared_mutex> read_guard(mut);
+
     glBindTexture(GL_TEXTURE_2D, TerrainTexture::get());
     glUseProgram(TerrainShader::ID());
     glm::mat4 clip_transform = camera.get_view_projection() * translation;
     glUniformMatrix4fv(glGetUniformLocation(TerrainShader::ID(), "transform"), 1, GL_FALSE, &clip_transform[0][0]);
 
-    // FIXME this is broken:
     glEnable(GL_DEPTH_TEST);
     // disable depth write for transparent surfaces
     glDepthMask(GL_FALSE);
@@ -47,23 +49,19 @@ void Chunk::render_transparent(const Camera& camera) const
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_CULL_FACE);
 
-    // FIXME using opaque settings for now:
-    // glEnable(GL_DEPTH_TEST);
-    // glDepthMask(GL_TRUE);
-    // glDisable(GL_BLEND);
-    // glEnable(GL_CULL_FACE);
-
     transparent_mesh.draw();
 }
 
-void Chunk::update_meshes()
+void Chunk::build_meshes()
 {
+    shared_lock<shared_mutex> read_guard(mut);
+
     update_opaque_mesh();
     update_transparent_mesh();
 }
 
 void Chunk::update_opaque_mesh() 
-{
+{    
     vector<Vertex> vertices;
     vector<unsigned> indices;
     for (int x = 0; x < CHUNK_WIDTH; ++x) {
@@ -124,6 +122,11 @@ void Chunk::update_transparent_mesh()
                     continue;
                 switch (current.get_mesh_type()) {
                 case BlockMesh::CUBE:
+                    // for_each(begin(directions), end(directions)
+                    //     [](const DIRECTION& d) {
+                            
+                    //     }
+                    // );
                     // only add faces that are adjacent to transparent
                     //      blocks, cull faces that are obscured
                     if (is_transparent_at(x - 1, y, z) && !is_same_material_at(current, x - 1, y, z)) {
@@ -162,10 +165,10 @@ void Chunk::update_transparent_mesh()
 
 void Chunk::append_block_face(vector<Vertex>& vertices, 
                        vector<unsigned int>& indices, 
-                       int x, int y, int z, const BlockData& block, 
+                       int x, int y, int z, const BlockData& current, 
                        CubeFace face) const 
 {
-    vector<unsigned int> face_indices = block.get_face_indices(face);
+    vector<unsigned int> face_indices = current.get_face_indices(face);
     // adjust face_indices to point to the vertices we are about to add
     size_t offset = vertices.size();
     for_each(begin(face_indices), end(face_indices),
@@ -173,7 +176,7 @@ void Chunk::append_block_face(vector<Vertex>& vertices,
     );
     indices.insert(end(indices), begin(face_indices), end(face_indices));
 
-    vector<Vertex> face_vertices = block.get_face_vertices(face);
+    vector<Vertex> face_vertices = current.get_face_vertices(face);
     // translate vertices of block face to position in chunk
     for_each(begin(face_vertices), end(face_vertices),
         [x,y,z](Vertex& v) {

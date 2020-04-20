@@ -12,7 +12,7 @@
 #include <iostream>
 #include <memory>
 
-class SingleBlockDemo {
+class SingleBlockDemo : public Entity {
 public:
     SingleBlockDemo(BlockData state = BlockData(BlockID::GRASS)) : state(state) {
         shader = Shader("res/basic_vert.glsl", "res/basic_frag.glsl");
@@ -23,7 +23,7 @@ public:
         id_index = 0;
     }
 
-    void render(const Camera& camera) const {
+    void render_opaque(const Camera& camera) const override {
         glBindTexture(GL_TEXTURE_2D, TerrainTexture::get());
         glUseProgram(shader.ID);
         glm::mat4 clip_transform = camera.get_view_projection() * transform.get_model();
@@ -37,7 +37,7 @@ public:
         mesh.draw();
     }
 
-    void update()
+    void update() override
     {
         transform.rotate(0.03, {0,1,0});
         // change BlockID periodically

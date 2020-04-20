@@ -7,15 +7,20 @@ Terrain is procedurally generated/loaded in chunks.
 #pragma once
 
 #include "Chunk.h"
+#include "../Player.h"
 #include "../Graphics/Camera.h"
 #include "../Entity.h"
 
 #include <unordered_map>
 #include <memory>
 
-class Terrain {
+constexpr int RENDER_DIST { 2 };
+
+class Terrain : Entity {
 public:
-    Terrain();
+    Terrain(Player* player);
+
+    void update() override;
 
 private:
     struct ChunkCoordsHash {
@@ -27,5 +32,6 @@ private:
         }
     };
 
+    Player* player;
     std::unordered_map<ChunkCoords, std::shared_ptr<Chunk>, ChunkCoordsHash> chunks;
 };

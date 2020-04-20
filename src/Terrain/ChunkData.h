@@ -6,8 +6,9 @@
 
 #pragma once
 
-#include "WorldConfig.h"
 #include "../Block.h"
+#include "ChunkWidth.h"
+
 
 struct ChunkBlocks {
     BlockData blocks[CHUNK_WIDTH][CHUNK_WIDTH][CHUNK_WIDTH];

@@ -73,10 +73,10 @@ void Game::deregister_entity(Entity* entity) {
 
 void Game::run()
 {
-    terrain = make_unique<Terrain>();
     player = make_unique<Player>();
     player->get_transform().translate({0,1,0});
     player_controller = make_unique<PlayerController>(player.get());
+    terrain = make_unique<Terrain>(player.get());
     demo = make_unique<SingleBlockDemo>();
 
     double previous = SDL_GetTicks();
@@ -110,7 +110,6 @@ void Game::update()
     player->update();
     for_each(begin(entities), end(entities), mem_fn(&Entity::update));
     // world.update(player.get_position());
-    demo->update();
 
     // TODO process all events/messages in SyncQueue? Name it event queue?
 }
@@ -138,14 +137,13 @@ void Game::render()
     // render all game objects
     auto& camera = player->get_camera();
     for_each(begin(entities), end(entities), [&camera](Entity* e) { e->render_opaque(camera);});
-    demo->render(player->get_camera());
     for_each(begin(entities), end(entities), [&camera](Entity* e) { e->render_transparent(camera);});
 
     // render UI/HUD
-    cout << int(player->get_camera().get_position().x) << ' ';
-    cout << int(player->get_camera().get_position().y) << ' ';
-    cout << int(player->get_camera().get_position().z) << ' ';
-    cout << endl;
+    // cout << int(player->get_camera().get_position().x) << ' ';
+    // cout << int(player->get_camera().get_position().y) << ' ';
+    // cout << int(player->get_camera().get_position().z) << ' ';
+    // cout << endl;
 
     // update display
     SDL_GL_SwapWindow(sdl_window);
