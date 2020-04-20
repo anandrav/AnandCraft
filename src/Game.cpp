@@ -63,17 +63,17 @@ Game::~Game() {
     SDL_Quit();
 }
 
-void Game::register_game_object(GameObject* game_object) {
-    game_objects.insert(game_object);
+void Game::register_entity(Entity* entity) {
+    entities.insert(entity);
 }
 
-void Game::deregister_game_object(GameObject* game_object) {
-    game_object = nullptr;
-    // game_objects.erase(game_object);
+void Game::deregister_entity(Entity* entity) {
+    entities.erase(entity);
 }
 
 void Game::run()
 {
+    terrain = make_unique<Terrain>();
     player = make_unique<Player>();
     player->get_transform().translate({0,1,0});
     player_controller = make_unique<PlayerController>(player.get());
@@ -95,6 +95,11 @@ void Game::run()
         // const double interpolate = lag / MS_PER_UPDATE;
         render();
     }
+
+    terrain.release();
+    player.release();
+    player_controller.release();
+    demo.release();
 }
 
 void Game::update()
@@ -103,7 +108,7 @@ void Game::update()
     process_input();
     // update all game objects
     player->update();
-    for_each(begin(game_objects), end(game_objects), mem_fn(&GameObject::update));
+    for_each(begin(entities), end(entities), mem_fn(&Entity::update));
     // world.update(player.get_position());
     demo->update();
 
@@ -126,21 +131,21 @@ void Game::process_input()
 void Game::render()
 {
     // clear
+    glDepthMask(GL_TRUE);
     glClearColor(.60f, .70f, .95f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // render all game objects (polymorphism!)
-    // glBindTexture(GL_TEXTURE_2D, texture);
-    // Camera camera(float(WIDTH) / HEIGHT);
-    // camera.move_up(0.5);
-    // camera.move_forward(-0.5);
+    // render all game objects
+    auto& camera = player->get_camera();
+    for_each(begin(entities), end(entities), [&camera](Entity* e) { e->render_opaque(camera);});
     demo->render(player->get_camera());
+    for_each(begin(entities), end(entities), [&camera](Entity* e) { e->render_transparent(camera);});
+
+    // render UI/HUD
     cout << int(player->get_camera().get_position().x) << ' ';
     cout << int(player->get_camera().get_position().y) << ' ';
     cout << int(player->get_camera().get_position().z) << ' ';
     cout << endl;
-
-    // render UI/HUD
 
     // update display
     SDL_GL_SwapWindow(sdl_window);

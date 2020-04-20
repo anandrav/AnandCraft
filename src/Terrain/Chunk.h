@@ -9,12 +9,12 @@
 #include "ChunkCoords.h"
 #include "ChunkData.h"
 #include "WorldConfig.h"
-#include "../GameObject.h"
+#include "../Entity.h"
 #include "../Graphics/Mesh.h"
 
 #include <shared_mutex>
 
-class Chunk : public GameObject {
+class Chunk : public Entity {
 public:
     Chunk(ChunkCoords coords);
 
@@ -36,6 +36,8 @@ private:
                            CubeFace face) const;
 
     bool is_transparent_at(int x, int y, int z) const;
+
+    bool is_same_material_at(BlockData& current, int x, int y, int z) const;
 
     std::shared_mutex mutex;
     ChunkCoords coords;

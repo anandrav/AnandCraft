@@ -17,21 +17,3 @@ Terrain::Terrain() {
         }
     );
 }
-
-void Terrain::render_opaque(const Camera& camera) const {
-    // render all chunks
-    for_each(begin(chunks), end(chunks),
-        [&camera](auto& it) {
-            it.second->render_opaque(camera);
-        }
-    );
-}
-
-void Terrain::render_transparent(const Camera& camera) const {
-    // render all chunks
-    for_each(begin(chunks), end(chunks),
-        [&camera](auto& it) {
-            it.second->render_transparent(camera);
-        }
-    );
-}

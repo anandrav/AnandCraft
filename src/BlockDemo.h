@@ -24,19 +24,17 @@ public:
     }
 
     void render(const Camera& camera) const {
-        std::cout << "render" << std::endl;
         glBindTexture(GL_TEXTURE_2D, TerrainTexture::get());
         glUseProgram(shader.ID);
         glm::mat4 clip_transform = camera.get_view_projection() * transform.get_model();
         glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, &clip_transform[0][0]);
+
         glEnable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDepthMask(GL_TRUE);
+        glDisable(GL_BLEND);
         glEnable(GL_CULL_FACE);
 
         mesh.draw();
-
-        terrain.render_opaque(camera);
     }
 
     void update()
@@ -58,7 +56,6 @@ public:
     }
 
 private:
-    Terrain terrain;
     BlockData state;
     Shader shader;
     Mesh mesh;

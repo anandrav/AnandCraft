@@ -8,17 +8,14 @@ Terrain is procedurally generated/loaded in chunks.
 
 #include "Chunk.h"
 #include "../Graphics/Camera.h"
-#include "../GameObject.h"
+#include "../Entity.h"
 
 #include <unordered_map>
 #include <memory>
 
-class Terrain : public GameObject {
+class Terrain {
 public:
     Terrain();
-
-    void render_opaque(const Camera& camera) const override;
-    void render_transparent(const Camera& camera) const override;
 
 private:
     struct ChunkCoordsHash {

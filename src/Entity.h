@@ -2,13 +2,13 @@
 
 #include "Graphics/Camera.h"
 
-class GameObject {
+class Entity {
 public:
     // register with Game
-    GameObject();
+    Entity();
 
     // deregister from Game
-    virtual ~GameObject();
+    virtual ~Entity();
 
     // fat interface
     virtual void update() {}

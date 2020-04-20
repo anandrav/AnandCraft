@@ -9,6 +9,8 @@
 
 using namespace std;
 
+bool out_of_bounds_at(int x, int y, int z);
+
 Chunk::Chunk(ChunkCoords coords)
 : coords(coords)
 {
@@ -37,6 +39,7 @@ void Chunk::render_transparent(const Camera& camera) const
     glm::mat4 clip_transform = camera.get_view_projection() * translation;
     glUniformMatrix4fv(glGetUniformLocation(TerrainShader::ID(), "transform"), 1, GL_FALSE, &clip_transform[0][0]);
 
+    // FIXME this is broken:
     glEnable(GL_DEPTH_TEST);
     // disable depth write for transparent surfaces
     glDepthMask(GL_FALSE);
@@ -44,12 +47,19 @@ void Chunk::render_transparent(const Camera& camera) const
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_CULL_FACE);
 
+    // FIXME using opaque settings for now:
+    // glEnable(GL_DEPTH_TEST);
+    // glDepthMask(GL_TRUE);
+    // glDisable(GL_BLEND);
+    // glEnable(GL_CULL_FACE);
+
     transparent_mesh.draw();
 }
 
 void Chunk::update_meshes()
 {
     update_opaque_mesh();
+    update_transparent_mesh();
 }
 
 void Chunk::update_opaque_mesh() 
@@ -101,6 +111,55 @@ void Chunk::update_opaque_mesh()
     opaque_mesh = Mesh(vertices, indices);
 }
 
+void Chunk::update_transparent_mesh() 
+{
+    vector<Vertex> vertices;
+    vector<unsigned> indices;
+    for (int x = 0; x < CHUNK_WIDTH; ++x) {
+        for (int y = 0; y < CHUNK_WIDTH; ++y) {
+            for (int z = 0; z < CHUNK_WIDTH; ++z) {
+                BlockData& current = blocks.at(x,y,z);
+                // only render opaque blocks
+                if (!current.is_transparent())
+                    continue;
+                switch (current.get_mesh_type()) {
+                case BlockMesh::CUBE:
+                    // only add faces that are adjacent to transparent
+                    //      blocks, cull faces that are obscured
+                    if (is_transparent_at(x - 1, y, z) && !is_same_material_at(current, x - 1, y, z)) {
+                        append_block_face(vertices, indices, x, y, z, current,
+                            CubeFace::XNEG);
+                    }
+                    if (is_transparent_at(x + 1, y, z) && !is_same_material_at(current, x + 1, y, z)) {
+                        append_block_face(vertices, indices, x, y, z, current,
+                            CubeFace::XPOS);
+                    }
+                    if (is_transparent_at(x, y - 1, z) && !is_same_material_at(current, x, y - 1, z)) {
+                        append_block_face(vertices, indices, x, y, z, current,
+                            CubeFace::YNEG);
+                    }
+                    if (is_transparent_at(x, y + 1, z) && !is_same_material_at(current, x, y + 1, z)) {
+                        append_block_face(vertices, indices, x, y, z, current,
+                            CubeFace::YPOS);
+                    }
+                    if (is_transparent_at(x, y, z - 1) && !is_same_material_at(current, x, y, z - 1)) {
+                        append_block_face(vertices, indices, x, y, z, current,
+                            CubeFace::ZNEG);
+                    }
+                    if (is_transparent_at(x, y, z + 1) && !is_same_material_at(current, x, y, z + 1)) {
+                        append_block_face(vertices, indices, x, y, z, current,
+                            CubeFace::ZPOS);
+                    }
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
+    }
+    transparent_mesh = Mesh(vertices, indices);
+}
+
 void Chunk::append_block_face(vector<Vertex>& vertices, 
                        vector<unsigned int>& indices, 
                        int x, int y, int z, const BlockData& block, 
@@ -126,9 +185,19 @@ void Chunk::append_block_face(vector<Vertex>& vertices,
 
 bool Chunk::is_transparent_at(int x, int y, int z) const 
 {
-    if (x < 0 || y < 0 || z < 0)
-        return true;
-    if (x == CHUNK_WIDTH || y == CHUNK_WIDTH || z == CHUNK_WIDTH)
+    if (out_of_bounds_at(x,y,z))
         return true;
     return blocks.at(x, y, z).is_transparent();
+}
+
+bool out_of_bounds_at(int x, int y, int z) {
+    return (x < 0 || y < 0 || z < 0 ||
+            x == CHUNK_WIDTH || y == CHUNK_WIDTH || z == CHUNK_WIDTH);
+}
+
+bool Chunk::is_same_material_at(BlockData& current, int x, int y, int z) const
+{
+    if (out_of_bounds_at(x,y,z))
+        return false;
+    return current.id == blocks.at(x, y, z).id;
 }

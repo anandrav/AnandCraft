@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GameObject.h"
+#include "Entity.h"
 #include "Player.h"
 #include "PlayerController.h"
 #include "BlockDemo.h"
@@ -33,20 +33,20 @@ public:
         return sync_queue;
     }
 
-    void register_game_object(GameObject* game_object);
+    void register_entity(Entity* entity);
 
-    void deregister_game_object(GameObject* game_object);
+    void deregister_entity(Entity* entity);
 
 private:
     // TODO: move these
+    std::unique_ptr<Terrain> terrain;
+    std::unique_ptr<SingleBlockDemo> demo;
     std::unique_ptr<Player> player;
     std::unique_ptr<PlayerController> player_controller;
     bool is_running;
 
     SDL_Window* sdl_window;
     SDL_GLContext sdl_glcontext;
-
-    std::unique_ptr<SingleBlockDemo> demo;
 
     ThreadQueue thread_queue;
     SyncQueue sync_queue;
@@ -57,5 +57,5 @@ private:
 
     void render();
 
-    std::set<GameObject*> game_objects;
+    std::set<Entity*> entities;
 };

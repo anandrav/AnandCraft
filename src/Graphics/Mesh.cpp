@@ -69,6 +69,8 @@ Mesh::~Mesh()
 
 void Mesh::draw() const
 {
+    if (!VAO)
+        return;
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
