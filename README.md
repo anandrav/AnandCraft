@@ -11,7 +11,7 @@ A Minecraft clone made by Anand Dukkipati
 - [ ] lighting
 - [ ] basic UI/Menu system
 
-## Build on Mac OS X
+## Build on macOS
 ```
 brew install cmake sdl2 glew glm
 cmake .

@@ -1,6 +1,6 @@
 #include "PlayerController.h"
 
-#include "Ray.h"
+#include "Physics/Ray.h"
 #include <iostream>
 
 const float VELOCITY = 0.6f;

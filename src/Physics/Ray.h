@@ -5,9 +5,11 @@
 class Ray {
 public:
     // direction does not have to be a unit vector
-    Ray(glm::vec3 origin, glm::vec3 direction) :
-        origin(origin), end(origin) {
-        this->direction = glm::normalize(direction);
+    Ray(glm::vec3 origin, glm::vec3 direction) 
+        : direction(glm::normalize(direction))
+        , origin(origin)
+        , end(origin) 
+    {
     }
 
     void step(float distance) {

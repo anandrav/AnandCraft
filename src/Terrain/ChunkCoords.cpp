@@ -8,7 +8,7 @@
 // blocks -16 to -1 are in chunk -1
 // and so on...
 // must account for rounding of negative numbers!
-constexpr int block_to_chunk_coord(int element) { 
+int block_to_chunk_coord(int element) { 
     if (element >= 0) {
         return element / CHUNK_WIDTH;
     }

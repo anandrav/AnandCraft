@@ -9,9 +9,13 @@
 
 #include "Graphics/Camera.h"
 
+using ID_t = uint64_t;
+
 class Entity {
 public:
-    // register with Game
+    const ID_t ID;
+
+    // register with Game, initialize ID
     Entity();
 
     // deregister from Game

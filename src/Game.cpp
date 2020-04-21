@@ -11,7 +11,7 @@
 
 using namespace std;
 
-Game* g_game;
+Game* g_game = nullptr;
 
 const int TICKRATE = 20;
 const int MS_PER_UPDATE = 1000 / TICKRATE;
@@ -78,6 +78,8 @@ void Game::run()
     player_controller = make_unique<PlayerController>(player.get());
     terrain = make_unique<Terrain>(player.get());
     demo = make_unique<SingleBlockDemo>();
+
+    // register_listener<RaycastEvent>({0, [](shared_ptr<Event> e)->bool { e.get(); return false; }});
 
     double previous = SDL_GetTicks();
     double lag = 0.0;

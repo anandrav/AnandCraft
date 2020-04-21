@@ -22,8 +22,9 @@ void Terrain::update() {
             ++it;
         }
     }
+    // add chunks in bounds if not already in map
     for (int x_offset = -RENDER_DIST; x_offset <= RENDER_DIST; ++x_offset) {
-        for (int y_offset = -RENDER_DIST; y_offset < 0; ++y_offset) {
+        for (int y_offset = -RENDER_DIST; y_offset <= RENDER_DIST; ++y_offset) {
             for (int z_offset = -RENDER_DIST; z_offset <= RENDER_DIST; ++z_offset) {
                 int x = center.x + x_offset;
                 int y = center.y + y_offset;
