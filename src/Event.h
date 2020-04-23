@@ -3,8 +3,12 @@
 #include <functional>
 #include <memory>
 
-// inherit EventType from this
-struct EventBase {};
+// your EventType should inherit from this
+class EventBase {
+public:
+    virtual ~EventBase() = default;
 
-// return true if event was "consumed"
+    virtual void on_finished_dispatch() {}
+};
+
 using EventHandler_t = std::function<bool (std::shared_ptr<EventBase>)>;

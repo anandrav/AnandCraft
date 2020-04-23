@@ -14,9 +14,10 @@ using ID_t = uint64_t;
 class Entity {
 public:
     const ID_t ID;
+    const char* const name;
 
-    // register with Game, initialize ID
-    Entity();
+    // register with Game, initialize ID, optionally give name
+    Entity(const char* const name = nullptr);
 
     // deregister from Game
     virtual ~Entity();

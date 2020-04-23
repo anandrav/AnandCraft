@@ -9,6 +9,10 @@ public:
 
     void process_event(SDL_Event &e);
 
+    void attach(Player* player_) {
+        player = player_;
+    }
+
 private:
     Player* player;
 

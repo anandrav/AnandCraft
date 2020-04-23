@@ -11,7 +11,8 @@ using namespace std;
 bool out_of_bounds_at(int x, int y, int z);
 
 Chunk::Chunk(ChunkCoords coords)
-: coords(coords)
+: Entity("Chunk")
+, coords(coords)
 {
     translation = glm::translate(glm::vec3{coords.x*CHUNK_WIDTH, coords.y*CHUNK_WIDTH, coords.z*CHUNK_WIDTH});
 }
@@ -237,4 +238,18 @@ bool Chunk::is_same_material_at(BlockData& current, int x, int y, int z) const
     if (out_of_bounds_at(x,y,z))
         return false;
     return current.id == blocks.at(x, y, z).id;
+}
+
+BlockData Chunk::get_block(ChunkIndices indices) const
+{
+    shared_lock<shared_mutex> lock(mut);
+    auto [x, y, z] = indices;
+    return blocks.at(x, y, z);
+}
+
+void Chunk::set_block(ChunkIndices indices, BlockData block)
+{
+    shared_lock<shared_mutex> lock(mut);
+    auto [x, y, z] = indices;
+    blocks.at(x, y, z) = block;
 }

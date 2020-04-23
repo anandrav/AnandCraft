@@ -10,6 +10,7 @@
 #include "ChunkData.h"
 #include "../Entity.h"
 #include "../Graphics/Mesh.h"
+#include "ChunkIndices.h"
 
 #include <shared_mutex>
 #include <array>
@@ -33,6 +34,10 @@ public:
     // thread safe
     // build meshes using chunk data
     void build_meshes();
+
+    // thread safe
+    BlockData get_block(ChunkIndices indices) const;
+    void set_block(ChunkIndices indices, BlockData block);
 
 private:
     void update_opaque_mesh();

@@ -15,3 +15,6 @@ build
 # vscode
 .vscode
 AnandCraft.code-workspace
+
+# macOS
+.DS_Store

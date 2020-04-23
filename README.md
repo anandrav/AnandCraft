@@ -4,12 +4,14 @@ A Minecraft clone made by Anand Dukkipati
 ## Feature Todo List
 - [x] blocks w/ textures
 - [x] chunks
-- [ ] breaking and placing of blocks
-- [ ] collision detection
-- [ ] saving, loading, and generating terrain
+- [x] breaking and placing of blocks
+- [ ] saving and loading terrain from files
+- [ ] generating terrain using noise
 - [ ] multi-threaded terrain (generation, loading/saving, mesh building)
+- [ ] frustum culling and other frame-rate optimizations
+- [ ] collision detection
 - [ ] lighting
-- [ ] basic UI/Menu system
+- [ ] basic UI/Menu system (crosshair, block selection, world selection)
 
 ## Build on macOS
 ```

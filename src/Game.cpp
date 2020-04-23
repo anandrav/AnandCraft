@@ -5,7 +5,6 @@
 #include "globals.h"
 #include "Terrain/TerrainTexture.h"
 
-#include <SDL2/SDL.h>
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
@@ -54,6 +53,8 @@ Game::Game()
     // init GLEW
     glewExperimental = GL_TRUE;
     glewInit();
+
+    controller.attach(&player);
 }
 
 Game::~Game() {
@@ -71,16 +72,8 @@ void Game::deregister_entity(Entity* entity) {
     entities.erase(entity);
 }
 
-void Game::run()
+void Game::loop()
 {
-    player = make_unique<Player>();
-    player->get_transform().translate({0,1,0});
-    player_controller = make_unique<PlayerController>(player.get());
-    terrain = make_unique<Terrain>(player.get());
-    demo = make_unique<SingleBlockDemo>();
-
-    // register_listener<RaycastEvent>({0, [](shared_ptr<Event> e)->bool { e.get(); return false; }});
-
     double previous = SDL_GetTicks();
     double lag = 0.0;
     while (is_running) {
@@ -97,23 +90,14 @@ void Game::run()
         // const double interpolate = lag / MS_PER_UPDATE;
         render();
     }
-
-    terrain.release();
-    player.release();
-    player_controller.release();
-    demo.release();
 }
 
 void Game::update()
 {
-    // pump out all the events/messages  (TODO use interface with .update(tick) method)
     process_input();
     // update all game objects
-    player->update();
+    player.update();
     for_each(begin(entities), end(entities), mem_fn(&Entity::update));
-    // world.update(player.get_position());
-
-    // TODO process all events/messages in SyncQueue? Name it event queue?
 }
 
 void Game::process_input()
@@ -124,7 +108,7 @@ void Game::process_input()
         if (e.type == SDL_QUIT) {
             is_running = false;
         } else {
-            player_controller->process_event(e);
+            controller.process_event(e);
         }
     }
 }
@@ -137,15 +121,10 @@ void Game::render()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // render all game objects
-    auto& camera = player->get_camera();
-    for_each(begin(entities), end(entities), [&camera](Entity* e) { e->render_opaque(camera);});
-    for_each(begin(entities), end(entities), [&camera](Entity* e) { e->render_transparent(camera);});
+    for_each(begin(entities), end(entities), [this](Entity* e) { e->render_opaque(player.get_camera());});
+    for_each(begin(entities), end(entities), [this](Entity* e) { e->render_transparent(player.get_camera());});
 
     // render UI/HUD
-    // cout << int(player->get_camera().get_position().x) << ' ';
-    // cout << int(player->get_camera().get_position().y) << ' ';
-    // cout << int(player->get_camera().get_position().z) << ' ';
-    // cout << endl;
 
     // update display
     SDL_GL_SwapWindow(sdl_window);

@@ -1,5 +1,6 @@
 #include <iostream>
 #include "Game.h"
+#include "Scene.h"
 #include "globals.h"
 #include "util.h"
 #include <GL/glew.h>
@@ -13,7 +14,9 @@ int main()
     try {
         // initialize Game
         g_game = new Game();
-        g_game->run();
+        Scene* scene = new Scene();
+        g_game->loop();
+        delete scene;
         delete g_game;
     } catch (exception& error) {
         cout << "exception caught: " << error.what() << endl;

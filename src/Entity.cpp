@@ -8,15 +8,22 @@ using namespace std;
 
 ID_t max_ids { 0 };
 
-Entity::Entity()
+Entity::Entity(const char* const name)
     : ID(max_ids++)
+    , name(name)
 {
     g_game->register_entity(this);
-    cout << "entity registered" << endl;
+    cout << "Entity created";
+    if (name)
+        cout << '\t' << name;
+    cout << "\tID: " << ID << endl;
 }
 
-Entity::~Entity() 
+Entity::~Entity()
 {
     g_game->deregister_entity(this);
-    cout << "entity gone" << endl;
+    cout << "Entity destroyed";
+    if (name)
+        cout << '\t' << name;
+    cout << "\tID: " << ID << endl;
 }

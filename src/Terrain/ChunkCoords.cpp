@@ -7,13 +7,11 @@
 // blocks 16 to 31 are in chunk 1
 // blocks -16 to -1 are in chunk -1
 // and so on...
-// must account for rounding of negative numbers!
-int block_to_chunk_coord(int element) { 
-    if (element >= 0) {
-        return element / CHUNK_WIDTH;
-    }
-    // negative number rounding case
-    return ((element + 1) / CHUNK_WIDTH) - 1;
+int convert_coords(int coord) { 
+    if (coord >= 0)
+        return coord / CHUNK_WIDTH;
+    // -16 to -1 are in chunk -1
+    return ((coord + 1) / CHUNK_WIDTH) - 1;
 }
 
 ChunkCoords::ChunkCoords(int x, int y, int z)
@@ -24,9 +22,9 @@ ChunkCoords::ChunkCoords(int x, int y, int z)
 }
 
 ChunkCoords::ChunkCoords(const BlockCoords& block_coord)
-    : x(block_to_chunk_coord(block_coord.x))
-    , y(block_to_chunk_coord(block_coord.y))
-    , z(block_to_chunk_coord(block_coord.z))
+    : x(convert_coords(block_coord.x))
+    , y(convert_coords(block_coord.y))
+    , z(convert_coords(block_coord.z))
 {
 }
 

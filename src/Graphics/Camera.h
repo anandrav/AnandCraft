@@ -1,15 +1,18 @@
 #pragma once
 
 #include "Transform.h"
+#include "../globals.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
+const float ASPECT_RATIO = float(WIDTH) / HEIGHT;
+
 // First-person-shooter style camera
 class Camera {
 public:
-    Camera(float aspect, float fov = glm::radians(55.f), float zNear = 0.4f, float zFar = 1000.0f)
+    Camera(float aspect = ASPECT_RATIO, float fov = glm::radians(55.f), float zNear = 0.4f, float zFar = 1000.0f)
         : aspect(aspect), fov(fov), zNear(zNear), zFar(zFar)
     {
     }

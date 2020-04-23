@@ -1,11 +1,16 @@
 #include "Terrain.h"
 
+#include "../Physics/Ray.h"
+#include "ChunkIndices.h"
+
 #include <iostream>
 
 using namespace std;
 
 Terrain::Terrain(Player* player) 
-    : player(player)
+    : Entity("Terrain")
+    , player(player)
+    , raycast_listener(ID, [this](auto e) { return this->handle_raycast_event(e); })
 {
 }
 
@@ -40,4 +45,61 @@ void Terrain::update() {
             }
         }
     }
+}
+
+
+bool Terrain::handle_raycast_event(shared_ptr<RaycastEvent> event) {
+    cout << "RAYCAST EVENT RECEIVED BY TERRAIN" << endl;
+    Ray ray(event->get_ray());
+    const float MAX_DISTANCE = 12.0f;
+    const float STEP_DISTANCE = 0.1f;
+
+    BlockCoords p_block_coords(ray.get_end());
+    cout << "raycast start: " << p_block_coords << endl;
+    shared_ptr<Chunk> chunk;
+    auto it = chunks.find(p_block_coords);
+    if (it == end(chunks)) {
+        cout << "raycast detected non-existent chunk!" << endl;
+        return false;
+    }
+    chunk = it->second;
+    // find the first block that isn't air and do something
+    for (; ray.get_length() < MAX_DISTANCE; ray.step(STEP_DISTANCE)) {
+        bool crossed_chunks = false;
+        BlockCoords curr_block(ray.get_end());
+        // don't check the same block twice
+        if (curr_block == p_block_coords)
+            continue;
+        shared_ptr<Chunk> p_chunk;
+        if (ChunkCoords(curr_block) != ChunkCoords(p_block_coords)) {
+            crossed_chunks = true;
+            auto it = chunks.find(curr_block);
+            if (it == end(chunks)) {
+                cout << "raycast detected non-existent chunk!" << endl;
+                return false;
+            }
+            p_chunk = chunk;
+            chunk = it->second;
+        }
+        BlockData block_data = chunk->get_block(curr_block);
+        cout << "Block: " << block_data.get_name() << endl;
+        if (block_data.id != BlockID::AIR) {
+            if (event->is_left_click()) {
+                // break block
+                chunk->set_block(curr_block, {BlockID::AIR});
+                chunk->build_meshes();
+            } else {
+                // place block
+                if (crossed_chunks)
+                    p_chunk->set_block(p_block_coords, {BlockID::COBBLESTONE});
+                else
+                    chunk->set_block(p_block_coords, {BlockID::COBBLESTONE});
+                chunk->build_meshes();
+            }
+            return true;
+        }
+        p_block_coords = curr_block;
+    }
+
+    return false;
 }

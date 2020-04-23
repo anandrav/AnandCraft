@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Graphics/Camera.h"
+#include "Entity.h"
 
 class Player {
 public:

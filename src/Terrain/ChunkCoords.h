@@ -17,6 +17,10 @@ struct ChunkCoords {
 
     bool operator== (const ChunkCoords& coords) const;
 
+    bool operator!= (const ChunkCoords& coords) const {
+        return !(*this == coords);
+    }
+
     int x;
     int y;
     int z;

@@ -10,11 +10,13 @@ Terrain is procedurally generated/loaded in chunks.
 #include "../Player.h"
 #include "../Graphics/Camera.h"
 #include "../Entity.h"
+#include "../EventListener.h"
+#include "../RaycastEvent.h"
 
 #include <unordered_map>
 #include <memory>
 
-constexpr int RENDER_DIST { 2 };
+constexpr int RENDER_DIST { 3 };
 
 class Terrain : Entity {
 public:
@@ -32,6 +34,9 @@ private:
         }
     };
 
+    bool handle_raycast_event(std::shared_ptr<RaycastEvent> event);
+
     Player* player;
     std::unordered_map<ChunkCoords, std::shared_ptr<Chunk>, ChunkCoordsHash> chunks;
+    EventListener<RaycastEvent> raycast_listener;
 };
