@@ -53,7 +53,7 @@ void Chunk::render_transparent(const Camera& camera) const
     transparent_mesh.draw();
 }
 
-void Chunk::generate_data() {
+void Chunk::load_data() {
     unique_lock<shared_mutex> read_guard(mut);
     if (coords.y >= 0) {
         for (int x = 0; x < CHUNK_WIDTH; ++x) {

@@ -29,7 +29,10 @@ public:
 
     // thread safe
     // loads data from file or generates from seed
-    void generate_data();
+    void load_data();
+
+    // thread safe
+    void save_data();
 
     // thread safe
     // build meshes using chunk data
@@ -52,9 +55,14 @@ private:
 
     bool is_same_material_at(BlockData& current, int x, int y, int z) const;
 
+    void generate_from_seed();
+
+    void load_from_file();
+
     mutable std::shared_mutex mut;
     ChunkCoords coords;
     ChunkBlocks blocks;
+    bool dirty;
     Mesh opaque_mesh;
     Mesh transparent_mesh;
     glm::mat4 translation;

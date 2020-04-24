@@ -38,7 +38,7 @@ void Terrain::update() {
                 auto it = chunks.find(coords);
                 if (it == chunks.end()) {
                     auto chunk = make_shared<Chunk>(coords);
-                    chunk->generate_data();
+                    chunk->load_data();
                     chunk->build_meshes();
                     chunks.insert({coords, chunk});
                 }
@@ -51,7 +51,7 @@ void Terrain::update() {
 bool Terrain::handle_raycast_event(shared_ptr<RaycastEvent> event) {
     cout << "RAYCAST EVENT RECEIVED BY TERRAIN" << endl;
     Ray ray(event->get_ray());
-    const float MAX_DISTANCE = 12.0f;
+    const float MAX_DISTANCE = 32.0f;
     const float STEP_DISTANCE = 0.1f;
 
     BlockCoords p_block_coords(ray.get_end());
@@ -90,11 +90,13 @@ bool Terrain::handle_raycast_event(shared_ptr<RaycastEvent> event) {
                 chunk->build_meshes();
             } else {
                 // place block
-                if (crossed_chunks)
+                if (crossed_chunks) {
                     p_chunk->set_block(p_block_coords, {BlockID::COBBLESTONE});
-                else
+                    p_chunk->build_meshes();
+                } else {
                     chunk->set_block(p_block_coords, {BlockID::COBBLESTONE});
-                chunk->build_meshes();
+                    chunk->build_meshes();
+                }
             }
             return true;
         }
