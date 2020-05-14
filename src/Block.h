@@ -4,6 +4,7 @@
 #include <vector>
 #include <iosfwd>
 #include <string>
+#include <array>
 
 enum class BlockID : uint8_t {
     // NONE mesh

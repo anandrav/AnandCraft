@@ -8,7 +8,7 @@
 
 using namespace std;
 
-bool out_of_bounds_at(int x, int y, int z);
+bool out_of_bounds_at(ChunkIndex indices);
 
 Chunk::Chunk(ChunkCoords coords)
 : Entity("Chunk")
@@ -59,7 +59,7 @@ void Chunk::load_data() {
         for (int x = 0; x < CHUNK_WIDTH; ++x) {
             for (int y = 0; y < CHUNK_WIDTH; ++y) {
                 for (int z = 0; z < CHUNK_WIDTH; ++z) {
-                    blocks.at(x,y,z).id = BlockID::AIR;
+                    blocks.at({x,y,z}).id = BlockID::AIR;
                 }
             }
         }
@@ -70,9 +70,9 @@ void Chunk::load_data() {
             for (int z = 0; z < CHUNK_WIDTH; ++z) {
                 int y;
                 for (y = 0; y < CHUNK_WIDTH-1; ++y) {
-                    blocks.at(x,y,z).id = BlockID::DIRT;
+                    blocks.at({x,y,z}).id = BlockID::DIRT;
                 }
-                blocks.at(x,y,z).id = BlockID::GRASS;
+                blocks.at({x,y,z}).id = BlockID::GRASS;
             }
         }
         return;
@@ -80,7 +80,7 @@ void Chunk::load_data() {
     for (int x = 0; x < CHUNK_WIDTH; ++x) {
         for (int y = 0; y < CHUNK_WIDTH; ++y) {
             for (int z = 0; z < CHUNK_WIDTH; ++z) {
-                blocks.at(x,y,z).id = BlockID::STONE;
+                blocks.at({x,y,z}).id = BlockID::STONE;
             }
         }
     }
@@ -99,48 +99,26 @@ void Chunk::update_opaque_mesh()
 {    
     vector<Vertex> vertices;
     vector<unsigned> indices;
-    for (int x = 0; x < CHUNK_WIDTH; ++x) {
-        for (int y = 0; y < CHUNK_WIDTH; ++y) {
-            for (int z = 0; z < CHUNK_WIDTH; ++z) {
-                BlockData& current = blocks.at(x,y,z);
-                // only render opaque blocks
-                if (current.is_transparent())
-                    continue;
-                switch (current.get_mesh_type()) {
-                case BlockMesh::CUBE:
-                    // only add faces that are adjacent to transparent
-                    //      blocks, cull faces that are obscured
-                    if (is_transparent_at(x - 1, y, z)) {
-                        append_block_face(vertices, indices, x, y, z, current,
-                            CubeFace::XNEG);
-                    }
-                    if (is_transparent_at(x + 1, y, z)) {
-                        append_block_face(vertices, indices, x, y, z, current,
-                            CubeFace::XPOS);
-                    }
-                    if (is_transparent_at(x, y - 1, z)) {
-                        append_block_face(vertices, indices, x, y, z, current,
-                            CubeFace::YNEG);
-                    }
-                    if (is_transparent_at(x, y + 1, z)) {
-                        append_block_face(vertices, indices, x, y, z, current,
-                            CubeFace::YPOS);
-                    }
-                    if (is_transparent_at(x, y, z - 1)) {
-                        append_block_face(vertices, indices, x, y, z, current,
-                            CubeFace::ZNEG);
-                    }
-                    if (is_transparent_at(x, y, z + 1)) {
-                        append_block_face(vertices, indices, x, y, z, current,
-                            CubeFace::ZPOS);
-                    }
-                    break;
-                default:
-                    break;
+    ChunkIndex index;
+    do {
+        BlockData& current = blocks.at(index);
+        // only render opaque blocks
+        if (current.is_transparent())
+            continue;
+        switch (current.get_mesh_type()) {
+        case BlockMesh::CUBE:
+            // only add faces that are adjacent to transparent
+            //      blocks, cull faces that are obscured
+            for (auto& direction : directions) {
+                if (should_draw_opaque_face(index, direction)) {
+                    append_block_face(vertices, indices, index, current, direction.face);
                 }
             }
+            break;
+        default:
+            break;
         }
-    }
+    } while (index.advance());
     opaque_mesh = Mesh(vertices, indices);
 }
 
@@ -148,59 +126,61 @@ void Chunk::update_transparent_mesh()
 {
     vector<Vertex> vertices;
     vector<unsigned> indices;
-    for (int x = 0; x < CHUNK_WIDTH; ++x) {
-        for (int y = 0; y < CHUNK_WIDTH; ++y) {
-            for (int z = 0; z < CHUNK_WIDTH; ++z) {
-                BlockData& current = blocks.at(x,y,z);
-                // only render opaque blocks
-                if (!current.is_transparent())
-                    continue;
-                switch (current.get_mesh_type()) {
-                case BlockMesh::CUBE:
-                    // for_each(begin(directions), end(directions)
-                    //     [](const DIRECTION& d) {
-                            
-                    //     }
-                    // );
-                    // only add faces that are adjacent to transparent
-                    //      blocks, cull faces that are obscured
-                    if (is_transparent_at(x - 1, y, z) && !is_same_material_at(current, x - 1, y, z)) {
-                        append_block_face(vertices, indices, x, y, z, current,
-                            CubeFace::XNEG);
-                    }
-                    if (is_transparent_at(x + 1, y, z) && !is_same_material_at(current, x + 1, y, z)) {
-                        append_block_face(vertices, indices, x, y, z, current,
-                            CubeFace::XPOS);
-                    }
-                    if (is_transparent_at(x, y - 1, z) && !is_same_material_at(current, x, y - 1, z)) {
-                        append_block_face(vertices, indices, x, y, z, current,
-                            CubeFace::YNEG);
-                    }
-                    if (is_transparent_at(x, y + 1, z) && !is_same_material_at(current, x, y + 1, z)) {
-                        append_block_face(vertices, indices, x, y, z, current,
-                            CubeFace::YPOS);
-                    }
-                    if (is_transparent_at(x, y, z - 1) && !is_same_material_at(current, x, y, z - 1)) {
-                        append_block_face(vertices, indices, x, y, z, current,
-                            CubeFace::ZNEG);
-                    }
-                    if (is_transparent_at(x, y, z + 1) && !is_same_material_at(current, x, y, z + 1)) {
-                        append_block_face(vertices, indices, x, y, z, current,
-                            CubeFace::ZPOS);
-                    }
-                    break;
-                default:
-                    break;
+    ChunkIndex index;
+    do {
+        BlockData& current = blocks.at(index);
+        // only render opaque blocks
+        if (current.is_transparent())
+            continue;
+        switch (current.get_mesh_type()) {
+        case BlockMesh::CUBE:
+            // only add faces that are adjacent to transparent
+            //      blocks, cull faces that are obscured
+            for (auto& direction : directions) {
+                if (should_draw_transparent_face(index, direction)) {
+                    append_block_face(vertices, indices, index, current, direction.face);
                 }
             }
+            break;
+        default:
+            break;
         }
-    }
+    } while (index.advance());
     transparent_mesh = Mesh(vertices, indices);
+}
+
+bool Chunk::should_draw_opaque_face(const ChunkIndex& index, const Direction& direction) const
+{
+    if (int x = index.x + get<0>(direction.vec); x < 0 || x == CHUNK_WIDTH)
+        return true;
+    if (int y = index.y + get<1>(direction.vec); y < 0 || y == CHUNK_WIDTH)
+        return true;
+    if (int z = index.z + get<2>(direction.vec); z < 0 || z == CHUNK_WIDTH)
+        return true;
+    
+    auto adj = index;
+    adj += direction.vec;
+    return blocks.at(adj).is_transparent();
+}
+
+bool Chunk::should_draw_transparent_face(const ChunkIndex& index, const Direction& direction) const
+{
+    if (int x = index.x + get<0>(direction.vec); x < 0 || x == CHUNK_WIDTH)
+        return true;
+    if (int y = index.y + get<1>(direction.vec); y < 0 || y == CHUNK_WIDTH)
+        return true;
+    if (int z = index.z + get<2>(direction.vec); z < 0 || z == CHUNK_WIDTH)
+        return true;
+    
+    auto adj = index;
+    adj += direction.vec;
+    return blocks.at(adj).is_transparent() &&
+           blocks.at(index).id == blocks.at(adj).id; // same material
 }
 
 void Chunk::append_block_face(vector<Vertex>& vertices, 
                        vector<unsigned int>& indices, 
-                       int x, int y, int z, const BlockData& current, 
+                       const ChunkIndex& chunk_indices, const BlockData& current, 
                        CubeFace face) const 
 {
     vector<unsigned int> face_indices = current.get_face_indices(face);
@@ -214,42 +194,21 @@ void Chunk::append_block_face(vector<Vertex>& vertices,
     vector<Vertex> face_vertices = current.get_face_vertices(face);
     // translate vertices of block face to position in chunk
     for_each(begin(face_vertices), end(face_vertices),
-        [x,y,z](Vertex& v) {
-            v.position += glm::vec3{x,y,z};
+        [chunk_indices](Vertex& v) {
+            v.position += glm::vec3{chunk_indices.x, chunk_indices.y, chunk_indices.z};
         }
     );
     vertices.insert(vertices.end(), face_vertices.begin(), face_vertices.end());
 }
 
-bool Chunk::is_transparent_at(int x, int y, int z) const 
-{
-    if (out_of_bounds_at(x,y,z))
-        return true;
-    return blocks.at(x, y, z).is_transparent();
-}
-
-bool out_of_bounds_at(int x, int y, int z) {
-    return (x < 0 || y < 0 || z < 0 ||
-            x == CHUNK_WIDTH || y == CHUNK_WIDTH || z == CHUNK_WIDTH);
-}
-
-bool Chunk::is_same_material_at(BlockData& current, int x, int y, int z) const
-{
-    if (out_of_bounds_at(x,y,z))
-        return false;
-    return current.id == blocks.at(x, y, z).id;
-}
-
-BlockData Chunk::get_block(ChunkIndices indices) const
+BlockData Chunk::get_block(ChunkIndex indices) const
 {
     shared_lock<shared_mutex> lock(mut);
-    auto [x, y, z] = indices;
-    return blocks.at(x, y, z);
+    return blocks.at(indices);
 }
 
-void Chunk::set_block(ChunkIndices indices, BlockData block)
+void Chunk::set_block(ChunkIndex indices, BlockData block)
 {
     shared_lock<shared_mutex> lock(mut);
-    auto [x, y, z] = indices;
-    blocks.at(x, y, z) = block;
+    blocks.at(indices) = block;
 }

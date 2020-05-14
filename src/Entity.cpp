@@ -13,17 +13,19 @@ Entity::Entity(const char* const name)
     , name(name)
 {
     g_game->register_entity(this);
+
     cout << "Entity created";
     if (name)
         cout << '\t' << name;
-    cout << "\tID: " << ID << endl;
+    cout << "\tID: " << ID << '\n';
 }
 
 Entity::~Entity()
 {
     g_game->deregister_entity(this);
+    
     cout << "Entity destroyed";
     if (name)
         cout << '\t' << name;
-    cout << "\tID: " << ID << endl;
+    cout << "\tID: " << ID << '\n';
 }

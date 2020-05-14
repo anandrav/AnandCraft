@@ -1,7 +1,7 @@
 #include "Terrain.h"
 
 #include "../Physics/Ray.h"
-#include "ChunkIndices.h"
+#include "ChunkIndex.h"
 
 #include <iostream>
 

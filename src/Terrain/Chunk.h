@@ -10,12 +10,11 @@
 #include "ChunkData.h"
 #include "../Entity.h"
 #include "../Graphics/Mesh.h"
-#include "ChunkIndices.h"
+#include "ChunkIndex.h"
 
 #include <shared_mutex>
-#include <array>
 
-struct DIRECTION;
+struct Direction;
 
 class Chunk : public Entity {
 public:
@@ -39,8 +38,8 @@ public:
     void build_meshes();
 
     // thread safe
-    BlockData get_block(ChunkIndices indices) const;
-    void set_block(ChunkIndices indices, BlockData block);
+    BlockData get_block(ChunkIndex indices) const;
+    void set_block(ChunkIndex indices, BlockData block);
 
 private:
     void update_opaque_mesh();
@@ -48,12 +47,12 @@ private:
 
     void append_block_face(std::vector<Vertex>& vertices, 
                            std::vector<unsigned int>& indices, 
-                           int x, int y, int z, const BlockData& current,
+                           const ChunkIndex& chunk_indices, const BlockData& current,
                            CubeFace face) const;
 
-    bool is_transparent_at(int x, int y, int z) const;
+    bool should_draw_opaque_face(const ChunkIndex& index, const Direction& direction) const;
 
-    bool is_same_material_at(BlockData& current, int x, int y, int z) const;
+    bool should_draw_transparent_face(const ChunkIndex& index, const Direction& direction) const;
 
     void generate_from_seed();
 
@@ -68,16 +67,16 @@ private:
     glm::mat4 translation;
 };
 
-struct DIRECTION {
-    int x,y,z;
+struct Direction {
+    std::tuple<int,int,int> vec;
     CubeFace face;
 };
 
-static const std::array<DIRECTION, 6> directions = {{
-    { -1, 0, 0, CubeFace::XNEG },
-    { 1, 0, 0, CubeFace::XPOS },
-    { 0, -1, 0, CubeFace::YNEG },
-    { 0, 1, 0, CubeFace::YPOS },
-    { 0, 0, -1, CubeFace::ZNEG },
-    { 0, 0, 1, CubeFace::ZPOS }
+static const std::array<Direction, 6> directions = {{
+    { {-1, 0, 0}, CubeFace::XNEG },
+    { {1, 0, 0}, CubeFace::XPOS },
+    { {0, -1, 0}, CubeFace::YNEG },
+    { {0, 1, 0}, CubeFace::YPOS },
+    { {0, 0, -1}, CubeFace::ZNEG },
+    { {0, 0, 1}, CubeFace::ZPOS }
 }};
