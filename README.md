@@ -5,10 +5,10 @@ A Minecraft clone made by Anand Dukkipati
 - [x] blocks w/ textures
 - [x] chunks
 - [x] breaking and placing of blocks
-- [ ] saving and loading terrain from files
+- [x] saving and loading terrain from files
+- [ ] multi-threaded terrain (loading/saving, mesh building)
 - [ ] generating terrain using noise
-- [ ] multi-threaded terrain (generation, loading/saving, mesh building)
-- [ ] frustum culling and other frame-rate optimizations
+- [ ] frustum culling, remove faces between chunks, other optimizations
 - [ ] collision detection
 - [ ] lighting
 - [ ] basic UI/Menu system (crosshair, block selection, world selection)
