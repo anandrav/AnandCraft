@@ -1,8 +1,11 @@
-#build
+# build
 AnandCraft
 Release/
 Debug/
 *.o
+
+# game data
+world/
 
 # cmake
 CMakeCache.txt

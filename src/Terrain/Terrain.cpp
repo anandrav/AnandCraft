@@ -65,8 +65,8 @@ void Terrain::update() {
 bool Terrain::handle_raycast_event(shared_ptr<RaycastEvent> event) {
     cout << "RAYCAST EVENT RECEIVED BY TERRAIN" << endl;
     Ray ray(event->get_ray());
-    const float MAX_DISTANCE = 32.0f;
-    const float STEP_DISTANCE = 0.1f;
+    const float MAX_DISTANCE = 10.0f;
+    const float STEP_DISTANCE = 1.0f;
 
     BlockCoords p_block_coords(ray.get_end());
     cout << "raycast start: " << p_block_coords << endl;
