@@ -1,5 +1,6 @@
 #include "Block.h"
 
+#include "SaveError.h"
 #include <iostream>
 #include <cassert>
 
@@ -7,6 +8,47 @@ using namespace std;
 
 const unsigned int TEXTURE_ATLAS_WIDTH_IN_BLOCKS = 16;
 const unsigned int TEXTURE_ATLAS_HEIGHT_IN_BLOCKS = 16;
+
+// inline fstream& operator>>(fstream& fs, BlockID& id) {
+//   unsigned int raw = 0;
+//   if (fs >> raw)
+//     id = static_cast<BlockID>(raw);
+//   return fs;
+// }
+
+template<typename T>
+void load_enum(ifstream& fs, T& t) {
+    unsigned int raw = 0;
+    if (fs >> raw) {
+        t = static_cast<T>(raw);
+    } else {
+        throw SaveError("could not load block data");
+    }
+}
+
+template<typename T>
+void save_enum(ofstream& fs, T& t) 
+{
+    unsigned int raw = static_cast<unsigned int>(t);
+    if (!(fs << raw)) {
+        throw SaveError("could not save block data");
+    }
+    fs << ' ';
+}
+
+void BlockData::load(ifstream& fs) 
+{
+    load_enum(fs, id);
+    load_enum(fs, spin);
+    load_enum(fs, top_face);
+}
+
+void BlockData::save(ofstream& fs) const
+{
+    save_enum(fs, id);
+    save_enum(fs, spin);
+    save_enum(fs, top_face);
+}
 
 /*
 Lexicographical naming convention and right-hand rule used as naming convention for cube vertex positions.
@@ -225,7 +267,7 @@ vector<unsigned int> BlockData::get_face_indices(CubeFace face) const
                 0, 1, 2, 
                 2, 1, 3 
             };
-
+        // XPOS, ZPOS, YNEG:
         default:
             return {
                 2, 1, 0,

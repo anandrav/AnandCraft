@@ -3,7 +3,10 @@
 #include "../Physics/Ray.h"
 #include "ChunkIndex.h"
 
+#include "../SaveError.h"
 #include <iostream>
+#include <fstream>
+#include <sys/stat.h>
 
 using namespace std;
 
@@ -12,6 +15,17 @@ Terrain::Terrain(Player* player)
     , player(player)
     , raycast_listener(ID, [this](auto e) { return this->handle_raycast_event(e); })
 {
+    if (mkdir("world/", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0) {
+        if (errno != EEXIST) {
+            throw SaveError("could not create world folder");
+        }
+    }
+}
+
+Terrain::~Terrain() {
+    for (auto pair : chunks) {
+        pair.second->save_data();
+    }
 }
 
 void Terrain::update() {

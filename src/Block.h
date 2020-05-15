@@ -1,10 +1,11 @@
 #pragma once
 
 #include "Graphics/Mesh.h"
-#include <vector>
 #include <iosfwd>
+#include <vector>
 #include <string>
 #include <array>
+#include <fstream>
 
 enum class BlockID : uint8_t {
     // NONE mesh
@@ -68,10 +69,14 @@ enum class CubeFace : uint8_t {
 /* struct to store state of a block in world */
 
 struct BlockData {
-    BlockData(BlockID id = BlockID::GRASS, CubeSpin spin = CubeSpin::NORTH, CubeFace top_face = CubeFace::YPOS) :
+    BlockData(BlockID id = BlockID::DEBUG, CubeSpin spin = CubeSpin::NORTH, CubeFace top_face = CubeFace::YPOS) :
         id(id), spin(spin), top_face(top_face)
     {
     }
+
+    void load(std::ifstream& fs);
+
+    void save(std::ofstream& fs) const;
 
     std::string get_name() const;
 

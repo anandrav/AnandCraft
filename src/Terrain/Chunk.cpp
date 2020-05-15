@@ -2,17 +2,18 @@
 
 #include "TerrainShader.h"
 #include "TerrainTexture.h"
+#include "../SaveError.h"
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 #include <vector>
+#include <string>
+#include <fstream>
 
 using namespace std;
 
-bool out_of_bounds_at(ChunkIndex indices);
-
 Chunk::Chunk(ChunkCoords coords)
 : Entity("Chunk")
-, coords(coords)
+, coords(coords) 
 {
     translation = glm::translate(glm::vec3{coords.x*CHUNK_WIDTH, coords.y*CHUNK_WIDTH, coords.z*CHUNK_WIDTH});
 }
@@ -53,8 +54,51 @@ void Chunk::render_transparent(const Camera& camera) const
     transparent_mesh.draw();
 }
 
-void Chunk::load_data() {
+void Chunk::load_data() 
+{
     unique_lock<shared_mutex> read_guard(mut);
+
+    string chunk_filename = get_chunk_filename();
+    ifstream fs(chunk_filename);
+    if (fs.good()) {
+        try {
+            ChunkIndex index;
+            do {
+                blocks.at(index).load(fs);
+            } while (index.advance());
+            return;
+        } catch (SaveError& error) {
+            cout << "SaveError caught: " << error.what() << endl;
+        }
+    } 
+    // if file does not exist or exception thrown
+    generate_data_from_seed();
+}
+
+void Chunk::save_data() 
+{
+    unique_lock<shared_mutex> read_guard(mut);
+
+    string chunk_filename = get_chunk_filename();
+    ofstream fs(chunk_filename);
+    try {
+        ChunkIndex index;
+        do {
+            blocks.at(index).save(fs);
+        } while (index.advance());
+    } catch (SaveError& error) {
+        cout << "SaveError caught: " << error.what() << endl;
+    }
+}
+
+string Chunk::get_chunk_filename() const
+{
+    return "world/" +
+           to_string(coords.x) + "_" + to_string(coords.y) + "_" + to_string(coords.z) +
+           ".chunk";
+}
+
+void Chunk::generate_data_from_seed() {
     if (coords.y >= 0) {
         for (int x = 0; x < CHUNK_WIDTH; ++x) {
             for (int y = 0; y < CHUNK_WIDTH; ++y) {
@@ -181,7 +225,7 @@ bool Chunk::should_draw_transparent_face(const ChunkIndex& index, const Directio
 void Chunk::append_block_face(vector<Vertex>& vertices, 
                        vector<unsigned int>& indices, 
                        const ChunkIndex& chunk_indices, const BlockData& current, 
-                       CubeFace face) const 
+                       CubeFace face) const
 {
     vector<unsigned int> face_indices = current.get_face_indices(face);
     // adjust face_indices to point to the vertices we are about to add

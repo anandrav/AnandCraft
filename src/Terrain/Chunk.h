@@ -27,7 +27,7 @@ public:
     void render_transparent(const Camera& camera) const override;
 
     // thread safe
-    // loads data from file or generates from seed
+    // loads data from file or generates from seed if no save data
     void load_data();
 
     // thread safe
@@ -54,9 +54,11 @@ private:
 
     bool should_draw_transparent_face(const ChunkIndex& index, const Direction& direction) const;
 
-    void generate_from_seed();
+    void generate_data_from_seed();
 
-    void load_from_file();
+    void load_data_from_seed();
+
+    std::string get_chunk_filename() const;
 
     mutable std::shared_mutex mut;
     ChunkCoords coords;

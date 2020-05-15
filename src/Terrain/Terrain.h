@@ -22,6 +22,8 @@ class Terrain : Entity {
 public:
     Terrain(Player* player);
 
+    ~Terrain();
+
     void update() override;
 
 private:

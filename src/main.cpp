@@ -12,14 +12,14 @@ int main()
 {
     cout << "AnandCraft" << endl;
     try {
-        // initialize Game
+        // initialize Game and Scene
         g_game = new Game();
         Scene* scene = new Scene();
         g_game->loop();
         delete scene;
         delete g_game;
     } catch (exception& error) {
-        cout << "exception caught: " << error.what() << endl;
+        cout << "std::exception caught: " << error.what() << endl;
     } catch (...) {
         cout << "Unknown exception caught!" << endl;
     }
