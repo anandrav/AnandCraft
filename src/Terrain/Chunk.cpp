@@ -2,6 +2,7 @@
 
 #include "TerrainShader.h"
 #include "TerrainTexture.h"
+#include "../Game.h"
 #include "../SaveError.h"
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
@@ -163,7 +164,13 @@ void Chunk::update_opaque_mesh()
             break;
         }
     } while (index.advance());
-    opaque_mesh = Mesh(vertices, indices);
+    /*  shared_ptr<Chunk> captured as 'chunk' instead of capturing 'this' pointer.
+     *  this is to ensure that object is destroyed on main thread if it's the last reference.
+     *  (Chunk class contains Mesh class whose destructor makes calls to OpenGL)
+     */
+    g_game->get_sync_queue().push([chunk = shared_from_this(), vertices = move(vertices), indices = move(indices)] {
+        chunk->opaque_mesh = Mesh(vertices, indices);
+    });
 }
 
 void Chunk::update_transparent_mesh() 
@@ -190,8 +197,13 @@ void Chunk::update_transparent_mesh()
             break;
         }
     } while (index.advance());
-    transparent_mesh = Mesh(vertices, indices);
-}
+    /*  shared_ptr<Chunk> captured as 'chunk' instead of capturing 'this' pointer.
+     *  this is to ensure that object is destroyed on main thread if it's the last reference.
+     *  (Chunk class contains Mesh class whose destructor makes calls to OpenGL)
+     */
+    g_game->get_sync_queue().push([chunk = shared_from_this(), vertices = move(vertices), indices = move(indices)] {
+        chunk->transparent_mesh = Mesh(vertices, indices);
+    });}
 
 bool Chunk::should_draw_opaque_face(const ChunkIndex& index, const Direction& direction) const
 {

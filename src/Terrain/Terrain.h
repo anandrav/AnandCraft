@@ -16,7 +16,7 @@ Terrain is procedurally generated/loaded in chunks.
 #include <unordered_map>
 #include <memory>
 
-constexpr int RENDER_DIST { 3 };
+constexpr int RENDER_DIST { 4 };
 
 class Terrain : Entity {
 public:

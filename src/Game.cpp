@@ -98,6 +98,8 @@ void Game::update()
     // update all game objects
     player.update();
     for_each(begin(entities), end(entities), mem_fn(&Entity::update));
+
+    sync_queue.process_all();
 }
 
 void Game::process_input()

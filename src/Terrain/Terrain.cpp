@@ -52,8 +52,14 @@ void Terrain::update() {
                 auto it = chunks.find(coords);
                 if (it == chunks.end()) {
                     auto chunk = make_shared<Chunk>(coords);
-                    chunk->load_data();
-                    chunk->build_meshes();
+                    // chunk->load_data();
+                    // chunk->build_meshes();
+                    g_game->get_thread_queue().push([chunk] {
+                        chunk->load_data();
+                        g_game->get_thread_queue().push([chunk] {
+                            chunk->build_meshes();
+                        });
+                    });
                     chunks.insert({coords, chunk});
                 }
             }

@@ -13,10 +13,11 @@
 #include "ChunkIndex.h"
 
 #include <shared_mutex>
+#include <memory>
 
 struct Direction;
 
-class Chunk : public Entity {
+class Chunk : public Entity, public std::enable_shared_from_this<Chunk> {
 public:
     Chunk(ChunkCoords coords);
 
