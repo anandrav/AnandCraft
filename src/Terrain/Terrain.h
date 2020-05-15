@@ -18,13 +18,16 @@ Terrain is procedurally generated/loaded in chunks.
 
 constexpr int RENDER_DIST { 4 };
 
-class Terrain : Entity {
+class Terrain : public Entity {
 public:
     Terrain(Player* player);
 
     ~Terrain();
 
     void update() override;
+
+    void render_opaque(const Camera& camera) const override;
+    void render_transparent(const Camera& camera) const override;
 
 private:
     struct ChunkCoordsHash {

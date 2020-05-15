@@ -17,15 +17,15 @@
 
 struct Direction;
 
-class Chunk : public Entity, public std::enable_shared_from_this<Chunk> {
+class Chunk : public std::enable_shared_from_this<Chunk> {
 public:
     Chunk(ChunkCoords coords);
 
     Chunk(Chunk&) = delete;
     Chunk& operator=(Chunk&) = delete;
 
-    void render_opaque(const Camera& camera) const override;
-    void render_transparent(const Camera& camera) const override;
+    void render_opaque(const Camera& camera) const;
+    void render_transparent(const Camera& camera) const;
 
     // thread safe
     // loads data from file or generates from seed if no save data
@@ -64,7 +64,7 @@ private:
     mutable std::shared_mutex mut;
     ChunkCoords coords;
     ChunkBlocks blocks;
-    bool dirty;
+    bool loaded;
     Mesh opaque_mesh;
     Mesh transparent_mesh;
     glm::mat4 translation;

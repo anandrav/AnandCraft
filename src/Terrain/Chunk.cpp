@@ -13,8 +13,8 @@
 using namespace std;
 
 Chunk::Chunk(ChunkCoords coords)
-: Entity("Chunk")
-, coords(coords) 
+: coords(coords)
+, loaded(false)
 {
     translation = glm::translate(glm::vec3{coords.x*CHUNK_WIDTH, coords.y*CHUNK_WIDTH, coords.z*CHUNK_WIDTH});
 }
@@ -74,11 +74,15 @@ void Chunk::load_data()
     } 
     // if file does not exist or exception thrown
     generate_data_from_seed();
+
+    loaded = true;
 }
 
 void Chunk::save_data() 
 {
     unique_lock<shared_mutex> unique_lock(mut);
+    if (!loaded)
+        return;
 
     string chunk_filename = get_chunk_filename();
     ofstream fs(chunk_filename);

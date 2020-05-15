@@ -67,11 +67,24 @@ void Terrain::update() {
     }
 }
 
+void Terrain::render_opaque(const Camera& camera) const
+{
+    for (auto pair : chunks) {
+        pair.second->render_opaque(camera);
+    } 
+}
+
+void Terrain::render_transparent(const Camera& camera) const
+{
+    for (auto pair : chunks) {
+        pair.second->render_transparent(camera);
+    } 
+}
 
 bool Terrain::handle_raycast_event(shared_ptr<RaycastEvent> event) {
     cout << "RAYCAST EVENT RECEIVED BY TERRAIN" << endl;
     Ray ray(event->get_ray());
-    const float MAX_DISTANCE = 10.0f;
+    const float MAX_DISTANCE = 12.0f;
     const float STEP_DISTANCE = 1.0f;
 
     BlockCoords p_block_coords(ray.get_end());
