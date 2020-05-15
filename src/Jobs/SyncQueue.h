@@ -24,5 +24,8 @@ public:
 
 private:
     std::queue<Job_t> queue;
-    std::mutex q_mutex;
+    // triple mutex pattern, main thread gets priority
+    std::mutex data_mutex;
+    std::mutex next_mutex;
+    std::mutex low_priority_mutex;
 };

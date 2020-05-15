@@ -1,8 +1,10 @@
 #include "ThreadQueue.h"
 
-const int NUM_CORES = std::thread::hardware_concurrency();
-const int NUM_THREADS = NUM_CORES - 1; // leave one core for main thread
+using namespace std;
 
+const int AVAILABLE_CORES = std::thread::hardware_concurrency() - 1; // leave one core for main thread
+const int THREAD_MAX = 3; // no more than 3 because synchronization is slow
+const int NUM_THREADS = min(max(AVAILABLE_CORES, 1), THREAD_MAX); // at least 1 thread in the pool, leq max
 
 ThreadQueue::ThreadQueue() : workers(NUM_THREADS) {
     is_terminating.store(false);

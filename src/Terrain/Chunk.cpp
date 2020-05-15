@@ -57,7 +57,7 @@ void Chunk::render_transparent(const Camera& camera) const
 
 void Chunk::load_data() 
 {
-    unique_lock<shared_mutex> read_guard(mut);
+    unique_lock<shared_mutex> unique_lock(mut);
 
     string chunk_filename = get_chunk_filename();
     ifstream fs(chunk_filename);
@@ -78,7 +78,7 @@ void Chunk::load_data()
 
 void Chunk::save_data() 
 {
-    unique_lock<shared_mutex> read_guard(mut);
+    unique_lock<shared_mutex> unique_lock(mut);
 
     string chunk_filename = get_chunk_filename();
     ofstream fs(chunk_filename);
@@ -134,7 +134,7 @@ void Chunk::generate_data_from_seed() {
 
 void Chunk::build_meshes()
 {
-    unique_lock<shared_mutex> read_guard(mut);
+    unique_lock<shared_mutex> unique_lock(mut);
 
     update_opaque_mesh();
     update_transparent_mesh();
@@ -259,12 +259,12 @@ void Chunk::append_block_face(vector<Vertex>& vertices,
 
 BlockData Chunk::get_block(ChunkIndex indices) const
 {
-    shared_lock<shared_mutex> lock(mut);
+    shared_lock<shared_mutex> read_lock(mut);
     return blocks.at(indices);
 }
 
 void Chunk::set_block(ChunkIndex indices, BlockData block)
 {
-    shared_lock<shared_mutex> lock(mut);
+    unique_lock<shared_mutex> unique_lock(mut);
     blocks.at(indices) = block;
 }

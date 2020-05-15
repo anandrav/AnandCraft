@@ -54,15 +54,16 @@ private:
     SDL_Window* sdl_window;
     SDL_GLContext sdl_glcontext;
 
-    ThreadQueue thread_queue;
-    SyncQueue sync_queue;
+    std::set<Entity*> entities;
 
     EventDispatcher event_dispatcher;
 
-    std::set<Entity*> entities;
-
     Player player;
     PlayerController controller;
+
+    SyncQueue sync_queue;
+    // destroy this first. threads must be joined so they don't access Game during destruction
+    ThreadQueue thread_queue;
 
     void update();
 
