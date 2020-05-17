@@ -41,8 +41,6 @@ Terrain::~Terrain() {
             chunk_pool.push(chunk);
         }
     }
-
-    cout << "terminated!" << endl;
 }
 
 void Terrain::update() {
@@ -109,7 +107,7 @@ void Terrain::render_transparent(const Camera& camera) const
 bool Terrain::handle_raycast_event(shared_ptr<RaycastEvent> event) {
     cout << "RAYCAST EVENT RECEIVED BY TERRAIN" << endl;
     Ray ray(event->get_ray());
-    const float MAX_DISTANCE = 12.0f;
+    const float MAX_DISTANCE = 32.0f;
     const float STEP_DISTANCE = 0.5f;
 
     BlockCoords p_block_coords(ray.get_end());

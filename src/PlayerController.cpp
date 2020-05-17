@@ -8,7 +8,7 @@
 
 using namespace std;
 
-const float VELOCITY = 8.0f;
+const float VELOCITY = 5.0f;
 
 PlayerController::PlayerController(Player* player) 
     : player(player)

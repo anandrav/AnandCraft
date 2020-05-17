@@ -68,6 +68,13 @@ private:
 
     std::string get_chunk_filename() const;
 
+    enum class State {
+        DEAD,
+        UNLOADED,
+        LOADED,
+        DIRTY
+    };
+
     mutable std::shared_mutex mut;
     ChunkCoords coords;
     ChunkBlocks blocks;
