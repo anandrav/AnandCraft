@@ -12,10 +12,22 @@
 
 using namespace std;
 
-Chunk::Chunk(ChunkCoords coords)
-: coords(coords)
+Chunk::Chunk()
+: active(false)
 , loaded(false)
+, dirty(false)
+, can_render(false)
+, pending_jobs(false)
 {
+}
+
+void Chunk::set_active(ChunkCoords coords_) {
+    active = true;
+    coords = coords_;
+    calculate_translation();
+}
+
+void Chunk::calculate_translation() {
     translation = glm::translate(glm::vec3{coords.x*CHUNK_WIDTH, coords.y*CHUNK_WIDTH, coords.z*CHUNK_WIDTH});
 }
 
@@ -23,6 +35,8 @@ void Chunk::render_opaque(const Camera& camera) const
 {
     shared_lock<shared_mutex> read_guard(mut);
 
+    if (!can_render)
+        return;
     glBindTexture(GL_TEXTURE_2D, TerrainTexture::get());
     glUseProgram(TerrainShader::ID());
     glm::mat4 clip_transform = camera.get_view_projection() * translation;
@@ -40,6 +54,8 @@ void Chunk::render_transparent(const Camera& camera) const
 {
     shared_lock<shared_mutex> read_guard(mut);
 
+    if (!can_render)
+        return;
     glBindTexture(GL_TEXTURE_2D, TerrainTexture::get());
     glUseProgram(TerrainShader::ID());
     glm::mat4 clip_transform = camera.get_view_projection() * translation;
@@ -57,8 +73,11 @@ void Chunk::render_transparent(const Camera& camera) const
 
 void Chunk::load_data() 
 {
-    unique_lock<shared_mutex> unique_lock(mut);
+    unique_lock<shared_mutex> write_lock(mut);
 
+    if (!active)
+        return;
+    loaded = true;
     string chunk_filename = get_chunk_filename();
     ifstream fs(chunk_filename);
     if (fs.good()) {
@@ -67,32 +86,13 @@ void Chunk::load_data()
             do {
                 blocks.at(index).load(fs);
             } while (index.advance());
-            return;
         } catch (SaveError& error) {
             cout << "SaveError caught: " << error.what() << endl;
+            generate_data_from_seed();
         }
-    } 
-    // if file does not exist or exception thrown
-    generate_data_from_seed();
-
-    loaded = true;
-}
-
-void Chunk::save_data() 
-{
-    unique_lock<shared_mutex> unique_lock(mut);
-    if (!loaded)
-        return;
-
-    string chunk_filename = get_chunk_filename();
-    ofstream fs(chunk_filename);
-    try {
-        ChunkIndex index;
-        do {
-            blocks.at(index).save(fs);
-        } while (index.advance());
-    } catch (SaveError& error) {
-        cout << "SaveError caught: " << error.what() << endl;
+    } else {
+        // chunk save file does not exist yet, not an error
+        generate_data_from_seed();
     }
 }
 
@@ -104,16 +104,7 @@ string Chunk::get_chunk_filename() const
 }
 
 void Chunk::generate_data_from_seed() {
-    if (coords.y >= 0) {
-        for (int x = 0; x < CHUNK_WIDTH; ++x) {
-            for (int y = 0; y < CHUNK_WIDTH; ++y) {
-                for (int z = 0; z < CHUNK_WIDTH; ++z) {
-                    blocks.at({x,y,z}).id = BlockID::AIR;
-                }
-            }
-        }
-        return;
-    }
+    // grass w dirt
     if (coords.y == -1) {
         for (int x = 0; x < CHUNK_WIDTH; ++x) {
             for (int z = 0; z < CHUNK_WIDTH; ++z) {
@@ -126,31 +117,83 @@ void Chunk::generate_data_from_seed() {
         }
         return;
     }
+    // beneath is 2 chunks of stone
+    if (coords.y >= -3 && coords.y < -1) {
+        for (int x = 0; x < CHUNK_WIDTH; ++x) {
+            for (int y = 0; y < CHUNK_WIDTH; ++y) {
+                for (int z = 0; z < CHUNK_WIDTH; ++z) {
+                    blocks.at({x,y,z}).id = BlockID::STONE;
+                }
+            }
+        }
+        return;
+    }
+    // else air
     for (int x = 0; x < CHUNK_WIDTH; ++x) {
         for (int y = 0; y < CHUNK_WIDTH; ++y) {
             for (int z = 0; z < CHUNK_WIDTH; ++z) {
-                blocks.at({x,y,z}).id = BlockID::STONE;
+                blocks.at({x,y,z}).id = BlockID::AIR;
             }
         }
     }
-    return;
+}
+
+void Chunk::save_data() 
+{
+    unique_lock<shared_mutex> write_lock(mut);
+    
+    if (!loaded)
+        return;
+    if (!dirty)
+        return;
+
+    dirty = false;
+    string chunk_filename = get_chunk_filename();
+    ofstream fs(chunk_filename);
+    try {
+        ChunkIndex index;
+        do {
+            blocks.at(index).save(fs);
+        } while (index.advance());
+    } catch (SaveError& error) {
+        cout << "SaveError caught: " << error.what() << endl;
+    }
 }
 
 void Chunk::build_meshes()
 {
-    unique_lock<shared_mutex> unique_lock(mut);
+    shared_lock<shared_mutex> read_lock(mut);
 
-    update_opaque_mesh();
-    update_transparent_mesh();
+    if (!active || !loaded)
+        return;
+
+    vector<Vertex> opaque_vertices;
+    vector<unsigned> opaque_indices;
+    build_opaque_vertices_and_indices(opaque_vertices, opaque_indices);
+    vector<Vertex> transparent_vertices;
+    vector<unsigned> transparent_indices;
+    build_transarent_vertices_and_indices(transparent_vertices, transparent_indices);
+
+    read_lock.unlock(); // this prevents a deadlock
+    g_game->get_sync_queue().push(
+        [this, ov = move(opaque_vertices), oi = move(opaque_indices), 
+         tv = move(transparent_vertices), ti = move(transparent_indices)]
+    {
+        unique_lock<shared_mutex> write_lock(mut);
+        if (!active || !loaded)
+            return;
+            
+        opaque_mesh = Mesh(ov, oi);
+        transparent_mesh = Mesh(tv, ti);
+        can_render = true;
+    });
 }
 
-void Chunk::update_opaque_mesh() 
-{    
-    vector<Vertex> vertices;
-    vector<unsigned> indices;
+void Chunk::build_opaque_vertices_and_indices(vector<Vertex>& vertices, vector<unsigned>& indices) const
+{ 
     ChunkIndex index;
     do {
-        BlockData& current = blocks.at(index);
+        const BlockData& current = blocks.at(index);
         // only render opaque blocks
         if (current.is_transparent())
             continue;
@@ -168,22 +211,13 @@ void Chunk::update_opaque_mesh()
             break;
         }
     } while (index.advance());
-    /*  shared_ptr<Chunk> captured as 'chunk' instead of capturing 'this' pointer.
-     *  this is to ensure that object is destroyed on main thread if it's the last reference.
-     *  (Chunk class contains Mesh class whose destructor makes calls to OpenGL)
-     */
-    g_game->get_sync_queue().push([chunk = shared_from_this(), vertices = move(vertices), indices = move(indices)] {
-        chunk->opaque_mesh = Mesh(vertices, indices);
-    });
 }
 
-void Chunk::update_transparent_mesh() 
+void Chunk::build_transarent_vertices_and_indices(vector<Vertex>& vertices, vector<unsigned>& indices) const
 {
-    vector<Vertex> vertices;
-    vector<unsigned> indices;
     ChunkIndex index;
     do {
-        BlockData& current = blocks.at(index);
+        const BlockData& current = blocks.at(index);
         // only render opaque blocks
         if (current.is_transparent())
             continue;
@@ -201,13 +235,7 @@ void Chunk::update_transparent_mesh()
             break;
         }
     } while (index.advance());
-    /*  shared_ptr<Chunk> captured as 'chunk' instead of capturing 'this' pointer.
-     *  this is to ensure that object is destroyed on main thread if it's the last reference.
-     *  (Chunk class contains Mesh class whose destructor makes calls to OpenGL)
-     */
-    g_game->get_sync_queue().push([chunk = shared_from_this(), vertices = move(vertices), indices = move(indices)] {
-        chunk->transparent_mesh = Mesh(vertices, indices);
-    });}
+}
 
 bool Chunk::should_draw_opaque_face(const ChunkIndex& index, const Direction& direction) const
 {
@@ -269,6 +297,24 @@ BlockData Chunk::get_block(ChunkIndex indices) const
 
 void Chunk::set_block(ChunkIndex indices, BlockData block)
 {
-    unique_lock<shared_mutex> unique_lock(mut);
+    unique_lock<shared_mutex> write_lock(mut);
+    dirty = true;
     blocks.at(indices) = block;
+}
+
+bool Chunk::try_set_inactive() {
+    unique_lock<shared_mutex> write_lock(mut);
+    if (dirty) {
+        g_game->get_thread_queue().push([this] {
+            save_data();
+        });
+        return false;
+    }
+    if (pending_jobs) {
+        return false;
+    }
+    active = false;
+    loaded = false;
+    can_render = false;
+    return true;
 }

@@ -19,11 +19,14 @@ struct Direction;
 
 class Chunk : public std::enable_shared_from_this<Chunk> {
 public:
-    Chunk(ChunkCoords coords);
+    Chunk();
 
     Chunk(Chunk&) = delete;
     Chunk& operator=(Chunk&) = delete;
 
+    void set_active(ChunkCoords coords_);
+
+    // thread safe
     void render_opaque(const Camera& camera) const;
     void render_transparent(const Camera& camera) const;
 
@@ -41,10 +44,14 @@ public:
     // thread safe
     BlockData get_block(ChunkIndex indices) const;
     void set_block(ChunkIndex indices, BlockData block);
+    // atomically sets to inactive, returns true if successful
+    bool try_set_inactive();
 
 private:
-    void update_opaque_mesh();
-    void update_transparent_mesh();
+    void calculate_translation();
+
+    void build_opaque_vertices_and_indices(std::vector<Vertex>& vertices, std::vector<unsigned>& indices) const;
+    void build_transarent_vertices_and_indices(std::vector<Vertex>& vertices, std::vector<unsigned>& indices) const;
 
     void append_block_face(std::vector<Vertex>& vertices, 
                            std::vector<unsigned int>& indices, 
@@ -64,7 +71,11 @@ private:
     mutable std::shared_mutex mut;
     ChunkCoords coords;
     ChunkBlocks blocks;
-    bool loaded;
+    bool active; // not in chunk pool
+    bool loaded; // block data is loaded
+    bool dirty; // block data has been modified
+    bool can_render; // don't render if fresh off the chunk pool
+    int pending_jobs; // load/save/mesh jobs in progress
     Mesh opaque_mesh;
     Mesh transparent_mesh;
     glm::mat4 translation;

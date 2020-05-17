@@ -10,22 +10,39 @@
 
 using namespace std;
 
+const int RENDER_DIST = 5;
+
 Terrain::Terrain(Player* player) 
     : Entity("Terrain")
     , player(player)
     , raycast_listener(ID, [this](auto e) { return this->handle_raycast_event(e); })
 {
+    // create world folder
     if (mkdir("world/", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0) {
         if (errno != EEXIST) {
             throw SaveError("could not create world folder");
         }
     }
+
+    // fill chunk pool
+    int diameter = 1 + RENDER_DIST * 2;
+    int num_chunks = diameter * diameter * diameter;
+    for (int i = 0; i < num_chunks; ++i) {
+        chunk_pool.push(make_shared<Chunk>());
+    }
 }
 
 Terrain::~Terrain() {
-    for (auto pair : chunks) {
-        pair.second->save_data();
+    while (!chunks.empty()) {
+        auto it = chunks.begin();
+        auto chunk = it->second;
+        if (chunk->try_set_inactive()) {
+            it = chunks.erase(it);
+            chunk_pool.push(chunk);
+        }
     }
+
+    cout << "terminated!" << endl;
 }
 
 void Terrain::update() {
@@ -36,10 +53,14 @@ void Terrain::update() {
         int y_dist = abs(center.y - it->first.y);
         int z_dist = abs(center.z - it->first.z);
         if (x_dist > RENDER_DIST || y_dist > RENDER_DIST || z_dist > RENDER_DIST) {
-            it = chunks.erase(it);
-        } else {
-            ++it;
+            auto chunk = it->second;
+            if (chunk->try_set_inactive()) {
+                it = chunks.erase(it);
+                chunk_pool.push(chunk);
+                continue;
+            }
         }
+        ++it;
     }
     // add chunks in bounds if not already in map
     for (int x_offset = -RENDER_DIST; x_offset <= RENDER_DIST; ++x_offset) {
@@ -51,16 +72,20 @@ void Terrain::update() {
                 ChunkCoords coords(x, y, z);
                 auto it = chunks.find(coords);
                 if (it == chunks.end()) {
-                    auto chunk = make_shared<Chunk>(coords);
-                    // chunk->load_data();
-                    // chunk->build_meshes();
+                    if (chunk_pool.empty()) {
+                        cout << "no chunks available right now" << endl;
+                        continue;
+                    }
+                    auto chunk = chunk_pool.top();
+                    chunk_pool.pop();
+                    chunk->set_active(coords);
+                    chunks.insert({coords, chunk});
                     g_game->get_thread_queue().push([chunk] {
                         chunk->load_data();
                         g_game->get_thread_queue().push([chunk] {
                             chunk->build_meshes();
                         });
                     });
-                    chunks.insert({coords, chunk});
                 }
             }
         }
@@ -85,7 +110,7 @@ bool Terrain::handle_raycast_event(shared_ptr<RaycastEvent> event) {
     cout << "RAYCAST EVENT RECEIVED BY TERRAIN" << endl;
     Ray ray(event->get_ray());
     const float MAX_DISTANCE = 12.0f;
-    const float STEP_DISTANCE = 1.0f;
+    const float STEP_DISTANCE = 0.5f;
 
     BlockCoords p_block_coords(ray.get_end());
     cout << "raycast start: " << p_block_coords << endl;

@@ -14,9 +14,8 @@ Terrain is procedurally generated/loaded in chunks.
 #include "../RaycastEvent.h"
 
 #include <unordered_map>
+#include <list>
 #include <memory>
-
-constexpr int RENDER_DIST { 4 };
 
 class Terrain : public Entity {
 public:
@@ -43,5 +42,6 @@ private:
 
     Player* player;
     std::unordered_map<ChunkCoords, std::shared_ptr<Chunk>, ChunkCoordsHash> chunks;
+    std::stack<std::shared_ptr<Chunk>> chunk_pool;
     EventListener<RaycastEvent> raycast_listener;
 };

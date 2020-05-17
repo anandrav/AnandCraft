@@ -8,6 +8,8 @@
 #include "BlockCoords.h"
 
 struct ChunkCoords {
+    ChunkCoords() = default;
+    
     ChunkCoords(int x, int y, int z);
 
     // convenient conversion from BlockCoordinates to ChunkCoordinates
