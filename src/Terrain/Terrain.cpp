@@ -40,7 +40,9 @@ Terrain::~Terrain() {
             it = chunks.erase(it);
             chunk_pool.push(chunk);
         }
+        cout << "spinning" << endl;
     }
+    cout << "terminated" << endl;
 }
 
 void Terrain::update() {
@@ -78,12 +80,6 @@ void Terrain::update() {
                     chunk_pool.pop();
                     chunk->set_active(coords);
                     chunks.insert({coords, chunk});
-                    g_game->get_thread_queue().push([chunk] {
-                        chunk->load_data();
-                        g_game->get_thread_queue().push([chunk] {
-                            chunk->build_meshes();
-                        });
-                    });
                 }
             }
         }
@@ -143,15 +139,15 @@ bool Terrain::handle_raycast_event(shared_ptr<RaycastEvent> event) {
             if (event->is_left_click()) {
                 // break block
                 chunk->set_block(curr_block, {BlockID::AIR});
-                chunk->build_meshes();
+                // chunk->mesh_job();
             } else {
                 // place block
                 if (crossed_chunks) {
                     p_chunk->set_block(p_block_coords, {BlockID::COBBLESTONE});
-                    p_chunk->build_meshes();
+                    // p_chunk->mesh_job();
                 } else {
                     chunk->set_block(p_block_coords, {BlockID::COBBLESTONE});
-                    chunk->build_meshes();
+                    // chunk->mesh_job();
                 }
             }
             return true;

@@ -14,17 +14,25 @@ using namespace std;
 
 Chunk::Chunk()
 : active(false)
-, loaded(false)
-, dirty(false)
 , can_render(false)
-, pending_jobs(false)
+, dirty(false)
+, mesh_jobs(0)
+, load_jobs(0)
+, save_jobs(0)
 {
 }
 
 void Chunk::set_active(ChunkCoords coords_) {
-    active = true;
+    unique_lock<shared_mutex> write_lock(mut);
+    assert(!active);
+    assert(load_jobs + mesh_jobs + save_jobs == 0);
     coords = coords_;
     calculate_translation();
+    active = true;
+    load_jobs++;
+    g_game->get_thread_queue().push([this] {
+        load_job();
+    });
 }
 
 void Chunk::calculate_translation() {
@@ -34,9 +42,10 @@ void Chunk::calculate_translation() {
 void Chunk::render_opaque(const Camera& camera) const
 {
     shared_lock<shared_mutex> read_guard(mut);
-
+    assert(active);
     if (!can_render)
         return;
+
     glBindTexture(GL_TEXTURE_2D, TerrainTexture::get());
     glUseProgram(TerrainShader::ID());
     glm::mat4 clip_transform = camera.get_view_projection() * translation;
@@ -53,9 +62,10 @@ void Chunk::render_opaque(const Camera& camera) const
 void Chunk::render_transparent(const Camera& camera) const 
 {
     shared_lock<shared_mutex> read_guard(mut);
-
+    assert(active);
     if (!can_render)
         return;
+
     glBindTexture(GL_TEXTURE_2D, TerrainTexture::get());
     glUseProgram(TerrainShader::ID());
     glm::mat4 clip_transform = camera.get_view_projection() * translation;
@@ -71,13 +81,11 @@ void Chunk::render_transparent(const Camera& camera) const
     transparent_mesh.draw();
 }
 
-void Chunk::load_data() 
+void Chunk::load_job() 
 {
     unique_lock<shared_mutex> write_lock(mut);
+    assert(active);
 
-    if (!active)
-        return;
-    loaded = true;
     string chunk_filename = get_chunk_filename();
     ifstream fs(chunk_filename);
     if (fs.good()) {
@@ -94,6 +102,12 @@ void Chunk::load_data()
         // chunk save file does not exist yet, not an error
         generate_data_from_seed();
     }
+    mesh_jobs++;
+    g_game->get_thread_queue().push([this] {
+        mesh_job();
+    });
+
+    load_jobs--;
 }
 
 string Chunk::get_chunk_filename() const
@@ -138,16 +152,11 @@ void Chunk::generate_data_from_seed() {
     }
 }
 
-void Chunk::save_data() 
+void Chunk::save_job() 
 {
     unique_lock<shared_mutex> write_lock(mut);
-    
-    if (!loaded)
-        return;
-    if (!dirty)
-        return;
+    assert(active);
 
-    dirty = false;
     string chunk_filename = get_chunk_filename();
     ofstream fs(chunk_filename);
     try {
@@ -158,14 +167,15 @@ void Chunk::save_data()
     } catch (SaveError& error) {
         cout << "SaveError caught: " << error.what() << endl;
     }
+
+    save_jobs--;
+    dirty = false;
 }
 
-void Chunk::build_meshes()
+void Chunk::mesh_job()
 {
     shared_lock<shared_mutex> read_lock(mut);
-
-    if (!active || !loaded)
-        return;
+    assert(active);
 
     vector<Vertex> opaque_vertices;
     vector<unsigned> opaque_indices;
@@ -180,17 +190,18 @@ void Chunk::build_meshes()
          tv = move(transparent_vertices), ti = move(transparent_indices)]
     {
         unique_lock<shared_mutex> write_lock(mut);
-        if (!active || !loaded)
-            return;
-            
+        assert(active);
+
         opaque_mesh = Mesh(ov, oi);
         transparent_mesh = Mesh(tv, ti);
+
+        mesh_jobs--;
         can_render = true;
     });
 }
 
 void Chunk::build_opaque_vertices_and_indices(vector<Vertex>& vertices, vector<unsigned>& indices) const
-{ 
+{
     ChunkIndex index;
     do {
         const BlockData& current = blocks.at(index);
@@ -292,29 +303,39 @@ void Chunk::append_block_face(vector<Vertex>& vertices,
 BlockData Chunk::get_block(ChunkIndex indices) const
 {
     shared_lock<shared_mutex> read_lock(mut);
+    assert(active);
     return blocks.at(indices);
 }
 
 void Chunk::set_block(ChunkIndex indices, BlockData block)
 {
     unique_lock<shared_mutex> write_lock(mut);
+    assert(active);
     dirty = true;
     blocks.at(indices) = block;
+    mesh_jobs++;
+    g_game->get_thread_queue().push([this] {
+        mesh_job();
+    });
 }
 
 bool Chunk::try_set_inactive() {
     unique_lock<shared_mutex> write_lock(mut);
+    assert(active);
+
+    can_render = false;
     if (dirty) {
+        save_jobs++;
         g_game->get_thread_queue().push([this] {
-            save_data();
+            save_job();
         });
         return false;
     }
-    if (pending_jobs) {
+    if (mesh_jobs + load_jobs + save_jobs > 0) {
+        // assumption: these jobs will finish very soon,
+        // so it's ok if we delay setting inactive
         return false;
     }
     active = false;
-    loaded = false;
-    can_render = false;
     return true;
 }

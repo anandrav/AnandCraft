@@ -14,9 +14,8 @@ int main()
     try {
         // initialize Game and Scene
         g_game = new Game();
-        Scene* scene = new Scene();
+        g_game->initialize_scene();
         g_game->loop();
-        delete scene;
         delete g_game;
     } catch (exception& error) {
         cout << "std::exception caught: " << error.what() << endl;

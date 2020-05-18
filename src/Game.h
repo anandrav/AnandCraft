@@ -26,6 +26,8 @@ public:
 
     ~Game();
 
+    void initialize_scene();
+
     void loop();
 
     ThreadQueue& get_thread_queue() {
@@ -64,6 +66,9 @@ private:
     SyncQueue sync_queue;
     // destroy this first. threads must be joined so they don't access Game during destruction
     ThreadQueue thread_queue;
+
+    // TODO: reorganize so you don't have to use this hack.
+    void* scene;
 
     void update();
 

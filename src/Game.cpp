@@ -4,6 +4,7 @@
 #include "Jobs/SyncQueue.h"
 #include "globals.h"
 #include "Terrain/TerrainTexture.h"
+#include "Scene.h"
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -64,6 +65,10 @@ Game::~Game() {
     SDL_Quit();
 }
 
+void Game::initialize_scene() {
+    scene = new Scene();
+}
+
 void Game::register_entity(Entity* entity) {
     entities.insert(entity);
 }
@@ -109,6 +114,8 @@ void Game::process_input()
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) {
             is_running = false;
+            // TODO: reorganize so you don't have to use this hack.
+            delete (Scene*)scene;
         } else {
             controller.process_event(e);
         }

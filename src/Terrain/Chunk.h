@@ -24,30 +24,34 @@ public:
     Chunk(Chunk&) = delete;
     Chunk& operator=(Chunk&) = delete;
 
+    // initializes Chunk with coords and sends load job and build job to thread queue
     void set_active(ChunkCoords coords_);
+
+    // thread safe, atomically deinitializes Chunk, returns true if successful
+    // returns false if jobs are in progress or Chunk must be saved
+    // if Chunk needed to be saved, save job is sent to thread queue
+    bool try_set_inactive();
+
+    // thread safe
+    BlockData get_block(ChunkIndex indices) const;
+    void set_block(ChunkIndex indices, BlockData block);
 
     // thread safe
     void render_opaque(const Camera& camera) const;
     void render_transparent(const Camera& camera) const;
 
+private:
     // thread safe
     // loads data from file or generates from seed if no save data
-    void load_data();
+    void load_job();
 
     // thread safe
-    void save_data();
+    void save_job();
 
     // thread safe
     // build meshes using chunk data
-    void build_meshes();
+    void mesh_job();
 
-    // thread safe
-    BlockData get_block(ChunkIndex indices) const;
-    void set_block(ChunkIndex indices, BlockData block);
-    // atomically sets to inactive, returns true if successful
-    bool try_set_inactive();
-
-private:
     void calculate_translation();
 
     void build_opaque_vertices_and_indices(std::vector<Vertex>& vertices, std::vector<unsigned>& indices) const;
@@ -68,21 +72,16 @@ private:
 
     std::string get_chunk_filename() const;
 
-    enum class State {
-        DEAD,
-        UNLOADED,
-        LOADED,
-        DIRTY
-    };
-
     mutable std::shared_mutex mut;
     ChunkCoords coords;
     ChunkBlocks blocks;
-    bool active; // not in chunk pool
-    bool loaded; // block data is loaded
-    bool dirty; // block data has been modified
-    bool can_render; // don't render if fresh off the chunk pool
-    int pending_jobs; // load/save/mesh jobs in progress
+    bool active;
+    bool wrapping_up;
+    bool can_render;
+    bool dirty;
+    int mesh_jobs;
+    int load_jobs;
+    int save_jobs;
     Mesh opaque_mesh;
     Mesh transparent_mesh;
     glm::mat4 translation;
