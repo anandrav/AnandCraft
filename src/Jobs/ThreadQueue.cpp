@@ -3,8 +3,7 @@
 using namespace std;
 
 const int AVAILABLE_CORES = std::thread::hardware_concurrency() - 1; // leave one core for main thread
-const int THREAD_MAX = 3; // no more than 3 because synchronization is slow
-const int NUM_THREADS = min(max(AVAILABLE_CORES, 1), THREAD_MAX); // at least 1 thread in the pool, leq max
+const int NUM_THREADS = clamp(AVAILABLE_CORES, 1, 3); // >= 1 in thread pool, <= 3 because synchronization is slow
 
 ThreadQueue::ThreadQueue() : workers(NUM_THREADS) {
     is_terminating.store(false);
