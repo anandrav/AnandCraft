@@ -21,6 +21,11 @@ ChunkCoords::ChunkCoords(int x, int y, int z)
 {
 }
 
+ChunkCoords::ChunkCoords(const glm::vec3& vec3)
+: ChunkCoords(BlockCoords(vec3))
+{
+}
+
 ChunkCoords::ChunkCoords(const BlockCoords& block_coord)
     : x(convert_coords(block_coord.x))
     , y(convert_coords(block_coord.y))

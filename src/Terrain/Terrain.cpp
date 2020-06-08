@@ -17,6 +17,8 @@ Terrain::Terrain(Player* player)
     , player(player)
     , raycast_listener(ID, [this](auto e) { return this->handle_raycast_event(e); })
 {
+    // TODO: use C++17 facilities for filesystem interaction.
+    
     // create world folder
     if (mkdir("world/", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0) {
         if (errno != EEXIST) {
@@ -107,9 +109,10 @@ bool Terrain::handle_raycast_event(shared_ptr<RaycastEvent> event) {
     const float STEP_DISTANCE = 0.5f;
 
     BlockCoords p_block_coords(ray.get_end());
+    ChunkIndex p_index(p_block_coords);
     cout << "raycast start: " << p_block_coords << endl;
     shared_ptr<Chunk> chunk;
-    auto it = chunks.find(p_block_coords);
+    auto it = chunks.find(ChunkCoords(p_block_coords));
     if (it == end(chunks)) {
         cout << "raycast detected non-existent chunk!" << endl;
         return false;
@@ -123,9 +126,9 @@ bool Terrain::handle_raycast_event(shared_ptr<RaycastEvent> event) {
         if (curr_block == p_block_coords)
             continue;
         shared_ptr<Chunk> p_chunk;
-        if (ChunkCoords(curr_block) != ChunkCoords(p_block_coords)) {
+        if (auto curr_coords = ChunkCoords(curr_block); curr_coords != ChunkCoords(p_block_coords)) {
             crossed_chunks = true;
-            auto it = chunks.find(curr_block);
+            auto it = chunks.find(curr_coords);
             if (it == end(chunks)) {
                 cout << "raycast detected non-existent chunk!" << endl;
                 return false;
@@ -133,25 +136,27 @@ bool Terrain::handle_raycast_event(shared_ptr<RaycastEvent> event) {
             p_chunk = chunk;
             chunk = it->second;
         }
-        BlockData block_data = chunk->get_block(curr_block);
+        auto index = ChunkIndex(curr_block);
+        BlockData block_data = chunk->get_block(index);
         cout << "Block: " << block_data.get_name() << endl;
         if (block_data.id != BlockID::AIR) {
             if (event->is_left_click()) {
                 // break block
-                chunk->set_block(curr_block, {BlockID::AIR});
+                chunk->set_block(index, {BlockID::AIR});
                 // chunk->mesh_job();
             } else {
                 // place block
                 if (crossed_chunks) {
-                    p_chunk->set_block(p_block_coords, {BlockID::COBBLESTONE});
+                    p_chunk->set_block(p_index, {BlockID::COBBLESTONE});
                     // p_chunk->mesh_job();
                 } else {
-                    chunk->set_block(p_block_coords, {BlockID::COBBLESTONE});
+                    chunk->set_block(p_index, {BlockID::COBBLESTONE});
                     // chunk->mesh_job();
                 }
             }
             return true;
         }
+        p_index = index;
         p_block_coords = curr_block;
     }
 

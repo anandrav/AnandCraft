@@ -13,10 +13,10 @@ struct BlockCoords {
     BlockCoords(int x, int y, int z);
 
     // convenient conversion from glm::vec3 of float
-    BlockCoords(const glm::vec3& vec3);
+    explicit BlockCoords(const glm::vec3& vec3);
 
     // conversion from ChunkCoords to BlockCoords, "floored" toward the origin of the chunk
-    BlockCoords(const ChunkCoords& chunk_coords);
+    explicit BlockCoords(const ChunkCoords& chunk_coords);
 
     bool operator==(const BlockCoords& other) const;
 

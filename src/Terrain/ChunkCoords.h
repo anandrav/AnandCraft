@@ -12,8 +12,10 @@ struct ChunkCoords {
     
     ChunkCoords(int x, int y, int z);
 
+    explicit ChunkCoords(const glm::vec3& vec3);
+
     // convenient conversion from BlockCoordinates to ChunkCoordinates
-    ChunkCoords(const BlockCoords& block_coord);
+    explicit ChunkCoords(const BlockCoords& block_coord);
 
     ChunkCoords(const ChunkCoords& other) = default;
 

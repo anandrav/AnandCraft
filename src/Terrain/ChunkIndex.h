@@ -13,7 +13,7 @@ struct ChunkIndex {
 
     // convenient conversion from block coordinates to 
     //      the indices within that block's chunk
-    ChunkIndex(const BlockCoords& coords);
+    explicit ChunkIndex(const BlockCoords& coords);
 
     ChunkIndex& operator+=(const std::tuple<int,int,int>& vec) {
         x += std::get<0>(vec);
