@@ -6,7 +6,7 @@ A Minecraft clone made by Anand Dukkipati
 - [x] chunks
 - [x] breaking and placing of blocks
 - [x] saving and loading terrain from files
-- [ ] multi-threaded terrain (loading/saving, mesh building)
+- [x] multi-threaded terrain (loading/saving, mesh building)
 - [ ] generating terrain using noise
 - [ ] frustum culling, remove faces between chunks, other optimizations
 - [ ] collision detection
