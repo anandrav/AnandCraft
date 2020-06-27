@@ -2,7 +2,6 @@
 
 #include "../Physics/Ray.h"
 #include "ChunkIndex.h"
-
 #include "../SaveError.h"
 #include <iostream>
 #include <fstream>
@@ -30,14 +29,6 @@ Terrain::Terrain(Player* player)
     int num_chunks = diameter * diameter * diameter;
     for (int i = 0; i < num_chunks; ++i) {
         chunk_pool.push(make_shared<Chunk>());
-    }
-}
-
-Terrain::~Terrain() {
-    for (auto it = begin(chunks); it != end(chunks); ++it) {
-        auto chunk = it->second;
-        chunk->try_set_inactive();
-        chunks.erase(it);
     }
 }
 

@@ -2,9 +2,7 @@
 #include "Game.h"
 #include "Scene.h"
 #include "globals.h"
-#include "util.h"
-#include <GL/glew.h>
-#include <SDL2/SDL.h>
+#include "SceneCoordinator.h"
 
 using namespace std;
 
@@ -12,10 +10,14 @@ int main()
 {
     cout << "AnandCraft" << endl;
     try {
-        // initialize Game and Scene
+        // initialize Game then Scene, populate with game objects, run game loop
         g_game = new Game();
-        g_game->initialize_scene();
-        g_game->loop();
+        g_scene = new Scene();
+        g_scene_coordinator = new SceneCoordinator();
+        g_event_dispatcher = new EventDispatcher();
+        g_scene_coordinator->populate();
+        g_game->run();
+        // game loop finished so scene was deleted, delete game
         delete g_game;
     } catch (exception& error) {
         cout << "std::exception caught: " << error.what() << endl;

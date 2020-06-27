@@ -3,15 +3,13 @@
 #include "util.h"
 #include "Jobs/SyncQueue.h"
 #include "globals.h"
-#include "Terrain/TerrainTexture.h"
+#include "SceneCoordinator.h"
 #include "Scene.h"
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
 using namespace std;
-
-Game* g_game = nullptr;
 
 const int TICKRATE = 20;
 const int MS_PER_UPDATE = 1000 / TICKRATE;
@@ -54,8 +52,6 @@ Game::Game()
     // init GLEW
     glewExperimental = GL_TRUE;
     glewInit();
-
-    controller.attach(&player);
 }
 
 Game::~Game() {
@@ -65,20 +61,10 @@ Game::~Game() {
     SDL_Quit();
 }
 
-void Game::initialize_scene() {
-    scene = new Scene();
-}
-
-void Game::register_entity(Entity* entity) {
-    entities.insert(entity);
-}
-
-void Game::deregister_entity(Entity* entity) {
-    entities.erase(entity);
-}
-
-void Game::loop()
+void Game::run()
 {
+    controller.attach(g_player);
+
     double previous = SDL_GetTicks();
     double lag = 0.0;
     while (is_running) {
@@ -101,8 +87,7 @@ void Game::update()
 {
     process_input();
     // update all game objects
-    player.update();
-    for_each(begin(entities), end(entities), mem_fn(&Entity::update));
+    g_scene->update();
 
     sync_queue.process_all();
 }
@@ -114,8 +99,7 @@ void Game::process_input()
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) {
             is_running = false;
-            // TODO: reorganize so you don't have to use this hack.
-            delete (Scene*)scene;
+            g_scene_coordinator->destroy();
         } else {
             controller.process_event(e);
         }
@@ -130,8 +114,7 @@ void Game::render()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // render all game objects
-    for_each(begin(entities), end(entities), [this](Entity* e) { e->render_opaque(player.get_camera());});
-    for_each(begin(entities), end(entities), [this](Entity* e) { e->render_transparent(player.get_camera());});
+    g_scene->render();
 
     // render UI/HUD
 

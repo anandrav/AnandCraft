@@ -3,7 +3,7 @@
 #include "Graphics/Camera.h"
 #include "Entity.h"
 
-class Player {
+class Player : Entity {
 public:
     Player();
 

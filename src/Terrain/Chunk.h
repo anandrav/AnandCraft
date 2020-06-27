@@ -22,7 +22,7 @@ class Chunk : public std::enable_shared_from_this<Chunk> {
 public:
     Chunk();
 
-    ~Chunk();
+    ~Chunk() = default;
 
     Chunk(Chunk&) = delete;
     Chunk& operator=(Chunk&) = delete;
@@ -86,8 +86,8 @@ private:
     int mesh_jobs;
     int load_jobs;
     int save_jobs;
-    Mesh* opaque_mesh;
-    Mesh* transparent_mesh;
+    Mesh opaque_mesh;
+    Mesh transparent_mesh;
     glm::mat4 translation;
 };
 

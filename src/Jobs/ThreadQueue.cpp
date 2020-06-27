@@ -1,5 +1,7 @@
 #include "ThreadQueue.h"
 
+#include <iostream>
+
 using namespace std;
 
 const int AVAILABLE_CORES = std::thread::hardware_concurrency() - 1; // leave one core for main thread
@@ -27,7 +29,7 @@ void ThreadQueue::worker_routine() {
             cv.wait(lock);
         }
         if (is_terminating.load())
-            break;
+            return;
 
         auto holder = queue.top();
         queue.pop();

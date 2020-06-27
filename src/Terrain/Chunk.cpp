@@ -22,15 +22,6 @@ Chunk::Chunk()
 , load_jobs(0)
 , save_jobs(0)
 {
-    opaque_mesh = new Mesh();
-    transparent_mesh = new Mesh();
-}
-
-Chunk::~Chunk() {
-    g_game->get_sync_queue().push([this] {
-        delete opaque_mesh;
-        delete transparent_mesh;
-    });
 }
 
 void Chunk::set_active(ChunkCoords coords_) {
@@ -67,7 +58,7 @@ void Chunk::render_opaque(const Camera& camera) const
     glDisable(GL_BLEND);
     glEnable(GL_CULL_FACE);
 
-    opaque_mesh->draw();
+    opaque_mesh.draw();
 }
 
 void Chunk::render_transparent(const Camera& camera) const 
@@ -89,7 +80,7 @@ void Chunk::render_transparent(const Camera& camera) const
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_CULL_FACE);
 
-    transparent_mesh->draw();
+    transparent_mesh.draw();
 }
 
 void Chunk::load_job() 
@@ -203,8 +194,8 @@ void Chunk::mesh_job()
         unique_lock<shared_mutex> write_lock(mut);
         assert(active);
 
-        *opaque_mesh = Mesh(ov, oi);
-        *transparent_mesh = Mesh(tv, ti);
+        opaque_mesh = Mesh(ov, oi);
+        transparent_mesh = Mesh(tv, ti);
 
         mesh_jobs--;
         can_render = true;

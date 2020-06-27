@@ -4,7 +4,6 @@
 #include "Graphics/Transform.h"
 #include "Graphics/Shader.h"
 #include "Graphics/Camera.h"
-#include "Event.h"
 #include "Entity.h"
 
 #include <SDL2/SDL.h>

@@ -1,7 +1,10 @@
 #include "PlayerController.h"
 
 #include "RaycastEvent.h"
-#include "Game.h"
+#include "Scene.h"
+#include "globals.h"
+#include "EventDispatcher.h"
+#include "Player.h"
 
 #include <iostream>
 #include <memory>
@@ -128,5 +131,5 @@ void PlayerController::handle_click(SDL_Event& e)
 {
     Ray ray(player->get_position(), player->get_forward());
     bool left_click = (e.button.button == SDL_BUTTON_LEFT);
-    g_game->get_event_dispatcher().dispatch_event<RaycastEvent>(make_shared<RaycastEvent>(ray, left_click));
+    g_event_dispatcher->dispatch_event<RaycastEvent>(make_shared<RaycastEvent>(ray, left_click));
 }

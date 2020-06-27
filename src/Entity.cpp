@@ -1,6 +1,7 @@
 #include "Entity.h"
 
-#include "Game.h"
+#include "Scene.h"
+#include "globals.h"
 
 #include <iostream>
 
@@ -12,7 +13,7 @@ Entity::Entity(const char* const name)
     : ID(max_ids++)
     , name(name)
 {
-    g_game->register_entity(this);
+    g_scene->register_entity(this);
 
     // cout << "Entity created";
     // if (name)
@@ -22,7 +23,7 @@ Entity::Entity(const char* const name)
 
 Entity::~Entity()
 {
-    g_game->deregister_entity(this);
+    g_scene->deregister_entity(this);
     
     // cout << "Entity destroyed";
     // if (name)

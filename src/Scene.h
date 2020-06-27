@@ -1,15 +1,22 @@
 #pragma once
 
-#include "Terrain/Terrain.h"
-#include "BlockDemo.h"
-#include "Player.h"
+#include "EventDispatcher.h"
 
 #include <memory>
+#include <set>
+
+class Entity;
 
 class Scene {
 public:
-    Scene();
+    void register_entity(Entity* entity);
+
+    void deregister_entity(Entity* entity);
+
+    void update();
+    
+    void render() const;
+
 private:
-    Terrain terrain;
-    SingleBlockDemo demo;
+    std::set<Entity*> entities;
 };

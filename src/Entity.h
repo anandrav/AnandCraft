@@ -7,9 +7,8 @@
 
 #pragma once
 
+#include "ID.h"
 #include "Graphics/Camera.h"
-
-using ID_t = uint64_t;
 
 class Entity {
 public:

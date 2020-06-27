@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Player.h"
 #include "SDL2/SDL_events.h"
+
+class Player;
 
 class PlayerController {
 public:

@@ -1,7 +1,3 @@
-/*
- * Listeners of this event should:
- * - check for an intersection 
- */
 #pragma once
 
 #include "Event.h"
