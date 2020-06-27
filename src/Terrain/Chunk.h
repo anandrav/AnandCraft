@@ -16,10 +16,13 @@
 #include <memory>
 
 struct Direction;
+class Terrain;
 
 class Chunk : public std::enable_shared_from_this<Chunk> {
 public:
     Chunk();
+
+    ~Chunk();
 
     Chunk(Chunk&) = delete;
     Chunk& operator=(Chunk&) = delete;
@@ -72,6 +75,7 @@ private:
 
     std::string get_chunk_filename() const;
 
+    Terrain* terrain;
     mutable std::shared_mutex mut;
     ChunkCoords coords;
     ChunkBlocks blocks;
@@ -82,21 +86,22 @@ private:
     int mesh_jobs;
     int load_jobs;
     int save_jobs;
-    Mesh opaque_mesh;
-    Mesh transparent_mesh;
+    Mesh* opaque_mesh;
+    Mesh* transparent_mesh;
     glm::mat4 translation;
 };
 
 struct Direction {
     std::tuple<int,int,int> vec;
     CubeFace face;
+    bool (ChunkIndex::*advance_plane)();
 };
 
 static const std::array<Direction, 6> directions = {{
-    { {-1, 0, 0}, CubeFace::XNEG },
-    { {1, 0, 0}, CubeFace::XPOS },
-    { {0, -1, 0}, CubeFace::YNEG },
-    { {0, 1, 0}, CubeFace::YPOS },
-    { {0, 0, -1}, CubeFace::ZNEG },
-    { {0, 0, 1}, CubeFace::ZPOS }
+    { {-1, 0, 0}, CubeFace::XNEG, &ChunkIndex::advance_yz },
+    { {1, 0, 0}, CubeFace::XPOS, &ChunkIndex::advance_yz },
+    { {0, -1, 0}, CubeFace::YNEG, &ChunkIndex::advance_xz },
+    { {0, 1, 0}, CubeFace::YPOS, &ChunkIndex::advance_xz },
+    { {0, 0, -1}, CubeFace::ZNEG, &ChunkIndex::advance_xy },
+    { {0, 0, 1}, CubeFace::ZPOS, &ChunkIndex::advance_xy }
 }};

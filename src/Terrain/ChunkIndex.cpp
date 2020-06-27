@@ -30,25 +30,3 @@ ChunkIndex::ChunkIndex(const BlockCoords& coords)
     , z(convert_to_index(coords.z))
     {
     }
-
-bool ChunkIndex::advance() {
-    // inner loop
-    if (z < CHUNK_WIDTH-1) {
-        ++z;
-        return true;
-    }
-    z = 0;
-    // middle loop
-    if (y < CHUNK_WIDTH-1) {
-        ++y;
-        return true;
-    }
-    y = 0;
-    // outer loop
-    if (x < CHUNK_WIDTH-1) {
-        ++x;
-        return true;
-    }
-    x = 0;
-    return false;
-}

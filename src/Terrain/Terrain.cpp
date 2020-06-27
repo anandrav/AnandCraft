@@ -17,8 +17,6 @@ Terrain::Terrain(Player* player)
     , player(player)
     , raycast_listener(ID, [this](auto e) { return this->handle_raycast_event(e); })
 {
-    // TODO: use C++17 facilities for filesystem interaction.
-    
     // create world folder
     if (mkdir("world/", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0) {
         if (errno != EEXIST) {
@@ -26,6 +24,7 @@ Terrain::Terrain(Player* player)
         }
     }
 
+    // TODO: increase this to add some slack AFTER fixing the blinking bug
     // fill chunk pool
     int diameter = 1 + RENDER_DIST * 2;
     int num_chunks = diameter * diameter * diameter;
@@ -35,16 +34,11 @@ Terrain::Terrain(Player* player)
 }
 
 Terrain::~Terrain() {
-    while (!chunks.empty()) {
-        auto it = chunks.begin();
+    for (auto it = begin(chunks); it != end(chunks); ++it) {
         auto chunk = it->second;
-        if (chunk->try_set_inactive()) {
-            it = chunks.erase(it);
-            chunk_pool.push(chunk);
-        }
-        cout << "spinning" << endl;
+        chunk->try_set_inactive();
+        chunks.erase(it);
     }
-    cout << "terminated" << endl;
 }
 
 void Terrain::update() {

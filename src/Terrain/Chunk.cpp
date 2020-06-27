@@ -1,5 +1,6 @@
 #include "Chunk.h"
 
+#include "Terrain.h"
 #include "TerrainShader.h"
 #include "TerrainTexture.h"
 #include "../Game.h"
@@ -9,6 +10,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <iostream>
 
 using namespace std;
 
@@ -20,6 +22,15 @@ Chunk::Chunk()
 , load_jobs(0)
 , save_jobs(0)
 {
+    opaque_mesh = new Mesh();
+    transparent_mesh = new Mesh();
+}
+
+Chunk::~Chunk() {
+    g_game->get_sync_queue().push([this] {
+        delete opaque_mesh;
+        delete transparent_mesh;
+    });
 }
 
 void Chunk::set_active(ChunkCoords coords_) {
@@ -56,7 +67,7 @@ void Chunk::render_opaque(const Camera& camera) const
     glDisable(GL_BLEND);
     glEnable(GL_CULL_FACE);
 
-    opaque_mesh.draw();
+    opaque_mesh->draw();
 }
 
 void Chunk::render_transparent(const Camera& camera) const 
@@ -78,7 +89,7 @@ void Chunk::render_transparent(const Camera& camera) const
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_CULL_FACE);
 
-    transparent_mesh.draw();
+    transparent_mesh->draw();
 }
 
 void Chunk::load_job() 
@@ -192,8 +203,8 @@ void Chunk::mesh_job()
         unique_lock<shared_mutex> write_lock(mut);
         assert(active);
 
-        opaque_mesh = Mesh(ov, oi);
-        transparent_mesh = Mesh(tv, ti);
+        *opaque_mesh = Mesh(ov, oi);
+        *transparent_mesh = Mesh(tv, ti);
 
         mesh_jobs--;
         can_render = true;
@@ -205,13 +216,11 @@ void Chunk::build_opaque_vertices_and_indices(vector<Vertex>& vertices, vector<u
     ChunkIndex index;
     do {
         const BlockData& current = blocks.at(index);
-        // only render opaque blocks
         if (current.is_transparent())
             continue;
+
         switch (current.get_mesh_type()) {
         case BlockMesh::CUBE:
-            // only add faces that are adjacent to transparent
-            //      blocks, cull faces that are obscured
             for (auto& direction : directions) {
                 if (should_draw_opaque_face(index, direction)) {
                     append_block_face(vertices, indices, index, current, direction.face);
@@ -229,13 +238,11 @@ void Chunk::build_transarent_vertices_and_indices(vector<Vertex>& vertices, vect
     ChunkIndex index;
     do {
         const BlockData& current = blocks.at(index);
-        // only render opaque blocks
         if (current.is_transparent())
             continue;
+
         switch (current.get_mesh_type()) {
         case BlockMesh::CUBE:
-            // only add faces that are adjacent to transparent
-            //      blocks, cull faces that are obscured
             for (auto& direction : directions) {
                 if (should_draw_transparent_face(index, direction)) {
                     append_block_face(vertices, indices, index, current, direction.face);
