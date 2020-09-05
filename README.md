@@ -7,10 +7,6 @@ A Minecraft clone made by Anand Dukkipati
 - [x] breaking and placing of blocks
 - [x] saving and loading terrain from files
 - [x] multi-threaded terrain (loading/saving, mesh building)
-- [ ] generating terrain using noise
-- [ ] frustum culling, remove faces between chunks, other optimizations
-- [ ] collision detection
-- [ ] lighting
 - [ ] basic UI/Menu system (crosshair, block selection, world selection)
 
 ## Build on macOS
