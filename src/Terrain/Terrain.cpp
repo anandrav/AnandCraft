@@ -60,7 +60,7 @@ void Terrain::update() {
                 auto it = chunks.find(coords);
                 if (it == chunks.end()) {
                     if (chunk_pool.empty()) {
-                        cout << "no chunks available right now" << endl;
+                        // cout << "no chunks available right now" << endl;
                         continue;
                     }
                     auto chunk = chunk_pool.top();
