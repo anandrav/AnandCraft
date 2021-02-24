@@ -17,6 +17,17 @@ make
 ./AnandCraft
 ```
 
+## Build on Linux
+```
+sudo apt install cmake
+sudo apt install libsdl2-dev
+sudo apt-get install glew-utils
+sudo apt install libglm-dev
+cmake .
+make
+./AnandCraft
+```
+
 ## Screenshots:
 <img src="screenshots/grass-block.jpg" width="500">
 <img src="screenshots/glass-and-cobble-chunk.jpg" width="500">
