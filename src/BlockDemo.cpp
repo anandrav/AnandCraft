@@ -1,6 +1,7 @@
 #include "BlockDemo.h"
 
 #include "Terrain/TerrainTexture.h"
+#include <algorithm>
 
 using namespace std;
 

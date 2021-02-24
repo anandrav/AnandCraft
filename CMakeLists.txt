@@ -3,8 +3,6 @@ project(AnandCraft)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(CMAKE_CXX_FLAGS "-Werror -pedantic -Wall -Wextra")
-
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 find_package(SDL2 REQUIRED)
@@ -17,6 +15,7 @@ find_package(GLM REQUIRED)
 include_directories(${GLM_INCLUDE_DIRS})
 
 file(GLOB_RECURSE SOURCE_FILES src/*.cpp)
+set_source_files_properties(SOURCE_FILES PROPERTIES COMPILE_FLAGS "-Werror -pedantic -Wall -Wextra")
 
 add_executable(AnandCraft ${SOURCE_FILES})
 target_link_libraries(AnandCraft ${SDL2_LIBRARY} GLEW::GLEW ${GLM_LIBRARIES})

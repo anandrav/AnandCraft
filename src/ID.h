@@ -2,4 +2,4 @@
 
 #include "cstdlib"
 
-using ID_t = uint64_t;
+using ID_t = u_int64_t;

@@ -17,7 +17,7 @@ make
 ./AnandCraft
 ```
 
-## Build on Linux
+## Build on Debian/Ubuntu
 ```
 sudo apt install cmake
 sudo apt install libsdl2-dev

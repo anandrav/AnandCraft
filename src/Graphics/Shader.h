@@ -67,7 +67,7 @@ private:
             vertex_code = v_shader_stream.str();
             fragment_code = f_shader_stream.str();
         }
-        catch (std::ifstream::failure e) {
+        catch (std::ifstream::failure& e) {
             std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
         }
         const char* v_shader_code = vertex_code.c_str();

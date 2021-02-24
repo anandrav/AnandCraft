@@ -7,6 +7,7 @@
 #include <memory>
 #include <typeindex>
 #include <string>
+#include <stdexcept>
 
 class EventDispatcher {
 public:

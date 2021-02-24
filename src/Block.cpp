@@ -246,12 +246,13 @@ vector<Vertex> BlockData::get_face_vertices(CubeFace face) const
             return { v001, v011, v101, v111 };
         }
         }
+        break;
     default:
         assert(false);
         // prevent compiler error
         return {};
     }
-
+    return {};
 }
 
 vector<unsigned int> BlockData::get_face_indices(CubeFace face) const

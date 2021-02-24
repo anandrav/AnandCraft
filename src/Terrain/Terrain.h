@@ -16,6 +16,7 @@ Terrain is procedurally generated/loaded in chunks.
 #include <unordered_map>
 #include <list>
 #include <memory>
+#include <stack>
 
 class Terrain : public Entity {
 public:

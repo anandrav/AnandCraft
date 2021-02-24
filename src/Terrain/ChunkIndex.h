@@ -5,6 +5,7 @@
 
 #include "ChunkWidth.h"
 #include "BlockCoords.h"
+#include <tuple>
 
 struct ChunkIndex {
     // initialize with zeroes
