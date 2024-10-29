@@ -188,8 +188,8 @@ void Chunk::mesh_job()
 
     read_lock.unlock(); // this prevents a deadlock
     g_game->get_sync_queue().push(
-        [this, ov = move(opaque_vertices), oi = move(opaque_indices), 
-         tv = move(transparent_vertices), ti = move(transparent_indices)]
+        [this, ov = std::move(opaque_vertices), oi = std::move(opaque_indices), 
+         tv = std::move(transparent_vertices), ti = std::move(transparent_indices)]
     {
         unique_lock<shared_mutex> write_lock(mut);
         assert(active);

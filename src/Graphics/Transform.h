@@ -1,6 +1,7 @@
 #ifndef TRANSFORM_H
 #define TRANSFORM_H
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -57,7 +58,7 @@ public:
     {
         glm::quat rotation = glm::angleAxis(angle, axis);
         orientation = rotation * orientation;
-        glm::normalize(orientation);
+        orientation = glm::normalize(orientation);
     }
 
     void scale(glm::vec3 scale) 
